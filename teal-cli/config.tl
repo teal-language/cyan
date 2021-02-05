@@ -57,7 +57,7 @@ end
 ---@return {string} warnings about entries in c
 function config.is_config(c: any): Config, {string}, {string}
    if type(c) ~= "table" then
-      return nil, {"Expected table, got " .. type(c)}
+      return nil, {"Expected table, got " .. type(c)}, {}
    end
 
    local valid_keys <const>: {string:string|{string:boolean}} = {
@@ -128,15 +128,15 @@ end
 function config.load(path_to_file: string): Config, {string}, {string}
    local b, ferr = sandbox.from_file(path_to_file, _G)
    if not b then
-      return nil, {ferr}
+      return nil, {ferr}, {}
    end
    local ok, err = b:run()
    if not ok then
-      return nil, {err}
+      return nil, {err}, {}
    end
    local maybe_config = b:result()
-   if not maybe_config then
-      return nil, {"file returned nothing"}
+   if maybe_config then
+      return nil, {"file returned nothing"}, {}
    end
 
    return config.is_config(maybe_config)

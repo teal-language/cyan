@@ -52,7 +52,7 @@ parser:flag("-q --quiet", "Do not print information messages to stdout. Errors m
 parser:command_target("command")
 
 require("teal-cli.commands.check-gen")
-
+require("teal-cli.commands.run")
 
 
 command.register_all(parser)

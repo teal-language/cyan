@@ -2,6 +2,7 @@
 -- Common things needed by most commands in addition to
 -- wrappers around the tl api, since it isn't super stable
 
+local config <const> = require("teal-cli.config")
 local fs <const> = require("teal-cli.fs")
 local log <const> = require("teal-cli.log")
 local util <const> = require("teal-cli.util")
@@ -153,6 +154,34 @@ end
 local pretty_print_ast <const> = tl.pretty_print_ast as function(Node): string
 function common.compile_ast(ast: Node): string
    return pretty_print_ast(ast)
+end
+
+function common.load_config_report_errs(path: string): config.Config
+   local c <const>, errs <const>, warnings <const> = config.load(path)
+   if #warnings > 0 then
+      log.warn("in", tostring(path) .. "\n", table.concat(warnings, "\n"))
+      return nil
+   end
+   if not c then
+      if not errs[1]:match("No such file or directory$") then
+         log.err("Error loading config from", tostring(path) .. "\n", table.unpack(errs))
+      end
+      return nil
+   end
+   return c
+end
+
+function common.type_check_and_load_file(path: string): function, string
+   local result <const>, err <const> = tl.process(path)
+   if not common.report_result(path, result) then
+      return nil
+   end
+   return load(
+      pretty_print_ast(result.ast),
+      path,
+      "t",
+      _G as table
+   )
 end
 
 return common

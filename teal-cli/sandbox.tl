@@ -31,7 +31,7 @@ function Sandbox:run(max_instructions: number): boolean, string
       self._result = res
       return true
    else
-      return false, res[2] as string
+      return false, res[2] as string .. "\n" .. debug.traceback(t)
    end
 end
 
