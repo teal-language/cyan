@@ -59,7 +59,7 @@ local log <const>: {string:function(...: any)} = {}
 
 log.debug = logfn(
    io.stderr,
-   cs.new():append_ansi_esc(31,5,1):append("DEBUG", 0) as string,
+   cs.new():append_ansi_esc(31,1):append("DEBUG", 0) as string,
    cs.new(31, "...", 0) as string,
    inspect
 )

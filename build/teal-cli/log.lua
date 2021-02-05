@@ -59,7 +59,7 @@ local log = {}
 
 log.debug = logfn(
 io.stderr,
-cs.new():append_ansi_esc(31, 5, 1):append("DEBUG", 0),
+cs.new():append_ansi_esc(31, 1):append("DEBUG", 0),
 cs.new(31, "...", 0),
 inspect)
 

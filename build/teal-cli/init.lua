@@ -4,8 +4,6 @@ local command = require("teal-cli.command")
 local common = require("teal-cli.tlcommon")
 local log = require("teal-cli.log")
 
-_G["print"] = log.debug
-
 local parser = argparse("tl", "Teal, a minimalistic typed dialect of Lua.")
 
 local function forward_arg(fn)

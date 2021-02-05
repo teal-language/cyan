@@ -53,7 +53,6 @@ local function run(): number
 
    local chunk <const>, err <const> = common.type_check_and_load_file(arg_list[1])
    if not chunk then
-      print(chunk, err)
       return 1
    end
 
@@ -61,6 +60,7 @@ local function run(): number
    local box <const> = sandbox.new(function()
       chunk(table.unpack(arg))
    end)
+
    local ok, err = box:run(1e9)
    if ok then
       return 0

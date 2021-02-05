@@ -4,8 +4,6 @@ local command <const> = require("teal-cli.command")
 local common <const> = require("teal-cli.tlcommon")
 local log <const> = require("teal-cli.log")
 
-_G["print"] = log.debug
-
 local parser <const> = argparse("tl", "Teal, a minimalistic typed dialect of Lua.")
 
 local function forward_arg(fn: function(string | boolean | {string})): argparse.ActionCallback
