@@ -34,7 +34,6 @@ end
 local function command_exec(should_compile)
    return function()
       local loaded_config, conferr = config.load("tlconfig.lua")
-      print(conferr)
       if conferr and not conferr[1]:match("No such file or directory$") then
          log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
          return 1

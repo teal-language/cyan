@@ -51,9 +51,30 @@ function sandbox.from_file(path: string, env: {string:any}): Sandbox, string
    -- TODO: Can compat53 do some of this for us?
    if setfenv then
       chunk, err = loadfile(path)
-      setfenv(chunk, env)
+      if chunk then
+         setfenv(chunk, env)
+      end
    else
       chunk, err = loadfile(path, "t", env)
+   end
+
+   if not chunk then
+      return nil, err
+   end
+
+   return sandbox.new(chunk)
+end
+
+global loadstring: function(string, string): function, string
+function sandbox.from_string(s: string, chunkname: string, env: {string:any}): Sandbox, string
+   local chunk, err: function, string
+   if loadstring then
+      chunk, err = loadstring(s, chunkname)
+      if chunk then
+         setfenv(chunk, env)
+      end
+   else
+      chunk, err = load(s, chunkname, "t", env)
    end
 
    if not chunk then

@@ -7,8 +7,7 @@ describe("sandbox", function()
          while true do
          end
       end)
-      box:run(100)
+      assert.falsy(box:run(100))
       assert(true)
    end)
-   pending("should load a given file with the given environment")
 end)
