@@ -2,6 +2,7 @@
 -- Common things needed by most commands in addition to
 -- wrappers around the tl api, since it isn't super stable
 
+local command <const> = require("teal-cli.command")
 local config <const> = require("teal-cli.config")
 local fs <const> = require("teal-cli.fs")
 local log <const> = require("teal-cli.log")
@@ -9,7 +10,7 @@ local util <const> = require("teal-cli.util")
 local cs <const> = require("teal-cli.colorstring")
 local tl <const> = require("tl")
 
-local map <const>, filter <const> = util.tab.map, util.tab.filter
+local map <const>, filter <const>, ivalues <const> = util.tab.map, util.tab.filter, util.tab.ivalues
 
 -- tl.Node is not exposed :((((((((((
 local type Node = any -- tl.Node
@@ -157,8 +158,8 @@ function common.compile_ast(ast: Node): string
    return pretty_print_ast(ast)
 end
 
-function common.load_config_report_errs(path: string): config.Config
-   local c <const>, errs <const>, warnings <const> = config.load(path)
+function common.load_config_report_errs(path: string, args: command.Command.Args): config.Config
+   local c <const>, errs <const>, warnings <const> = config.load_with_args(path, args)
    if #warnings > 0 then
       log.warn("in", tostring(path) .. "\n", table.concat(warnings, "\n"))
       return nil
@@ -172,8 +173,8 @@ function common.load_config_report_errs(path: string): config.Config
    return c
 end
 
-function common.type_check_and_load_file(path: string): function, string
-   local result <const>, err <const> = tl.process(path)
+function common.type_check_and_load_file(path: string, env: tl.Env): function, string
+   local result <const>, err <const> = tl.process(path, env)
    if not common.report_result(path, result) then
       return nil
    end
@@ -193,6 +194,54 @@ function common.search_module(name: string, search_dtl: boolean): fs.Path
       found_modules[name] = fs.path.new(found)
    end
    return found_modules[name]
+end
+
+function common.load_module_into_env(mod_name: string, env: tl.Env)
+   tl.require_module(mod_name, false, env)
+end
+
+function common.prepend_to_lua_path(path_str: string)
+   if path_str:sub(-1) == fs.path.separator then
+      path_str = path_str:sub(1, -2)
+   end
+
+   path_str = path_str .. fs.path.separator
+
+   package.path = path_str .. "?.lua;"
+      .. path_str .. "?/init.lua;"
+      .. package.path
+
+   package.cpath = path_str .. "?." .. fs.path.shared_lib_ext .. ";"
+      .. package.cpath
+end
+
+function common.apply_config_to_environment(cfg: config.Config, tl_env: tl.Env): tl.Env
+   local env = tl_env or common.init_teal_env(cfg.gen_compat, cfg.gen_target)
+
+   for dir in ivalues(cfg.include_dir or {}) do
+      common.prepend_to_lua_path(dir)
+   end
+
+   for module in ivalues(cfg.preload_modules or {}) do
+      common.load_module_into_env(module, env)
+   end
+
+   return env
+end
+
+function common.load_and_init_env(require_config: boolean, path_to_file: string, args: command.Command.Args, env: tl.Env): boolean, config.Config, tl.Env
+   local cfg = common.load_config_report_errs(path_to_file)
+   if not cfg then
+      if require_config then
+         return false
+      else
+         cfg = {}
+      end
+   end
+
+   config.merge_with_args(cfg, args)
+   env = common.apply_config_to_environment(cfg, env)
+   return true, cfg, env
 end
 
 return common

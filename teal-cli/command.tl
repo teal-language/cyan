@@ -2,7 +2,6 @@
 -- Common interface for commands to implement
 
 local tl <const> = require("tl")
-local config <const> = require("teal-cli.config")
 local argparse <const> = require("argparse")
 
 local record Command
@@ -15,6 +14,7 @@ local record Command
       gen_compat: tl.CompatMode
       gen_target: tl.TargetMode
       quiet: boolean
+      preload_modules: {string}
 
       -- These should be in some sort of subtype/interface made by the check and run commands
       files: {string}

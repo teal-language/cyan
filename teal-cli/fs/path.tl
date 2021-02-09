@@ -21,6 +21,7 @@ local PathMt <const>: metatable<Path> = {
 local path <const> = {
    Path = Path,
    separator = package.config:sub(1, 1),
+   shared_lib_ext = package.cpath:match("(%.%w+)%s*$") or ".so"
 }
 
 -- Basically the constructor for a 'raw' Path,

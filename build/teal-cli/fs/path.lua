@@ -21,6 +21,7 @@ local PathMt = {
 local path = {
    Path = Path,
    separator = package.config:sub(1, 1),
+   shared_lib_ext = package.cpath:match("(%.%w+)%s*$") or ".so",
 }
 
 

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io
 
 
 
@@ -12,6 +12,8 @@ local log = require("teal-cli.log")
 local fs = require("teal-cli.fs")
 local util = require("teal-cli.util")
 local config = require("teal-cli.config")
+
+local ivalues = util.tab.ivalues
 
 local files = {}
 local function add_to_argparser(cmd)
@@ -30,18 +32,13 @@ end
 
 local function command_exec(should_compile)
    return function(args)
-      local loaded_config, conferr = config.load("tlconfig.lua")
-      if conferr and not conferr[1]:match("No such file or directory$") then
-         log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
-         return 1
-      end
+      local _, loaded_config, env = common.load_and_init_env(false, "tlconfig.lua", args)
 
       local files = args.files
 
-      local env = common.init_teal_env()
       local exit = 0
 
-      for _, path in ipairs(files) do
+      for path in ivalues(files) do
          local disp_file = cs.new(cs.colors.file, path, 0)
          local parsed, perr = common.parse_file(path)
          if perr then
@@ -56,9 +53,6 @@ local function command_exec(should_compile)
                filename = path,
                env = env,
                result = result,
-
-               gen_target = loaded_config and loaded_config.gen_target,
-               gen_compat = loaded_config and loaded_config.gen_compat,
             })
             if not common.report_result(path, result) then
                exit = 1

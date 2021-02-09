@@ -27,9 +27,10 @@ function tab.values<K, V>(t: {K:V}): function(): V
 end
 
 function tab.ivalues<V>(t: {any:V}): function(): V
-   local iter = ipairs(t as {V})
+   local i = 0
    return function(): V
-      return select(2, iter()) as V
+      i = i + 1
+      return t[i]
    end
 end
 

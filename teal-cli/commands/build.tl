@@ -12,6 +12,8 @@ local graph <const> = require("teal-cli.graph")
 local log <const> = require("teal-cli.log")
 local util <const> = require("teal-cli.util")
 
+local ivalues <const> = util.tab.ivalues
+
 local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
    if not p:exists() then
       log.err(string.format("%s %q does not exist", prefix, p:to_real_path()))
@@ -30,9 +32,9 @@ local function build(args: command.Command.Args): number
       return 1
    end
 
-   local loaded_config <const>, conferr <const> = config.load("tlconfig.lua")
-   if conferr and not conferr[1]:match("No such file or directory$") then
-      log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
+   local loaded_config <const>, conferr <const> = config.load_with_args(config_path:to_real_path(), args)
+   local ok <const>, loaded_config <const>, env <const> = common.load_and_init_env(true, config_path:to_real_path(), args)
+   if not ok then
       return 1
    end
 
@@ -57,6 +59,8 @@ local function build(args: command.Command.Args): number
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude or {}
 
+   local env <const> = common.apply_config_to_environment(loaded_config)
+
    local dag <const> = graph.scan_dir(source_dir, include, exclude)
 
    local function get_output_name(src: fs.Path): fs.Path
@@ -78,10 +82,6 @@ local function build(args: command.Command.Args): number
    end
 
    dag:mark_each(source_is_newer)
-
-   local env <const> = common.init_teal_env(loaded_config.gen_compat, loaded_config.gen_target)
-
-   -- TODO: preload modules and add to include paths before scanning dir
 
    local exit = 0
    for n in dag:marked_nodes("typecheck") do
@@ -131,7 +131,7 @@ local function build(args: command.Command.Args): number
    end
 
    if exit == 0 then
-      for _, node_ast in ipairs(to_write) do
+      for node_ast in ivalues(to_write) do
          local n <const>, ast <const> = node_ast[1], node_ast[2]
          local fh <const>, err <const> = io.open(n.output:to_real_path(), "w")
          if not fh then

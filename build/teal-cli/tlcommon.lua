@@ -1,7 +1,8 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
+local command = require("teal-cli.command")
 local config = require("teal-cli.config")
 local fs = require("teal-cli.fs")
 local log = require("teal-cli.log")
@@ -9,7 +10,7 @@ local util = require("teal-cli.util")
 local cs = require("teal-cli.colorstring")
 local tl = require("tl")
 
-local map, filter = util.tab.map, util.tab.filter
+local map, filter, ivalues = util.tab.map, util.tab.filter, util.tab.ivalues
 
 
 local Node = {}
@@ -157,8 +158,8 @@ function common.compile_ast(ast)
    return pretty_print_ast(ast)
 end
 
-function common.load_config_report_errs(path)
-   local c, errs, warnings = config.load(path)
+function common.load_config_report_errs(path, args)
+   local c, errs, warnings = config.load_with_args(path, args)
    if #warnings > 0 then
       log.warn("in", tostring(path) .. "\n", table.concat(warnings, "\n"))
       return nil
@@ -172,8 +173,8 @@ function common.load_config_report_errs(path)
    return c
 end
 
-function common.type_check_and_load_file(path)
-   local result, err = tl.process(path)
+function common.type_check_and_load_file(path, env)
+   local result, err = tl.process(path, env)
    if not common.report_result(path, result) then
       return nil
    end
@@ -193,6 +194,54 @@ function common.search_module(name, search_dtl)
       found_modules[name] = fs.path.new(found)
    end
    return found_modules[name]
+end
+
+function common.load_module_into_env(mod_name, env)
+   tl.require_module(mod_name, false, env)
+end
+
+function common.prepend_to_lua_path(path_str)
+   if path_str:sub(-1) == fs.path.separator then
+      path_str = path_str:sub(1, -2)
+   end
+
+   path_str = path_str .. fs.path.separator
+
+   package.path = path_str .. "?.lua;" ..
+   path_str .. "?/init.lua;" ..
+   package.path
+
+   package.cpath = path_str .. "?." .. fs.path.shared_lib_ext .. ";" ..
+   package.cpath
+end
+
+function common.apply_config_to_environment(cfg, tl_env)
+   local env = tl_env or common.init_teal_env(cfg.gen_compat, cfg.gen_target)
+
+   for dir in ivalues(cfg.include_dir or {}) do
+      common.prepend_to_lua_path(dir)
+   end
+
+   for module in ivalues(cfg.preload_modules or {}) do
+      common.load_module_into_env(module, env)
+   end
+
+   return env
+end
+
+function common.load_and_init_env(require_config, path_to_file, args, env)
+   local cfg = common.load_config_report_errs(path_to_file)
+   if not cfg then
+      if require_config then
+         return false
+      else
+         cfg = {}
+      end
+   end
+
+   config.merge_with_args(cfg, args)
+   env = common.apply_config_to_environment(cfg, env)
+   return true, cfg, env
 end
 
 return common

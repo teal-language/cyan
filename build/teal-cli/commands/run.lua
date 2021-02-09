@@ -12,7 +12,7 @@ local function add_to_argparser(cmd)
 end
 
 local function run(args)
-   local _cfg = common.load_config_report_errs("tlconfig.lua")
+   local _, cfg, env = common.load_and_init_env(false, "tlconfig.lua", args)
 
    local arg_list = args["script"]
 
@@ -46,7 +46,7 @@ local function run(args)
       n = n + 1
    end
 
-   local chunk, err = common.type_check_and_load_file(arg_list[1])
+   local chunk, err = common.type_check_and_load_file(arg_list[1], env)
    if not chunk then
       return 1
    end

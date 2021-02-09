@@ -4,10 +4,12 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local tl = require("tl")
 local sandbox = require("teal-cli.sandbox")
 local util = require("teal-cli.util")
+local command = require("teal-cli.command")
 
 local keys, sort, from = util.tab.keys, util.tab.sort, util.tab.from
 
 local Config = {}
+
 
 
 
@@ -140,6 +142,38 @@ function config.load(path_to_file)
    end
 
    return config.is_config(maybe_config)
+end
+
+local function merge_list(a, b)
+   for i, v in ipairs(b) do
+      table.insert(a, v)
+   end
+end
+
+function config.merge_with_args(cfg, args)
+   cfg.include_dir = cfg.include_dir or {}
+   merge_list(cfg.include_dir, args.include_dir)
+
+   cfg.disable_warnings = cfg.disable_warnings or {}
+   merge_list(cfg.disable_warnings, args.wdisable)
+
+   cfg.warning_errors = cfg.warning_errors or {}
+   merge_list(cfg.warning_errors, args.werror)
+
+   cfg.preload_modules = cfg.preload_modules or {}
+   merge_list(cfg.preload_modules, args.preload)
+
+   cfg.gen_compat = args.gen_compat or cfg.gen_compat
+   cfg.gen_target = args.gen_target or cfg.gen_target
+end
+
+function config.load_with_args(path_to_file, args)
+   local cfg, err, warnings = config.load(path_to_file)
+   if not cfg then
+      return nil, err, {}
+   end
+   config.merge_with_args(cfg, args)
+   return cfg, nil, warnings
 end
 
 return config

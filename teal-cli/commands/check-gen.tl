@@ -13,6 +13,8 @@ local fs <const> = require("teal-cli.fs")
 local util <const> = require("teal-cli.util")
 local config <const> = require("teal-cli.config")
 
+local ivalues <const> = util.tab.ivalues
+
 local files: {string} = {}
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("files", "The Teal source files to process.")
@@ -30,18 +32,13 @@ end
 
 local function command_exec(should_compile: boolean): function(command.Command.Args): number
    return function(args: command.Command.Args): number
-      local loaded_config <const>, conferr <const> = config.load("tlconfig.lua")
-      if conferr and not conferr[1]:match("No such file or directory$") then
-         log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
-         return 1
-      end
+      local _, loaded_config <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
 
       local files <const> = args.files
 
-      local env <const> = common.init_teal_env()
       local exit = 0
 
-      for _, path in ipairs(files) do
+      for path in ivalues(files) do
          local disp_file <const> = cs.new(cs.colors.file, path, 0)
          local parsed <const>, perr <const> = common.parse_file(path)
          if perr then
@@ -56,9 +53,6 @@ local function command_exec(should_compile: boolean): function(command.Command.A
                filename = path,
                env = env,
                result = result,
-
-               gen_target = loaded_config and loaded_config.gen_target,
-               gen_compat = loaded_config and loaded_config.gen_compat,
             })
             if not common.report_result(path, result) then
                exit = 1

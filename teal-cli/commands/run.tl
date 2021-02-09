@@ -12,7 +12,7 @@ local function add_to_argparser(cmd: argparse.Command)
 end
 
 local function run(args: command.Command.Args): number
-   local _cfg <const> = common.load_config_report_errs("tlconfig.lua")
+   local _, cfg <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
 
    local arg_list <const> = args["script"] as {string}
    -- collect all non-arguments including negative arg values
@@ -46,7 +46,7 @@ local function run(args: command.Command.Args): number
       n = n + 1
    end
 
-   local chunk <const>, err <const> = common.type_check_and_load_file(arg_list[1])
+   local chunk <const>, err <const> = common.type_check_and_load_file(arg_list[1], env)
    if not chunk then
       return 1
    end

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local tl = require("tl")
 local argparse = require("argparse")
 local lfs = require("lfs")
@@ -11,6 +11,8 @@ local fs = require("teal-cli.fs")
 local graph = require("teal-cli.graph")
 local log = require("teal-cli.log")
 local util = require("teal-cli.util")
+
+local ivalues = util.tab.ivalues
 
 local function exists_and_is_dir(prefix, p)
    if not p:exists() then
@@ -30,9 +32,9 @@ local function build(args)
       return 1
    end
 
-   local loaded_config, conferr = config.load("tlconfig.lua")
-   if conferr and not conferr[1]:match("No such file or directory$") then
-      log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
+   local loaded_config, conferr = config.load_with_args(config_path:to_real_path(), args)
+   local ok, loaded_config, env = common.load_and_init_env(true, config_path:to_real_path(), args)
+   if not ok then
       return 1
    end
 
@@ -57,6 +59,8 @@ local function build(args)
    local include = loaded_config.include or {}
    local exclude = loaded_config.exclude or {}
 
+   local env = common.apply_config_to_environment(loaded_config)
+
    local dag = graph.scan_dir(source_dir, include, exclude)
 
    local function get_output_name(src)
@@ -78,10 +82,6 @@ local function build(args)
    end
 
    dag:mark_each(source_is_newer)
-
-   local env = common.init_teal_env(loaded_config.gen_compat, loaded_config.gen_target)
-
-
 
    local exit = 0
    for n in dag:marked_nodes("typecheck") do
@@ -131,7 +131,7 @@ local function build(args)
    end
 
    if exit == 0 then
-      for _, node_ast in ipairs(to_write) do
+      for node_ast in ivalues(to_write) do
          local n, ast = node_ast[1], node_ast[2]
          local fh, err = io.open(n.output:to_real_path(), "w")
          if not fh then

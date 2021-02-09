@@ -4,6 +4,7 @@
 local tl <const> = require("tl")
 local sandbox <const> = require("teal-cli.sandbox")
 local util <const> = require("teal-cli.util")
+local command <const> = require("teal-cli.command")
 
 local keys <const>, sort <const>, from <const> = util.tab.keys, util.tab.sort, util.tab.from
 
@@ -14,6 +15,7 @@ local record Config
    include: {string}
    exclude: {string}
    preload_modules: {string}
+   include_dir: {string}
    enum GenCompat
       "off"
       "optional"
@@ -140,6 +142,38 @@ function config.load(path_to_file: string): Config, {string}, {string}
    end
 
    return config.is_config(maybe_config)
+end
+
+local function merge_list<T>(a: {T}, b: {T})
+   for i, v in ipairs(b) do
+      table.insert(a, v)
+   end
+end
+
+function config.merge_with_args(cfg: Config, args: command.Command.Args)
+   cfg.include_dir = cfg.include_dir or {}
+   merge_list(cfg.include_dir, args.include_dir)
+
+   cfg.disable_warnings = cfg.disable_warnings or {}
+   merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
+
+   cfg.warning_errors = cfg.warning_errors or {}
+   merge_list(cfg.warning_errors, args.werror as {tl.WarningKind})
+
+   cfg.preload_modules = cfg.preload_modules or {}
+   merge_list(cfg.preload_modules, args.preload)
+
+   cfg.gen_compat = args.gen_compat or cfg.gen_compat
+   cfg.gen_target = args.gen_target or cfg.gen_target
+end
+
+function config.load_with_args(path_to_file: string, args: command.Command.Args): Config, {string}, {string}
+   local cfg <const>, err <const>, warnings <const> = config.load(path_to_file)
+   if not cfg then
+      return nil, err, {}
+   end
+   config.merge_with_args(cfg, args)
+   return cfg, nil, warnings
 end
 
 return config
