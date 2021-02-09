@@ -32,7 +32,6 @@ local function build(args)
       return 1
    end
 
-   local loaded_config, conferr = config.load_with_args(config_path:to_real_path(), args)
    local ok, loaded_config, env = common.load_and_init_env(true, config_path:to_real_path(), args)
    if not ok then
       return 1
@@ -58,8 +57,6 @@ local function build(args)
 
    local include = loaded_config.include or {}
    local exclude = loaded_config.exclude or {}
-
-   local env = common.apply_config_to_environment(loaded_config)
 
    local dag = graph.scan_dir(source_dir, include, exclude)
 
@@ -97,7 +94,7 @@ local function build(args)
          if not common.report_result(path, result) then
             exit = 1
          else
-            log.info("Type checked", cs.new(cs.colors.file, path, 0))
+            log.info("Type checked", cs.new(cs.colors.file, n.input:tostring(), 0))
          end
       else
          exit = 1
@@ -121,7 +118,7 @@ local function build(args)
             if not common.report_result(path, result) then
                exit = 1
             else
-               log.info("Type checked", cs.new(cs.colors.file, path, 0))
+               log.info("Type checked", cs.new(cs.colors.file, n.input:tostring(), 0))
                table.insert(to_write, { n, parsed.ast })
             end
          else
@@ -139,7 +136,7 @@ local function build(args)
          else
             fh:write(common.compile_ast(ast))
             fh:close()
-            log.info("Wrote", cs.new(cs.colors.file, n.output:to_real_path(), 0))
+            log.info("Wrote", cs.new(cs.colors.file, n.output:tostring(), 0))
          end
       end
    end

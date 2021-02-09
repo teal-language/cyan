@@ -82,20 +82,23 @@ local graph = {
 function graph.scan_dir(dir, include, exclude)
    local nodes = {}
    for p in fs.scan_dir(dir, include, exclude) do
-      local full_p = dir .. p
-      local path = full_p:to_real_path()
-      local res = common.parse_file(path)
-      if res then
-         local require_calls = res.reqs
-         local modules = {}
-         for _, mod_name in ipairs(require_calls) do
-            modules[mod_name] = common.search_module(mod_name, true)
+      local _, ext = fs.extension_split(p)
+      if ext == ".tl" then
+         local full_p = dir .. p
+         local path = full_p:to_real_path()
+         local res = common.parse_file(path)
+         if res then
+            local require_calls = res.reqs
+            local modules = {}
+            for _, mod_name in ipairs(require_calls) do
+               modules[mod_name] = common.search_module(mod_name, true)
+            end
+            nodes[path] = {
+               input = full_p,
+               modules = modules,
+               dependents = {},
+            }
          end
-         nodes[path] = {
-            input = full_p,
-            modules = modules,
-            dependents = {},
-         }
       end
    end
 

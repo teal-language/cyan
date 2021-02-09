@@ -11,6 +11,7 @@ describe("gen command", function()
          },
          cmd_output_match = "Error",
          generated_files = {},
+         exit_code = 1,
       })
    end)
 
@@ -26,6 +27,7 @@ describe("gen command", function()
             [1] = "Type checked .*foo%.tl",
             [2] = "Wrote .*foo%.lua",
          },
+         exit_code = 0,
       })
    end)
 end)

@@ -10,6 +10,7 @@ describe("run command", function()
             ["foo.tl"] = [[print("hello world")]],
          },
          cmd_output = "hello world\n",
+         exit_code = 0,
       })
    end)
 
@@ -21,6 +22,7 @@ describe("run command", function()
             ["foo.tl"] = [[local _x: string = 10]],
          },
          cmd_output_match = "Error.*in local declaration",
+         exit_code = 1,
       })
    end)
 
@@ -32,6 +34,7 @@ describe("run command", function()
             ["foo.tl"] = [[error("hi")]],
          },
          cmd_output_match = "Error in script",
+         exit_code = 1,
       })
    end)
 
@@ -43,7 +46,8 @@ describe("run command", function()
             ["foo.tl"] = [[print(require("bar"))]],
             ["bar.tl"] = [[return "hi"]],
          },
-         cmd_output = "hi\n"
+         cmd_output = "hi\n",
+         exit_code = 0,
       })
    end)
 end)

@@ -255,7 +255,8 @@ function util.run_mock_project(finally, t, use_folder)
    assert(type(finally) == "function")
    assert(type(t) == "table")
    assert(type(t.cmd) == "string", "tl <cmd> not given")
-   assert(valid_commands[t.cmd], "Invalid command tl " .. t.cmd)
+   assert(valid_commands[t.cmd], "Invalid command tl " .. tostring(t.cmd))
+   assert(type(t.exit_code) == "number", "missing exit_code")
 
    local actual_dir_name = use_folder or util.write_tmp_dir(finally, t.dir_structure)
    local expected_dir_structure
@@ -276,17 +277,12 @@ function util.run_mock_project(finally, t, use_folder)
    end)
 
    local batch = Batch:new("mock project")
-   if t.popen then
-      batch:add(
-         util.assert_popen_close,
-         t.popen.status,
-         t.popen.exit,
-         t.popen.code,
-         pd:close()
-      )
-   end
+   local _status, _exit, code = pd:close()
+   local show_output = "Full output: " .. actual_output
+   batch:add(assert.are.equal, t.exit_code, code)
+
    if t.cmd_output_match then
-      batch:add(assert.match, t.cmd_output_match, actual_output)
+      batch:add(assert.match, t.cmd_output_match, actual_output, show_output)
    end
    if t.cmd_output then
       batch:add(assert.are.equal, t.cmd_output, actual_output)
@@ -296,7 +292,7 @@ function util.run_mock_project(finally, t, use_folder)
       for ln in actual_output:gmatch("[^\n]*") do
          i = i + 1
          if t.cmd_output_match_lines[i] then
-            batch:add(assert.match, t.cmd_output_match_lines[i], ln, 1, false, "Line " .. i .. " of output didn't match")
+            batch:add(assert.match, t.cmd_output_match_lines[i], ln, 1, false, "Line " .. i .. " of output didn't match", show_output)
          end
       end
    end

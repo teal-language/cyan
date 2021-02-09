@@ -159,6 +159,7 @@ function common.compile_ast(ast: Node): string
 end
 
 function common.load_config_report_errs(path: string, args: command.Command.Args): config.Config
+   -- reports errors in the actual config, not if the config wasn't found
    local c <const>, errs <const>, warnings <const> = config.load_with_args(path, args)
    if #warnings > 0 then
       log.warn("in", tostring(path) .. "\n", table.concat(warnings, "\n"))

@@ -61,10 +61,11 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
    return coroutine.wrap(function() dir_iter(dir) end) as function(): Path
 end
 
-function fs.extension_split(path: string, ndots: number): string, string
+function fs.extension_split(p: Path | string, ndots: number): string, string
    if not path then
       return nil
    end
+   local path <const> = p is string and p or p:to_real_path()
    for n = ndots or 1, 1, -1 do
       local patt <const> = "^(.-)(" .. ("%.%a+"):rep(n) .. ")$"
       local base <const>, ext = path:match(patt)

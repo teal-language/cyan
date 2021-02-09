@@ -82,20 +82,23 @@ local graph <const> = {
 function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
    local nodes <const>: {string:Node} = {}
    for p in fs.scan_dir(dir, include, exclude) do
-      local full_p <const> = dir .. p
-      local path <const> = full_p:to_real_path()
-      local res <const> = common.parse_file(path)
-      if res then
-         local require_calls <const> = res.reqs
-         local modules <const>: {string:fs.Path} = {}
-         for _, mod_name in ipairs(require_calls) do
-            modules[mod_name] = common.search_module(mod_name, true)
+      local _, ext = fs.extension_split(p)
+      if ext == ".tl" then
+         local full_p <const> = dir .. p
+         local path <const> = full_p:to_real_path()
+         local res <const> = common.parse_file(path)
+         if res then
+            local require_calls <const> = res.reqs
+            local modules <const>: {string:fs.Path} = {}
+            for _, mod_name in ipairs(require_calls) do
+               modules[mod_name] = common.search_module(mod_name, true)
+            end
+            nodes[path] = {
+               input = full_p,
+               modules = modules,
+               dependents = {},
+            }
          end
-         nodes[path] = {
-            input = full_p,
-            modules = modules,
-            dependents = {},
-         }
       end
    end
 

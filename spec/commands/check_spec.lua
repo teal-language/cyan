@@ -10,6 +10,7 @@ describe("check command", function()
             ["foo.tl"] = [[local x: number = "hello"]]
          },
          cmd_output_match = "Error",
+         exit_code = 1,
       })
    end)
 
@@ -24,7 +25,8 @@ describe("check command", function()
          cmd_output_match_lines = {
             [1] = "%d.*Error.*foo%.tl",
             [3] = "Type checked.*bar%.tl",
-         }
+         },
+         exit_code = 1,
       })
    end)
 end)

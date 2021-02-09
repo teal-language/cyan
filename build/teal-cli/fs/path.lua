@@ -27,6 +27,7 @@ local path = {
 
 
 local function parse_string_path(s)
+   s = s:gsub(path.separator .. "+$", "")
    local new = {}
    for chunk in split(s, path.separator, true) do
       if chunk == ".." then
@@ -35,7 +36,7 @@ local function parse_string_path(s)
          else
             return nil
          end
-      elseif (#new > 0 and chunk ~= "") or chunk ~= "." then
+      elseif not (#new > 0 and chunk == ".") then
          table.insert(new, chunk)
       end
    end
@@ -76,7 +77,8 @@ function Path:is_absolute()
 end
 
 function Path:tostring()
-   return table.concat(self, "/")
+   local start = self[1] == "." and 2 or 1
+   return table.concat(self, "/", start)
 end
 
 function Path:to_real_path()
@@ -241,6 +243,9 @@ local function get_patt(patt)
 end
 
 local function match(p, path_patt)
+   local path_len = #p
+   local patt_len = #path_patt
+
    local patt_idx = 1
    local path_idx = 1
 
@@ -256,7 +261,7 @@ local function match(p, path_patt)
       return true
    end
 
-   while patt_idx <= #path_patt and path_idx <= #p do
+   while patt_idx <= patt_len and path_idx <= path_len do
       local patt_chunk = path_patt[patt_idx]
       local path_chunk = p[path_idx]
 
@@ -271,8 +276,8 @@ local function match(p, path_patt)
       end
    end
 
-   return patt_idx > #path_patt and
-   path_idx > #p
+   return patt_idx > patt_len and
+   path_idx > path_len
 end
 
 function Path:match(patt)

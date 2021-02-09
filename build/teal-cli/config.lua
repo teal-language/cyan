@@ -145,23 +145,21 @@ function config.load(path_to_file)
 end
 
 local function merge_list(a, b)
+   a = a or {}
+   b = b or {}
    for i, v in ipairs(b) do
       table.insert(a, v)
    end
+   return a
 end
 
 function config.merge_with_args(cfg, args)
-   cfg.include_dir = cfg.include_dir or {}
-   merge_list(cfg.include_dir, args.include_dir)
+   args = args or {}
 
-   cfg.disable_warnings = cfg.disable_warnings or {}
-   merge_list(cfg.disable_warnings, args.wdisable)
-
-   cfg.warning_errors = cfg.warning_errors or {}
-   merge_list(cfg.warning_errors, args.werror)
-
-   cfg.preload_modules = cfg.preload_modules or {}
-   merge_list(cfg.preload_modules, args.preload)
+   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
+   cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
+   cfg.warning_errors = merge_list(cfg.warning_errors, args.werror)
+   cfg.preload_modules = merge_list(cfg.preload_modules, args.preload)
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target
