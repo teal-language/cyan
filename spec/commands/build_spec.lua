@@ -36,6 +36,7 @@ describe("build command", function()
             ["foo.tl"] = [[]],
             ["bar.lua"] = [[]],
             ["baz.py"] = [[]],
+            ["bat.d.tl"] = [[]],
          },
          generated_files = {
             "foo.lua",

@@ -69,7 +69,7 @@ local graph <const> = {
 function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
    local nodes <const>: {string:Node} = {}
    for p in fs.scan_dir(dir, include, exclude) do
-      local _, ext = fs.extension_split(p)
+      local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
          local full_p <const> = dir .. p
          local path <const> = full_p:to_real_path()

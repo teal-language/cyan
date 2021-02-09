@@ -69,7 +69,7 @@ local graph = {
 function graph.scan_dir(dir, include, exclude)
    local nodes = {}
    for p in fs.scan_dir(dir, include, exclude) do
-      local _, ext = fs.extension_split(p)
+      local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
          local full_p = dir .. p
          local path = full_p:to_real_path()
