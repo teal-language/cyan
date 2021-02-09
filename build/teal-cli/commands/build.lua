@@ -36,12 +36,12 @@ local function build(args)
       return 1
    end
 
-   local source_dir = fs.path(loaded_config.source_dir or "./")
+   local source_dir = fs.path.new(loaded_config.source_dir or "./")
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
 
-   local build_dir = fs.path(loaded_config.build_dir or "./")
+   local build_dir = fs.path.new(loaded_config.build_dir or "./")
 
    if not build_dir:exists() then
       local succ, err = build_dir:mkdir()

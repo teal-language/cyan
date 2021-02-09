@@ -190,7 +190,7 @@ function common.search_module(name: string, search_dtl: boolean): fs.Path
    if not found_modules[name] then
       local found, fd = tl.search_module(name, search_dtl)
       if found then fd:close() end
-      found_modules[name] = fs.path(found)
+      found_modules[name] = fs.path.new(found)
    end
    return found_modules[name]
 end

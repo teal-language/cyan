@@ -1,0 +1,96 @@
+
+-- Filesystem and path management
+
+local lfs <const> = require("lfs")
+local path <const> = require("teal-cli.fs.path")
+
+local Path <const> = path.Path
+
+local fs <const> = {
+   path = path,
+   Path = Path,
+}
+
+function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
+   local iter <const>, data <const> = lfs.dir(
+      dir is string and dir or dir:to_real_path()
+   ) as (function(any): (string), any)
+   return function(): Path
+      local p: string
+      repeat p = iter(data)
+      until not p
+         or (include_dotfiles and p ~= "." and p ~= "..")
+         or p:sub(1, 1) ~= "."
+
+      return path.new(p)
+   end
+end
+
+local read_cache <const>: {string:string} = setmetatable({}, { __mode = "k" }) -- TODO: does this even do anything?
+function fs.read(path: string): string, string
+   if not read_cache[path] then
+      local fh <const>, err <const> = io.open(path, "r")
+      if not fh then
+         return nil, err
+      end
+      read_cache[path] = fh:read("*a")
+      fh:close()
+   end
+   return read_cache[path]
+end
+
+function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
+   local function dir_iter(d: string | Path)
+      for p in fs.dir(d) do
+         if p:is_directory() then
+            dir_iter(p)
+         else
+            local inc = true
+            if #include > 0 then
+               inc = p:match_any(include)
+            end
+            if inc and #exclude > 0 then
+               inc = not p:match_any(exclude)
+            end
+            if inc then
+               coroutine.yield(p)
+            end
+         end
+      end
+   end
+   return coroutine.wrap(function() dir_iter(dir) end) as function(): Path
+end
+
+function fs.extension_split(path: string, ndots: number): string, string
+   if not path then
+      return nil
+   end
+   for n = ndots or 1, 1, -1 do
+      local patt <const> = "^(.-)(" .. ("%.%a+"):rep(n) .. ")$"
+      local base <const>, ext = path:match(patt)
+      if ext then
+         ext = ext:lower()
+         return base, ext
+      end
+   end
+   return path
+end
+
+function fs.path_concat(a: string, b: string): string
+   return a .. path.separator .. b
+end
+
+function fs.search_parent_dirs(spath: string, fname: string): Path
+   if lfs.attributes(fs.path_concat(spath, fname)) then
+      return path.new(fs.path_concat(spath, fname))
+   end
+   for p in path.new(spath):ancestors() do
+      local full <const> = p .. fname
+      if full:exists() then
+         return full
+      end
+   end
+end
+
+return fs
+

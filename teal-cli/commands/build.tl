@@ -36,12 +36,12 @@ local function build(args: command.Command.Args): number
       return 1
    end
 
-   local source_dir <const> = fs.path(loaded_config.source_dir or "./")
+   local source_dir <const> = fs.path.new(loaded_config.source_dir or "./")
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
 
-   local build_dir <const> = fs.path(loaded_config.build_dir or "./")
+   local build_dir <const> = fs.path.new(loaded_config.build_dir or "./")
 
    if not build_dir:exists() then
       local succ <const>, err <const> = build_dir:mkdir()

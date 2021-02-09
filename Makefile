@@ -17,7 +17,7 @@ default: $(LUA)
 all: clean default
 
 clean:
-	rm -f build/teal-cli/*.lua
-	rm -f build/teal-cli/*/*.lua
+	rm -rf build
+	mkdir -p build/teal-cli/fs build/teal-cli/commands
 
 .PHONY: clean
