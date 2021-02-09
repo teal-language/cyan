@@ -13,15 +13,21 @@ local record Path
    metamethod __eq: function(Path | string, Path | string): boolean
    -- metamethod __tostring: function(Path): string
 end
-local PathMt <const>: metatable<Path> = { __index = Path }
+local PathMt <const>: metatable<Path> = {
+   __index = Path,
+   __name = "teal-cli.fs.path.Path",
+}
 
-local path_separator <const> = package.config:sub(1, 1)
+local path <const> = {
+   Path = Path,
+   separator = package.config:sub(1, 1),
+}
 
 -- Basically the constructor for a 'raw' Path,
 -- gets the path components, doesn't set the metatable
 local function parse_string_path(s: string): {string}
    local new: {string} = {}
-   for chunk in split(s, path_separator, true) do
+   for chunk in split(s, path.separator, true) do
       if chunk == ".." then
          if #new > 0 then
             table.remove(new)
@@ -35,22 +41,22 @@ local function parse_string_path(s: string): {string}
    return new
 end
 
-local function new(s: string): Path
+function path.new(s: string): Path
    if not s then return nil end
    local new: Path = parse_string_path(s)
    return setmetatable(new, PathMt)
 end
 
 local function string_is_absolute_path(p: string): boolean
-   if path_separator == "/" then
+   if path.separator == "/" then
       return p:sub(1, 1) == "/"
-   elseif path_separator == "\\" then
+   elseif path.separator == "\\" then
       return p:match("^%a:$") as boolean
    end
 end
 
 local function chunks(p: Path | string): function(): string
-   return p is string and split(p, path_separator, true)
+   return p is string and split(p, path.separator, true)
       or values(p as {string})
 end
 
@@ -61,9 +67,9 @@ local function append_to_path(p: Path, other: Path | string)
 end
 
 function Path:is_absolute(): boolean
-   if path_separator == "/" then
+   if path.separator == "/" then
       return self[1] == ""
-   elseif path_separator == "\\" then
+   elseif path.separator == "\\" then
       return self[1]:match("^%a:$") as boolean
    end
 end
@@ -73,7 +79,7 @@ function Path:tostring(): string
 end
 
 function Path:to_real_path(): string
-   return table.concat(self, path_separator)
+   return table.concat(self, path.separator)
 end
 
 function Path:exists(): boolean
@@ -81,7 +87,7 @@ function Path:exists(): boolean
 end
 
 function Path:append(other: string | Path)
-   local p = other is string and new(other) or other if p:is_absolute() then
+   local p = other is string and path.new(other) or other if p:is_absolute() then
       error("Attempt to append absolute path", 2)
    end
    append_to_path(self, p)
@@ -146,7 +152,7 @@ function Path:mkdir(): boolean, string
 end
 
 function Path:remove_leading(p: string | Path)
-   local leading <const> = p is string and new(p) or p
+   local leading <const> = p is string and path.new(p) or p
    if util.xor(leading:is_absolute(), self:is_absolute()) then
       error("Attempt to mix absolute and non-absolute path", 2)
    end
@@ -236,32 +242,36 @@ end
 local function match(p: Path, path_patt: {string}): boolean
    local patt_idx = 1
    local path_idx = 1
+
+   local double_glob_stack <const> = {}
+   local function push_state()
+      table.insert(double_glob_stack, {patt_idx, path_idx})
+   end
+   local function pop_state(): boolean
+      local t <const> = table.remove(double_glob_stack)
+      if not t then return false end
+      patt_idx = t[1]
+      path_idx = t[2] + 1
+      return true
+   end
+
    while patt_idx <= #path_patt and path_idx <= #p do
       local patt_chunk <const> = path_patt[patt_idx]
-      local path_chunk = p[path_idx]
+      local path_chunk <const> = p[path_idx]
 
       if patt_chunk == "**" then
-         local lookahead <const> = path_patt[patt_idx + 1]
-         if not lookahead then
-            return false
-         end
-         while path_idx <= #p do
-            path_idx = path_idx + 1
-            if path_chunk:match(lookahead) then
-               patt_idx = patt_idx + 1
-               break
-            end
-            path_chunk = p[path_idx]
-         end
+         push_state()
          patt_idx = patt_idx + 1
       elseif path_chunk:match(patt_chunk) then
          patt_idx = patt_idx + 1
          path_idx = path_idx + 1
-      else
+      elseif not pop_state() then
          return false
       end
    end
-   return patt_idx >= #path_patt
+
+   return patt_idx > #path_patt
+      and path_idx > #p
 end
 
 function Path:match(patt: string): boolean
@@ -275,13 +285,5 @@ function Path:match_any(patts: {string}): boolean, number, string
       end
    end
 end
-
-local path <const> = {
-   Path = Path,
-   separator = path_separator,
-
-   chunks = chunks,
-   new = new,
-}
 
 return path
