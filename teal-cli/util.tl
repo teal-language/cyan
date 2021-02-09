@@ -50,11 +50,11 @@ function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
    return new
 end
 
-function tab.filter<K, V>(t: {K:V}, pred: function(V): boolean): {K:V}, {K:V}
-   local pass <const>: {K:V} = {}
-   local fail <const>: {K:V} = {}
-   for k, v in pairs(t) do
-      (pred(v) and pass or fail)[k] = v
+function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
+   local pass <const>: {T} = {}
+   local fail <const>: {T} = {}
+   for _, v in ipairs(t) do
+      table.insert(pred(v) and pass or fail, v)
    end
    return pass, fail
 end
