@@ -39,7 +39,7 @@ local function command_exec(should_compile)
          local disp_file = cs.new(cs.colors.file, path, 0)
          local parsed, perr = common.parse_file(path)
          if perr then
-            log.err("Error parsing file", disp_file .. "\n   " .. perr)
+            log.err("Error parsing file ", disp_file .. "\n   " .. perr)
             exit = 1
          elseif #parsed.errs > 0 then
             common.report_errors(log.err, parsed.errs, path, "syntax error")
@@ -54,7 +54,7 @@ local function command_exec(should_compile)
             if not common.report_result(path, result) then
                exit = 1
             else
-               log.info("Type checked", cs.new(cs.colors.file, path, 0))
+               log.info("Type checked ", cs.new(cs.colors.file, path, 0))
                if should_compile then
                   local outfile = get_output_filename(path)
                   local disp_outfile = cs.new(cs.colors.file, outfile, 0)
@@ -62,9 +62,9 @@ local function command_exec(should_compile)
                   if fh then
                      fh:write(common.compile_ast(parsed.ast))
                      fh:close()
-                     log.info("Wrote", disp_outfile)
+                     log.info("Wrote ", disp_outfile)
                   else
-                     log.err("Unable to write to", disp_outfile .. "\n", err)
+                     log.err("Unable to write to ", disp_outfile, "\n", err)
                      exit = 1
                   end
                end

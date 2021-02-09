@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -85,7 +85,7 @@ end
 
 local function prettify_error(e)
    return cs.new(
-   cs.colors.file, e.filename, 0,
+   "   ", cs.colors.file, e.filename, 0,
    " ", cs.colors.number, tostring(e.y), 0,
    ":", cs.colors.number, tostring(e.x), 0,
    " ", e.msg):
@@ -94,9 +94,9 @@ end
 
 function common.report_errors(logfn, errs, file, category)
    logfn(
-   common.make_error_header(file, #errs, category) ..
-   "\n   " ..
-   table.concat(map(errs, prettify_error), "\n   "))
+   common.make_error_header(file, #errs, category),
+   "\n   ",
+   table.concat(map(errs, prettify_error), "\n"))
 
 end
 
@@ -130,25 +130,6 @@ function common.report_result(file, r)
    report(log.err, r.unknowns, "unknown")
 end
 
-
-
-
-local preloads = {}
-function common.add_to_preloads(mod)
-   table.insert(preloads, mod)
-end
-function common.get_preloads()
-   return preloads
-end
-
-local includes = {}
-function common.add_to_includes(mod)
-   table.insert(includes, mod)
-end
-function common.get_includes()
-   return includes
-end
-
 function common.init_teal_env(gen_compat, gen_target)
    return tl.init_env(false, gen_compat, gen_target)
 end
@@ -162,12 +143,12 @@ function common.load_config_report_errs(path, args)
 
    local c, errs, warnings = config.load_with_args(path, args)
    if #warnings > 0 then
-      log.warn("in", tostring(path) .. "\n", table.concat(warnings, "\n"))
+      log.warn("in ", tostring(path), "\n", table.concat(warnings, "\n"))
       return nil
    end
    if not c then
       if not errs[1]:match("No such file or directory$") then
-         log.err("Error loading config from", tostring(path) .. "\n", _tl_table_unpack(errs))
+         log.err("Error loading config from ", tostring(path), "\n", table.concat(errs, "\n"))
       end
       return nil
    end

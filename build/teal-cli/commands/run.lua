@@ -48,7 +48,7 @@ local function run(args)
 
    local chunk, load_err = common.type_check_and_load_file(arg_list[1], env)
    if not chunk then
-      log.err("Error loading file", load_err)
+      log.err("Error loading file", load_err and "\n   " .. load_err or "")
       return 1
    end
 
@@ -61,7 +61,7 @@ local function run(args)
    if ok then
       return 0
    else
-      log.err("Error in script:\n" .. err)
+      log.err("Error in script:\n", err)
       return 1
    end
 end

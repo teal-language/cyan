@@ -46,10 +46,6 @@ local function logfn(
                stream:write("\n", prefix_len > 0 and tostring(str.pad_left(cont, longest_prefix)) or "")
             end
          end
-
-         if i < select("#", ...) then
-            stream:write(" ")
-         end
       end
       stream:write("\n")
    end

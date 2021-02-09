@@ -19,12 +19,10 @@ end
 parser:option("-l --preload", "Execute the equivalent of require('modulename') before processing Teal files.")
       :argname("<modulename>")
       :count("*")
-      :action(forward_arg(common.add_to_preloads))
 
 parser:option("-I --include-dir", "Prepend this directory to the module search path.")
       :argname("<directory>")
       :count("*")
-      :action(forward_arg(common.add_to_includes))
 
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings")
       :argname("<warning>")

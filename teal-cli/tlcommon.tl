@@ -85,7 +85,7 @@ end
 
 local function prettify_error(e: tl.Error): string
    return cs.new(
-      cs.colors.file, e.filename, 0,
+      "   ", cs.colors.file, e.filename, 0,
       " ", cs.colors.number, tostring(e.y), 0,
       ":", cs.colors.number, tostring(e.x), 0,
       " ", e.msg
@@ -94,9 +94,9 @@ end
 
 function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)
    logfn(
-      common.make_error_header(file, #errs, category)
-         .. "\n   "
-         .. table.concat(map(errs, prettify_error), "\n   ")
+      common.make_error_header(file, #errs, category),
+      "\n   ",
+      table.concat(map(errs, prettify_error), "\n")
    )
 end
 
@@ -130,25 +130,6 @@ function common.report_result(file: string, r: tl.Result): boolean
       and report(log.err, r.unknowns, "unknown")
 end
 
--- TODO: not a fan of this api, commands can just grab the arguments they need
--- from the argparse.Command.action method, and then use some util function to
--- merge the options with the config
-local preloads <const>: {string} = {}
-function common.add_to_preloads(mod: string)
-   table.insert(preloads, mod)
-end
-function common.get_preloads(): {string}
-   return preloads
-end
-
-local includes: {string} = {}
-function common.add_to_includes(mod: string)
-   table.insert(includes, mod)
-end
-function common.get_includes(): {string}
-   return includes
-end
-
 function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode): tl.Env
    return tl.init_env(false, gen_compat, gen_target)
 end
@@ -162,12 +143,12 @@ function common.load_config_report_errs(path: string, args: command.Command.Args
    -- reports errors in the actual config, not if the config wasn't found
    local c <const>, errs <const>, warnings <const> = config.load_with_args(path, args)
    if #warnings > 0 then
-      log.warn("in", tostring(path) .. "\n", table.concat(warnings, "\n"))
+      log.warn("in ", tostring(path), "\n", table.concat(warnings, "\n"))
       return nil
    end
    if not c then
       if not errs[1]:match("No such file or directory$") then
-         log.err("Error loading config from", tostring(path) .. "\n", table.unpack(errs))
+         log.err("Error loading config from ", tostring(path), "\n", table.concat(errs, "\n"))
       end
       return nil
    end
