@@ -29,6 +29,13 @@ local function build(args)
       return 1
    end
 
+   local root_dir = config_path:copy()
+   table.remove(root_dir)
+   if not lfs.chdir(root_dir:to_real_path()) then
+      log.err("Unable to chdir into root directory", cs.new(cs.colors.file, root_dir:to_real_path(), 0))
+      return 1
+   end
+
    local cfg_ok, loaded_config, env = common.load_and_init_env(true, config_path:to_real_path(), args)
    if not cfg_ok then
       return 1
