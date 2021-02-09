@@ -1,5 +1,2 @@
 #!/usr/bin/env lua
-package.path = "/home/corey/dev/new-tl-cli/build/?.lua;"
-	.. "/home/corey/dev/new-tl-cli/build/?/init.lua;"
-	.. package.path
 require("teal-cli")

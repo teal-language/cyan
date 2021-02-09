@@ -34,19 +34,6 @@ local function mark_for_compile(n: Node)
    end
 end
 
-local function get_node(d: Dag, p: fs.Path | string): Node
-   local path <const> = p is fs.Path and p:to_real_path() or p
-   return d._nodes[path]
-end
-
--- function Dag:mark_for_typecheck(p: fs.Path | string)
-   -- mark_for_typecheck(get_node(self, p))
--- end
-
--- function Dag:mark_for_compile(p: fs.Path | string)
-   -- mark_for_compile(get_node(self, p))
--- end
-
 function Dag:nodes(): function(): Node
    local k, v: string, Node
    return function(): Node
@@ -102,7 +89,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
       end
    end
 
-   for path, node in pairs(nodes) do
+   for _, node in pairs(nodes) do
       for _, mod_path in pairs(node.modules) do
          local dep_node = nodes[mod_path:to_real_path()]
          if dep_node then

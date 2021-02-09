@@ -42,18 +42,21 @@ end
 function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
    local function dir_iter(d: string | Path)
       for p in fs.dir(d) do
-         if p:is_directory() then
-            dir_iter(p)
+         local full <const> = d .. p
+         local to_match <const> = full:copy()
+         to_match:remove_leading(dir)
+         if full:is_directory() then
+            dir_iter(full)
          else
             local inc = true
             if #include > 0 then
-               inc = p:match_any(include)
+               inc = to_match:match_any(include)
             end
             if inc and #exclude > 0 then
-               inc = not p:match_any(exclude)
+               inc = not to_match:match_any(exclude)
             end
             if inc then
-               coroutine.yield(p)
+               coroutine.yield(to_match)
             end
          end
       end
@@ -62,19 +65,19 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
 end
 
 function fs.extension_split(p: Path | string, ndots: number): string, string
-   if not path then
+   if not p then
       return nil
    end
-   local path <const> = p is string and p or p:to_real_path()
+   local str_path <const> = p is string and p or p:to_real_path()
    for n = ndots or 1, 1, -1 do
       local patt <const> = "^(.-)(" .. ("%.%a+"):rep(n) .. ")$"
-      local base <const>, ext = path:match(patt)
+      local base <const>, ext = str_path:match(patt)
       if ext then
          ext = ext:lower()
          return base, ext
       end
    end
-   return path
+   return str_path
 end
 
 function fs.path_concat(a: string, b: string): string

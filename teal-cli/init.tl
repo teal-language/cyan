@@ -1,5 +1,4 @@
 local argparse <const> = require("argparse")
-local cs <const> = require("teal-cli.colorstring")
 local command <const> = require("teal-cli.command")
 local common <const> = require("teal-cli.tlcommon")
 local log <const> = require("teal-cli.log")
@@ -55,13 +54,16 @@ require("teal-cli.commands.build")
 
 command.register_all(parser)
 
-local ok <const>, res <const> = parser:pparse()
-if not ok then
-   log.err(res)
-   log.info(parser:get_usage())
-   os.exit(1)
+local args: command.Command.Args
+do
+   local ok <const>, res <const> = parser:pparse()
+   if not ok then
+      log.err(res)
+      log.info(parser:get_usage())
+      os.exit(1)
+   end
+   args = res as command.Command.Args
 end
-local args <const> = res as command.Command.Args
 local cmd <const> = command.get(args["command"])
 
 if args.quiet then
@@ -70,12 +72,14 @@ if args.quiet then
 end
 
 local exit: number = 1
-local ok, res = xpcall(function()
-   exit = cmd.exec(args)
-end, debug.traceback)
-if not ok then
-   log.err("error executing command\n   ", res)
-   os.exit(2)
+do
+   local ok <const>, res <const> = xpcall(function()
+      exit = cmd.exec(args)
+   end, debug.traceback)
+   if not ok then
+      log.err("Error executing command\n   ", res)
+      os.exit(2)
+   end
 end
 os.exit(exit)
 

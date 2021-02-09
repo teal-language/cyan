@@ -147,7 +147,7 @@ end
 local function merge_list<T>(a: {T}, b: {T}): {T}
    a = a or {}
    b = b or {}
-   for i, v in ipairs(b) do
+   for _, v in ipairs(b) do
       table.insert(a, v)
    end
    return a

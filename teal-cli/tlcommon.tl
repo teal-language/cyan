@@ -176,6 +176,9 @@ end
 
 function common.type_check_and_load_file(path: string, env: tl.Env): function, string
    local result <const>, err <const> = tl.process(path, env)
+   if not result then
+      return nil, err
+   end
    if not common.report_result(path, result) then
       return nil
    end

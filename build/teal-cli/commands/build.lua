@@ -1,11 +1,8 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
-local tl = require("tl")
-local argparse = require("argparse")
 local lfs = require("lfs")
 
 local command = require("teal-cli.command")
 local common = require("teal-cli.tlcommon")
-local config = require("teal-cli.config")
 local cs = require("teal-cli.colorstring")
 local fs = require("teal-cli.fs")
 local graph = require("teal-cli.graph")
@@ -32,8 +29,8 @@ local function build(args)
       return 1
    end
 
-   local ok, loaded_config, env = common.load_and_init_env(true, config_path:to_real_path(), args)
-   if not ok then
+   local cfg_ok, loaded_config, env = common.load_and_init_env(true, config_path:to_real_path(), args)
+   if not cfg_ok then
       return 1
    end
 
@@ -60,11 +57,12 @@ local function build(args)
 
    local dag = graph.scan_dir(source_dir, include, exclude)
 
+   local exit = 0
    local function get_output_name(src)
       local out = src:copy()
       out:remove_leading(source_dir)
       out:prepend(build_dir)
-      local base, ext = fs.extension_split(out[#out])
+      local base = fs.extension_split(out[#out])
       out[#out] = base .. ".lua"
       return out
    end
@@ -80,7 +78,6 @@ local function build(args)
 
    dag:mark_each(source_is_newer)
 
-   local exit = 0
    for n in dag:marked_nodes("typecheck") do
       local path = n.input:to_real_path()
       local parsed = common.parse_file(path)
@@ -118,8 +115,14 @@ local function build(args)
             if not common.report_result(path, result) then
                exit = 1
             else
-               log.info("Type checked", cs.new(cs.colors.file, n.input:tostring(), 0))
-               table.insert(to_write, { n, parsed.ast })
+               local ok, err = n.output:mk_parent_dirs()
+               if ok then
+                  log.info("Type checked", cs.new(cs.colors.file, n.input:tostring(), 0))
+                  table.insert(to_write, { n, parsed.ast })
+               else
+                  log.err("Unable to create parent dirs to", cs.new(cs.colors.file, n.output:tostring(), 0), ":", err)
+                  exit = 1
+               end
             end
          else
             exit = 1
@@ -132,11 +135,12 @@ local function build(args)
          local n, ast = node_ast[1], node_ast[2]
          local fh, err = io.open(n.output:to_real_path(), "w")
          if not fh then
+            log.err("Error opening file", cs.new(cs.colors.file, n.output:to_real_path(), 0), err)
             exit = 1
          else
             fh:write(common.compile_ast(ast))
             fh:close()
-            log.info("Wrote", cs.new(cs.colors.file, n.output:tostring(), 0))
+            log.info("Wrote", cs.new(cs.colors.file, n.output:to_real_path(), 0))
          end
       end
    end

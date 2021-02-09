@@ -90,5 +90,19 @@ describe("build command", function()
          exit_code = 1,
       })
    end)
+   it("should create parent directories to files in the build dir", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            ["tlconfig.lua"] = [[return { build_dir = "foo" }]],
+            foo = {},
+            a = { b = { ["c.tl"] = [[]] } },
+         },
+         generated_files = {
+            foo = { a = { b = { "c.lua" } } },
+         },
+         exit_code = 0,
+      })
+   end)
 end)
 

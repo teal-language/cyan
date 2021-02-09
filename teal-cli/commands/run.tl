@@ -12,7 +12,7 @@ local function add_to_argparser(cmd: argparse.Command)
 end
 
 local function run(args: command.Command.Args): number
-   local _, cfg <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
+   local _, _cfg <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
 
    local arg_list <const> = args["script"] as {string}
    -- collect all non-arguments including negative arg values
@@ -46,8 +46,9 @@ local function run(args: command.Command.Args): number
       n = n + 1
    end
 
-   local chunk <const>, err <const> = common.type_check_and_load_file(arg_list[1], env)
+   local chunk <const>, load_err <const> = common.type_check_and_load_file(arg_list[1], env)
    if not chunk then
+      log.err("Error loading file", load_err)
       return 1
    end
 
@@ -56,7 +57,7 @@ local function run(args: command.Command.Args): number
       chunk(table.unpack(arg))
    end)
 
-   local ok, err = box:run(1e9)
+   local ok <const>, err <const> = box:run(1e9)
    if ok then
       return 0
    else

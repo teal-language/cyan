@@ -2,7 +2,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local tl = require("tl")
 local argparse = require("argparse")
 
 local common = require("teal-cli.tlcommon")
@@ -11,11 +10,9 @@ local cs = require("teal-cli.colorstring")
 local log = require("teal-cli.log")
 local fs = require("teal-cli.fs")
 local util = require("teal-cli.util")
-local config = require("teal-cli.config")
 
 local ivalues = util.tab.ivalues
 
-local files = {}
 local function add_to_argparser(cmd)
    cmd:argument("files", "The Teal source files to process."):
    args("+")
@@ -32,7 +29,7 @@ end
 
 local function command_exec(should_compile)
    return function(args)
-      local _, loaded_config, env = common.load_and_init_env(false, "tlconfig.lua", args)
+      local _, _loaded_config, env = common.load_and_init_env(false, "tlconfig.lua", args)
 
       local files = args.files
 

@@ -34,19 +34,6 @@ local function mark_for_compile(n)
    end
 end
 
-local function get_node(d, p)
-   local path = type(p) == "table" and p:to_real_path() or p
-   return d._nodes[path]
-end
-
-
-
-
-
-
-
-
-
 function Dag:nodes()
    local k, v
    return function()
@@ -102,7 +89,7 @@ function graph.scan_dir(dir, include, exclude)
       end
    end
 
-   for path, node in pairs(nodes) do
+   for _, node in pairs(nodes) do
       for _, mod_path in pairs(node.modules) do
          local dep_node = nodes[mod_path:to_real_path()]
          if dep_node then

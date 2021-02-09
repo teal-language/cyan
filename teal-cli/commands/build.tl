@@ -1,11 +1,8 @@
 
-local tl <const> = require("tl")
-local argparse <const> = require("argparse")
 local lfs <const> = require("lfs")
 
 local command <const> = require("teal-cli.command")
 local common <const> = require("teal-cli.tlcommon")
-local config <const> = require("teal-cli.config")
 local cs <const> = require("teal-cli.colorstring")
 local fs <const> = require("teal-cli.fs")
 local graph <const> = require("teal-cli.graph")
@@ -32,8 +29,8 @@ local function build(args: command.Command.Args): number
       return 1
    end
 
-   local ok <const>, loaded_config <const>, env <const> = common.load_and_init_env(true, config_path:to_real_path(), args)
-   if not ok then
+   local cfg_ok <const>, loaded_config <const>, env <const> = common.load_and_init_env(true, config_path:to_real_path(), args)
+   if not cfg_ok then
       return 1
    end
 
@@ -60,11 +57,12 @@ local function build(args: command.Command.Args): number
 
    local dag <const> = graph.scan_dir(source_dir, include, exclude)
 
+   local exit = 0
    local function get_output_name(src: fs.Path): fs.Path
       local out <const> = src:copy()
       out:remove_leading(source_dir)
       out:prepend(build_dir)
-      local base, ext = fs.extension_split(out[#out])
+      local base <const> = fs.extension_split(out[#out])
       out[#out] = base .. ".lua"
       return out
    end
@@ -80,7 +78,6 @@ local function build(args: command.Command.Args): number
 
    dag:mark_each(source_is_newer)
 
-   local exit = 0
    for n in dag:marked_nodes("typecheck") do
       local path <const> = n.input:to_real_path()
       local parsed <const> = common.parse_file(path)
@@ -118,8 +115,14 @@ local function build(args: command.Command.Args): number
             if not common.report_result(path, result) then
                exit = 1
             else
-               log.info("Type checked", cs.new(cs.colors.file, n.input:tostring(), 0))
-               table.insert(to_write, {n, parsed.ast})
+               local ok <const>, err <const> = n.output:mk_parent_dirs()
+               if ok then
+                  log.info("Type checked", cs.new(cs.colors.file, n.input:tostring(), 0))
+                  table.insert(to_write, {n, parsed.ast})
+               else
+                  log.err("Unable to create parent dirs to", cs.new(cs.colors.file, n.output:tostring(), 0), ":", err)
+                  exit = 1
+               end
             end
          else
             exit = 1
@@ -132,11 +135,12 @@ local function build(args: command.Command.Args): number
          local n <const>, ast <const> = node_ast[1], node_ast[2]
          local fh <const>, err <const> = io.open(n.output:to_real_path(), "w")
          if not fh then
+            log.err("Error opening file", cs.new(cs.colors.file, n.output:to_real_path(), 0), err)
             exit = 1
          else
             fh:write(common.compile_ast(ast))
             fh:close()
-            log.info("Wrote", cs.new(cs.colors.file, n.output:tostring(), 0))
+            log.info("Wrote", cs.new(cs.colors.file, n.output:to_real_path(), 0))
          end
       end
    end

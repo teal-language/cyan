@@ -279,7 +279,7 @@ function util.run_mock_project(finally, t, use_folder)
    local batch = Batch:new("mock project")
    local _status, _exit, code = pd:close()
    local show_output = "Full output: " .. actual_output
-   batch:add(assert.are.equal, t.exit_code, code)
+   batch:add(assert.are.equal, t.exit_code, code, string.format("Expected exit code %d, got %d\n%s", t.exit_code, code, show_output))
 
    if t.cmd_output_match then
       batch:add(assert.match, t.cmd_output_match, actual_output, show_output)

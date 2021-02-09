@@ -2,7 +2,6 @@
 -- Check and gen basically do the same thing, gen just goes a step further and writes to some files
 -- so to avoid writing the same file twice, just implement them both here
 
-local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
 local common <const> = require("teal-cli.tlcommon")
@@ -11,11 +10,9 @@ local cs <const> = require("teal-cli.colorstring")
 local log <const> = require("teal-cli.log")
 local fs <const> = require("teal-cli.fs")
 local util <const> = require("teal-cli.util")
-local config <const> = require("teal-cli.config")
 
 local ivalues <const> = util.tab.ivalues
 
-local files: {string} = {}
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("files", "The Teal source files to process.")
       :args("+")
@@ -32,7 +29,7 @@ end
 
 local function command_exec(should_compile: boolean): function(command.Command.Args): number
    return function(args: command.Command.Args): number
-      local _, loaded_config <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
+      local _, _loaded_config <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
 
       local files <const> = args.files
 

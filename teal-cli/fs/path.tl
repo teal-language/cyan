@@ -138,7 +138,7 @@ function Path:mod_time(): number
    return lfs.attributes(self:to_real_path(), "modification") as number
 end
 
-function Path:mkdir(): boolean, string
+function Path:mk_parent_dirs(): boolean, string
    for p in self:ancestors() do
       if p:exists() then
          if not p:is_directory() then
@@ -151,7 +151,16 @@ function Path:mkdir(): boolean, string
          end
       end
    end
-   return lfs.mkdir(self:to_real_path())
+   return true
+end
+
+function Path:mkdir(): boolean, string
+   local succ <const>, err <const> = self:mk_parent_dirs()
+   if succ then
+      return lfs.mkdir(self:to_real_path())
+   else
+      return false, err
+   end
 end
 
 function Path:remove_leading(p: string | Path)
