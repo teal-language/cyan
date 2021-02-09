@@ -35,7 +35,7 @@ local common <const> = {
 }
 
 local parse_cache <const>: {string:ParseResult} = {}
-function common.parse_file(path: string): ParseResult, any
+function common.parse_file(path: string): ParseResult, string
    if not parse_cache[path] then
       local content <const>, err <const> = fs.read(path)
       if not content then
@@ -43,7 +43,7 @@ function common.parse_file(path: string): ParseResult, any
       end
       local tks <const>, lex_errs <const> = tl.lex(content)
       if lex_errs then
-         return nil, lex_errs
+         return nil, "Error lexing"
       end
 
       local errs <const>: {tl.Error} = {}
@@ -59,7 +59,7 @@ function common.parse_file(path: string): ParseResult, any
    return parse_cache[path]
 end
 
-local type_check = tl.type_check as function(Node, tl.TypeCheckOptions)
+local type_check = tl.type_check as function(Node, tl.TypeCheckOptions): tl.Result
 function common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions)
    type_check(ast, opts)
 end
@@ -110,6 +110,7 @@ function common.promote_warning(s: string)
 end
 
 function common.report_result(file: string, r: tl.Result): boolean
+   r.warnings = r.warnings or {}
    local werrors <const>, warnings <const> = filter(r.warnings, function(w: tl.Error): boolean
       return warning_errors[w.tag]
    end)
@@ -182,6 +183,16 @@ function common.type_check_and_load_file(path: string): function, string
       "t",
       _G as table
    )
+end
+
+local found_modules: {string:fs.Path} = {}
+function common.search_module(name: string, search_dtl: boolean): fs.Path
+   if not found_modules[name] then
+      local found, fd = tl.search_module(name, search_dtl)
+      if found then fd:close() end
+      found_modules[name] = fs.path(found)
+   end
+   return found_modules[name]
 end
 
 return common

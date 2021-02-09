@@ -51,7 +51,7 @@ parser:command_target("command")
 
 require("teal-cli.commands.check-gen")
 require("teal-cli.commands.run")
--- require("teal-cli.commands.build")
+require("teal-cli.commands.build")
 
 command.register_all(parser)
 
@@ -61,18 +61,21 @@ if not ok then
    log.info(parser:get_usage())
    os.exit(1)
 end
-local args <const> = res as argparse.Args
-local cmd <const> = command.get(args["command"] as string)
+local args <const> = res as command.Command.Args
+local cmd <const> = command.get(args["command"])
 
 if args.quiet then
    log.info = function() end
    log.warn = function() end
 end
 
-local ok, res = pcall(cmd.exec)
+local exit: number = 1
+local ok, res = xpcall(function()
+   exit = cmd.exec(args)
+end, debug.traceback)
 if not ok then
    log.err("error executing command\n   ", res)
    os.exit(2)
 end
-os.exit(res)
+os.exit(exit)
 

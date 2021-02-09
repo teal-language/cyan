@@ -17,9 +17,6 @@ local files: {string} = {}
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("files", "The Teal source files to process.")
       :args("+")
-      :action(function(_: {string:string|boolean|{string}}, _name: string, fs: {string})
-         files = fs
-      end)
 end
 
 local function get_output_filename(path: string): string
@@ -31,20 +28,26 @@ local function get_output_filename(path: string): string
    end
 end
 
-local function command_exec(should_compile: boolean): function(): number
-   return function(): number
+local function command_exec(should_compile: boolean): function(command.Command.Args): number
+   return function(args: command.Command.Args): number
       local loaded_config <const>, conferr <const> = config.load("tlconfig.lua")
       if conferr and not conferr[1]:match("No such file or directory$") then
          log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
          return 1
       end
 
+      local files <const> = args.files
+
       local env <const> = common.init_teal_env()
       local exit = 0
 
       for _, path in ipairs(files) do
-         local parsed <const> = common.parse_file(path)
-         if #parsed.errs > 0 then
+         local disp_file <const> = cs.new(cs.colors.file, path, 0)
+         local parsed <const>, perr <const> = common.parse_file(path)
+         if perr then
+            log.err("Error parsing file", disp_file .. "\n   " .. perr)
+            exit = 1
+         elseif #parsed.errs > 0 then
             common.report_errors(log.err, parsed.errs, path, "syntax error")
             exit = 1
          else

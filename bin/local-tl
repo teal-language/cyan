@@ -1,3 +1,6 @@
 #!/usr/bin/env lua
+package.path = "/home/corey/dev/new-tl-cli/?.lua;"
+	.. "/home/corey/dev/new-tl-cli/?/init.lua;"
+	.. package.path
 require("tl").loader()
 require("teal-cli")

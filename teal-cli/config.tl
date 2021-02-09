@@ -135,8 +135,8 @@ function config.load(path_to_file: string): Config, {string}, {string}
       return nil, {err}, {}
    end
    local maybe_config = b:result()
-   if maybe_config then
-      return nil, {"file returned nothing"}, {}
+   if maybe_config == nil then
+      return nil, {"file returned nil"}, {}
    end
 
    return config.is_config(maybe_config)

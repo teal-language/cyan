@@ -6,20 +6,15 @@ local command = require("teal-cli.command")
 local common = require("teal-cli.tlcommon")
 local sandbox = require("teal-cli.sandbox")
 
-local all_args
 local function add_to_argparser(cmd)
    cmd:argument("script", "The Teal script to run."):
-   args("+"):
-   action(function(args, k, v)
-      all_args = args
-      all_args[k] = v
-   end)
+   args("+")
 end
 
-local function run()
+local function run(args)
    local _cfg = common.load_config_report_errs("tlconfig.lua")
 
-   local arg_list = all_args["script"]
+   local arg_list = args["script"]
 
    local neg_arg = {}
    local nargs = #arg_list

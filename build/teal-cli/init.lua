@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local table = _tl_compat and _tl_compat.table or table; local argparse = require("argparse")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
 local cs = require("teal-cli.colorstring")
 local command = require("teal-cli.command")
 local common = require("teal-cli.tlcommon")
@@ -51,7 +51,7 @@ parser:command_target("command")
 
 require("teal-cli.commands.check-gen")
 require("teal-cli.commands.run")
-
+require("teal-cli.commands.build")
 
 command.register_all(parser)
 
@@ -69,9 +69,12 @@ if args.quiet then
    log.warn = function() end
 end
 
-local ok, res = pcall(cmd.exec)
+local exit = 1
+local ok, res = xpcall(function()
+   exit = cmd.exec(args)
+end, debug.traceback)
 if not ok then
    log.err("error executing command\n   ", res)
    os.exit(2)
 end
-os.exit(res)
+os.exit(exit)

@@ -16,10 +16,7 @@ local config = require("teal-cli.config")
 local files = {}
 local function add_to_argparser(cmd)
    cmd:argument("files", "The Teal source files to process."):
-   args("+"):
-   action(function(_, _name, fs)
-      files = fs
-   end)
+   args("+")
 end
 
 local function get_output_filename(path)
@@ -32,19 +29,25 @@ local function get_output_filename(path)
 end
 
 local function command_exec(should_compile)
-   return function()
+   return function(args)
       local loaded_config, conferr = config.load("tlconfig.lua")
       if conferr and not conferr[1]:match("No such file or directory$") then
          log.err("Unable to load config:\n   " .. table.concat(conferr, "\n   "))
          return 1
       end
 
+      local files = args.files
+
       local env = common.init_teal_env()
       local exit = 0
 
       for _, path in ipairs(files) do
-         local parsed = common.parse_file(path)
-         if #parsed.errs > 0 then
+         local disp_file = cs.new(cs.colors.file, path, 0)
+         local parsed, perr = common.parse_file(path)
+         if perr then
+            log.err("Error parsing file", disp_file .. "\n   " .. perr)
+            exit = 1
+         elseif #parsed.errs > 0 then
             common.report_errors(log.err, parsed.errs, path, "syntax error")
             exit = 1
          else

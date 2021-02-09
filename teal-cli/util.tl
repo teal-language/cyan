@@ -88,8 +88,15 @@ function str.pad_left(s: string, n: number): string
    return (" "):rep(n - #s) .. s
 end
 
+local function xor(a: any, b: any): boolean
+   return (a as boolean and not b)
+      or (not a and b as boolean)
+end
+
 return {
    str = str,
    tab = tab,
+
+   xor = xor,
 }
 

@@ -43,7 +43,7 @@ function common.parse_file(path)
       end
       local tks, lex_errs = tl.lex(content)
       if lex_errs then
-         return nil, lex_errs
+         return nil, "Error lexing"
       end
 
       local errs = {}
@@ -110,6 +110,7 @@ function common.promote_warning(s)
 end
 
 function common.report_result(file, r)
+   r.warnings = r.warnings or {}
    local werrors, warnings = filter(r.warnings, function(w)
       return warning_errors[w.tag]
    end)
@@ -182,6 +183,16 @@ function common.type_check_and_load_file(path)
    "t",
    _G)
 
+end
+
+local found_modules = {}
+function common.search_module(name, search_dtl)
+   if not found_modules[name] then
+      local found, fd = tl.search_module(name, search_dtl)
+      if found then fd:close() end
+      found_modules[name] = fs.path(found)
+   end
+   return found_modules[name]
 end
 
 return common
