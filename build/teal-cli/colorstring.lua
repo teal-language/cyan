@@ -3,7 +3,10 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local ansi = require("teal-cli.ansi")
-local map = require("teal-cli.util").tab.map
+local util = require("teal-cli.util")
+local map, ivalues = util.tab.map, util.tab.ivalues
+
+local setmt = setmetatable
 
 local ColorString = {}
 
@@ -32,8 +35,6 @@ local function append(base, other)
       for _, chunk in ipairs(other.content) do
          table.insert(base.content, chunk)
       end
-   elseif type(other) == "number" then
-      table.insert(base.content, { other })
    else
       table.insert(base.content, other)
    end
@@ -43,12 +44,11 @@ function ColorString:append(...)
    for i = 1, select("#", ...) do
       append(self, (select(i, ...)))
    end
-   return self
 end
 
-function ColorString:append_ansi_esc(c, ...)
-   table.insert(self.content, { c, ... })
-   return self
+function ColorString:surround(col)
+   table.insert(self.content, 1, col)
+   table.insert(self.content, 0)
 end
 
 function ColorString:tostring()
@@ -56,35 +56,63 @@ function ColorString:tostring()
       if type(chunk) == "string" then
          return chunk
       else
-         return ansi.CSI .. table.concat(
-         map(chunk, tostring),
-         ";") .. "m"
+         return ansi.CSI .. table.concat(map(chunk, tostring), ";") .. "m"
       end
    end))
 end
 
 local colorstring_mt = {}
-colorstring_mt.__index = ColorString
-colorstring_mt.__concat = function(a, b)
-   local new = setmetatable({ content = {} }, colorstring_mt)
-   return new:append(a):append(b)
+
+local function new(...)
+   return setmt({
+      content = { ... },
+   }, colorstring_mt)
 end
+
+local function highlight(hl, str)
+   return new(hl, str, { 0 })
+end
+
+colorstring_mt.__index = ColorString
+
+colorstring_mt.__concat = function(a, b)
+   local cs_a = type(a) == "string" and { content = { a } } or a
+   local cs_b = type(b) == "string" and { content = { b } } or b
+   local new_content = {}
+   for val in ivalues(cs_a.content) do
+      table.insert(new_content, val)
+   end
+   for val in ivalues(cs_b.content) do
+      table.insert(new_content, val)
+   end
+   return setmt({ content = new_content }, colorstring_mt)
+end
+
 colorstring_mt.__tostring = ColorString.tostring
 colorstring_mt.__len = ColorString.len
 
+local function rgb_fg(r, g, b)
+   return { 38, 2, r, g, b }
+end
+
+local function rgb_bg(r, g, b)
+   return { 48, 2, r, g, b }
+end
+
 local colorstring = {
    colors = {
-      file = 33,
-      number = 31,
+      none = { 0 },
+      file = { 33 },
+      number = { 31 },
+      emphasis = { 1 },
+      teal = rgb_fg(0, 0xA5, 0xA5),
    },
-}
 
-local setmt = setmetatable
-function colorstring.new(...)
-   local new = setmt({
-      content = {},
-   }, colorstring_mt)
-   return new:append(...)
-end
+   rgb_fg = rgb_fg,
+   rgb_bg = rgb_bg,
+
+   new = new,
+   highlight = highlight,
+}
 
 return colorstring

@@ -18,11 +18,11 @@ function fs.dir(dir, include_dotfiles)
    return function()
       local p
       repeat p = iter(data)
+
+
       until not p or
 (include_dotfiles and p ~= "." and p ~= "..") or
-p:sub(1, 1) ~= "."
-
-      return path.new(p)
+p:sub(1, 1) ~= "."; return path.new(p)
    end
 end
 

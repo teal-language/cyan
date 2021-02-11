@@ -76,18 +76,18 @@ end
 
 function common.make_error_header(file: string, num_errors: number, category: string): string
    return cs.new(
-      cs.colors.number, tostring(num_errors), 0,
-      " ", category, (num_errors ~= 1 and "s" or ""),
+      cs.colors.emphasis, tostring(num_errors),
+      " ", category, (num_errors ~= 1 and "s" or ""), {0},
       " in ",
-      cs.colors.file, file, 0
+      cs.colors.file, file, {0}
    ):tostring()
 end
 
 local function prettify_error(e: tl.Error): string
    return cs.new(
-      "   ", cs.colors.file, e.filename, 0,
-      " ", cs.colors.number, tostring(e.y), 0,
-      ":", cs.colors.number, tostring(e.x), 0,
+      "   ", cs.colors.file, e.filename, {0},
+      " ", cs.colors.number, tostring(e.y), {0},
+      ":", cs.colors.number, tostring(e.x), {0},
       " ", e.msg
    ):tostring()
 end
@@ -95,8 +95,7 @@ end
 function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)
    logfn(
       common.make_error_header(file, #errs, category),
-      "\n   ",
-      table.concat(map(errs, prettify_error), "\n")
+      "\n", table.concat(map(errs, prettify_error), "\n")
    )
 end
 
@@ -111,8 +110,7 @@ function common.promote_warning(s: string)
 end
 
 function common.report_result(file: string, r: tl.Result): boolean
-   r.warnings = r.warnings or {}
-   local werrors <const>, warnings <const> = filter(r.warnings, function(w: tl.Error): boolean
+   local werrors <const>, warnings <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
       return warning_errors[w.tag]
    end)
    local function report(logfn: function(...: any), arr: {tl.Error}, category: string): boolean
@@ -193,7 +191,7 @@ function common.prepend_to_lua_path(path_str: string)
    path_str = path_str .. fs.path.separator
 
    package.path = path_str .. "?.lua;"
-      .. path_str .. "?/init.lua;"
+      .. path_str .. "?" .. fs.path.separator .. "init.lua;"
       .. package.path
 
    package.cpath = path_str .. "?." .. fs.path.shared_lib_ext .. ";"

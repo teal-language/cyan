@@ -32,7 +32,7 @@ local function build(args: command.Command.Args): number
    local root_dir <const> = config_path:copy()
    table.remove(root_dir)
    if not lfs.chdir(root_dir:to_real_path()) then
-      log.err("Unable to chdir into root directory ", cs.new(cs.colors.file, root_dir:to_real_path(), 0))
+      log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
       return 1
    end
 
@@ -98,7 +98,7 @@ local function build(args: command.Command.Args): number
          if not common.report_result(path, result) then
             exit = 1
          else
-            log.info("Type checked ", cs.new(cs.colors.file, n.input:tostring(), 0))
+            log.info("Type checked ", cs.highlight(cs.colors.file, n.input:tostring()))
          end
       else
          exit = 1
@@ -124,10 +124,10 @@ local function build(args: command.Command.Args): number
             else
                local ok <const>, err <const> = n.output:mk_parent_dirs()
                if ok then
-                  log.info("Type checked ", cs.new(cs.colors.file, n.input:tostring(), 0))
+                  log.info("Type checked ", cs.highlight(cs.colors.file, n.input:tostring()))
                   table.insert(to_write, {n, parsed.ast})
                else
-                  log.err("Unable to create parent dirs to", cs.new(cs.colors.file, n.output:tostring(), 0), ":", err)
+                  log.err("Unable to create parent dirs to ", cs.highlight(cs.colors.file, n.output:tostring()), ":", err)
                   exit = 1
                end
             end
@@ -142,12 +142,12 @@ local function build(args: command.Command.Args): number
          local n <const>, ast <const> = node_ast[1], node_ast[2]
          local fh <const>, err <const> = io.open(n.output:to_real_path(), "w")
          if not fh then
-            log.err("Error opening file", cs.new(cs.colors.file, n.output:to_real_path(), 0), err)
+            log.err("Error opening file", cs.highlight(cs.colors.file, n.output:to_real_path()), err)
             exit = 1
          else
             fh:write(common.compile_ast(ast))
             fh:close()
-            log.info("Wrote ", cs.new(cs.colors.file, n.output:to_real_path(), 0))
+            log.info("Wrote ", cs.highlight(cs.colors.file, n.output:to_real_path()))
          end
       end
    end

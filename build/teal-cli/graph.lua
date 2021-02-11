@@ -55,9 +55,9 @@ function Dag:marked_nodes(m)
    return function()
       local n
       repeat n = iter()
+
       until not n or
-n.mark == m
-      return n
+n.mark == m; return n
    end
 end
 

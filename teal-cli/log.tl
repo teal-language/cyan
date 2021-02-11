@@ -55,24 +55,24 @@ local log <const>: {string:function(...: any)} = {}
 
 log.debug = logfn(
    io.stderr,
-   cs.new():append_ansi_esc(31,1):append("DEBUG", 0) as string,
-   cs.new(31, "...", 0) as string,
+   cs.new({31, 1}, "DEBUG", {0}) as string,
+   cs.new({31}, "...", {0}) as string,
    inspect
 )
 log.err = logfn(
    io.stderr,
-   cs.new(31, "Error", 0) as string,
-   cs.new(31, "...", 0) as string
+   cs.new({31}, "Error", {0}) as string,
+   cs.new({31}, "...", {0}) as string
 )
 log.warn = logfn(
    io.stderr,
-   cs.new(33, "Warn", 0) as string,
-   cs.new(33, "...", 0) as string
+   cs.new({33}, "Warn", {0}) as string,
+   cs.new({33}, "...", {0}) as string
 )
 log.info = logfn(
    io.stdout,
-   cs.new(36, "Info", 0) as string,
-   cs.new(36, "...", 0) as string
+   cs.new(cs.colors.teal, "Info", {0}) as string,
+   cs.new(cs.colors.teal, "...", {0}) as string
 )
 
 return log

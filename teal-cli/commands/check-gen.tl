@@ -36,7 +36,7 @@ local function command_exec(should_compile: boolean): function(command.Command.A
       local exit = 0
 
       for path in ivalues(files) do
-         local disp_file <const> = cs.new(cs.colors.file, path, 0)
+         local disp_file <const> = cs.new(cs.colors.file, path, {0})
          local parsed <const>, perr <const> = common.parse_file(path)
          if perr then
             log.err("Error parsing file ", disp_file .. "\n   " .. perr)
@@ -54,10 +54,10 @@ local function command_exec(should_compile: boolean): function(command.Command.A
             if not common.report_result(path, result) then
                exit = 1
             else
-               log.info("Type checked ", cs.new(cs.colors.file, path, 0))
+               log.info("Type checked ", cs.new(cs.colors.file, path, {0}))
                if should_compile then
                   local outfile <const> = get_output_filename(path)
-                  local disp_outfile <const> = cs.new(cs.colors.file, outfile, 0)
+                  local disp_outfile <const> = cs.new(cs.colors.file, outfile, {0})
                   local fh <const>, err <const> = io.open(outfile, "w")
                   if fh then
                      fh:write(common.compile_ast(parsed.ast))

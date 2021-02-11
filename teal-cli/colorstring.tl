@@ -3,7 +3,10 @@
 -- For example getting the length of a string that contains escape codes shouldnt include them
 
 local ansi <const> = require("teal-cli.ansi")
-local map <const> = require("teal-cli.util").tab.map
+local util <const> = require("teal-cli.util")
+local map <const>, ivalues <const> = util.tab.map, util.tab.ivalues
+
+local setmt <const> = setmetatable as function<T>(T, metatable<T>): T
 
 local record ColorString
    -- This basically implements the 'string interface'
@@ -27,28 +30,25 @@ function ColorString:len(): number
    return l
 end
 
-local function append(base: ColorString, other: string | number | ColorString): ColorString
+local function append(base: ColorString, other: string | ColorString): ColorString
    if other is ColorString then
       for _, chunk in ipairs(other.content) do
          table.insert(base.content, chunk)
       end
-   elseif other is number then
-      table.insert(base.content, {other})
    else
       table.insert(base.content, other)
    end
 end
 
-function ColorString:append(...: string | number | ColorString): ColorString
+function ColorString:append(...: string | ColorString)
    for i = 1, select("#", ...) do
       append(self, (select(i, ...)))
    end
-   return self
 end
 
-function ColorString:append_ansi_esc(c: number, ...: number): ColorString
-   table.insert(self.content, {c, ...})
-   return self
+function ColorString:surround(col: {number})
+   table.insert(self.content, 1, col)
+   table.insert(self.content, 0)
 end
 
 function ColorString:tostring(): string
@@ -56,36 +56,64 @@ function ColorString:tostring(): string
       if chunk is string then
          return chunk
       else
-         return ansi.CSI .. table.concat(
-            map(chunk, tostring as function(number): string),
-         ";") .. "m"
+         return ansi.CSI .. table.concat(map(chunk, tostring as function(number): string), ";") .. "m"
       end
    end))
 end
 
 local colorstring_mt <const>: metatable<ColorString> = {}
-colorstring_mt.__index = ColorString
-colorstring_mt.__concat = function(a: string | ColorString, b: string | ColorString): ColorString
-   local new <const> = setmetatable({ content = {} } as ColorString, colorstring_mt)
-   return new:append(a):append(b)
+
+local function new(...: string | {number}): ColorString
+   return setmt({
+      content = { ... }
+   } as ColorString, colorstring_mt)
 end
+
+local function highlight(hl: {number}, str: string): ColorString
+   return new(hl, str, {0})
+end
+
+colorstring_mt.__index = ColorString
+
+colorstring_mt.__concat = function(a: string | ColorString, b: string | ColorString): ColorString
+   local cs_a <const>: ColorString = a is string and { content = {a} } as ColorString or a
+   local cs_b <const>: ColorString = b is string and { content = {b} } as ColorString or b
+   local new_content <const> = {}
+   for val in ivalues(cs_a.content) do
+      table.insert(new_content, val)
+   end
+   for val in ivalues(cs_b.content) do
+      table.insert(new_content, val)
+   end
+   return setmt({ content = new_content } as ColorString, colorstring_mt)
+end
+
 colorstring_mt.__tostring = ColorString.tostring
 colorstring_mt.__len = ColorString.len
 
+local function rgb_fg(r: number, g: number, b: number): {number, number, number, number, number}
+   return {38, 2, r, g, b}
+end
+
+local function rgb_bg(r: number, g: number, b: number): {number, number, number, number, number}
+   return {48, 2, r, g, b}
+end
+
 local colorstring <const> = {
    colors = {
-      file = 33,
-      number = 31,
+      none = {0},
+      file = {33},
+      number = {31},
+      emphasis = {1},
+      teal = rgb_fg(0, 0xA5, 0xA5),
    },
-}
 
-local setmt <const> = setmetatable as function<T>(T, metatable<T>): T
-function colorstring.new(...: string | number | ColorString): ColorString
-   local new <const> = setmt({
-      content = {},
-   } as ColorString, colorstring_mt)
-   return new:append(...)
-end
+   rgb_fg = rgb_fg,
+   rgb_bg = rgb_bg,
+
+   new = new,
+   highlight = highlight,
+}
 
 return colorstring
 

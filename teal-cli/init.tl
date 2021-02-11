@@ -73,7 +73,7 @@ local exit: number = 1
 do
    local ok <const>, res <const> = xpcall(function()
       exit = cmd.exec(args)
-   end, debug.traceback)
+   end, debug.traceback as function()) as (boolean, string)
    if not ok then
       log.err("Error executing command\n   ", res)
       os.exit(2)
