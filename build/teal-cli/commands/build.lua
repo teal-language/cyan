@@ -1,6 +1,7 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local lfs = require("lfs")
 
+local argparse = require("argparse")
 local command = require("teal-cli.command")
 local common = require("teal-cli.tlcommon")
 local cs = require("teal-cli.colorstring")
@@ -75,6 +76,7 @@ local function build(args)
    end
 
    local function source_is_newer(src)
+      if args.update_all then return true end
       local target = get_output_name(src)
       local in_t, out_t = src:mod_time(), target:mod_time()
       if not out_t then
@@ -159,4 +161,7 @@ command.new({
    name = "build",
    description = [[Build a project based on tlconfig.lua.]],
    exec = build,
+   argparse = function(cmd)
+      cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
+   end,
 })

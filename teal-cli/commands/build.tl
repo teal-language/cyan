@@ -1,6 +1,7 @@
 
 local lfs <const> = require("lfs")
 
+local argparse <const> = require("argparse")
 local command <const> = require("teal-cli.command")
 local common <const> = require("teal-cli.tlcommon")
 local cs <const> = require("teal-cli.colorstring")
@@ -75,6 +76,7 @@ local function build(args: command.Command.Args): number
    end
 
    local function source_is_newer(src: fs.Path): boolean
+      if args.update_all then return true end
       local target <const> = get_output_name(src)
       local in_t, out_t = src:mod_time(), target:mod_time()
       if not out_t then
@@ -159,5 +161,8 @@ command.new{
    name = "build",
    description = [[Build a project based on tlconfig.lua.]],
    exec = build,
+   argparse = function(cmd: argparse.Command)
+      cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
+   end,
 }
 

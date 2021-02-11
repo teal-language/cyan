@@ -19,6 +19,8 @@ local record Command
       -- These should be in some sort of subtype/interface made by the check and run commands
       files: {string}
       script: {string}
+
+      update_all: boolean
    end
 
    name: string
