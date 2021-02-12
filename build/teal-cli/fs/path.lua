@@ -28,6 +28,10 @@ local path = {
 
 local function parse_string_path(s)
    s = s:gsub(path.separator .. "+$", "")
+   if #s == 0 then
+      return {}
+   end
+
    local new = {}
    for chunk in split(s, path.separator, true) do
       if chunk == ".." then
@@ -36,7 +40,7 @@ local function parse_string_path(s)
          else
             return nil
          end
-      elseif not (#new > 0 and chunk == ".") then
+      elseif chunk ~= "." then
          table.insert(new, chunk)
       end
    end
@@ -82,7 +86,8 @@ function Path:tostring()
 end
 
 function Path:to_real_path()
-   return table.concat(self, path.separator)
+   local res = table.concat(self, path.separator)
+   return #res > 0 and res or "." .. path.separator
 end
 
 function Path:exists()

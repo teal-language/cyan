@@ -28,6 +28,10 @@ local path <const> = {
 -- gets the path components, doesn't set the metatable
 local function parse_string_path(s: string): {string}
    s = s:gsub(path.separator .. "+$", "")
+   if #s == 0 then
+      return {}
+   end
+
    local new: {string} = {}
    for chunk in split(s, path.separator, true) do
       if chunk == ".." then
@@ -36,7 +40,7 @@ local function parse_string_path(s: string): {string}
          else
             return nil
          end
-      elseif not (#new > 0 and chunk == ".") then
+      elseif chunk ~= "." then
          table.insert(new, chunk)
       end
    end
@@ -82,7 +86,8 @@ function Path:tostring(): string
 end
 
 function Path:to_real_path(): string
-   return table.concat(self, path.separator)
+   local res <const> = table.concat(self, path.separator)
+   return #res > 0 and res or "." .. path.separator
 end
 
 function Path:exists(): boolean

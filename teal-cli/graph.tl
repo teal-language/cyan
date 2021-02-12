@@ -1,11 +1,15 @@
 
 local common <const> = require("teal-cli.tlcommon")
 local fs <const> = require("teal-cli.fs")
+local util <const> = require("teal-cli.util")
+-- local log <const> = require("teal-cli.log")
+
+local values <const> = util.tab.values
 
 local record Node
    input: fs.Path
    output: fs.Path
-   modules: {string:fs.Path}
+   modules: {string:fs.Path} -- require argument -> path found
    enum Mark
       "typecheck"
       "compile"
@@ -15,7 +19,8 @@ local record Node
 end
 
 local record Dag
-   _nodes: {string:Node}
+   _nodes: {number:{Node}}
+   _most_deps: number
 end
 
 local function mark_for_typecheck(n: Node)
@@ -35,10 +40,18 @@ local function mark_for_compile(n: Node)
 end
 
 function Dag:nodes(): function(): Node
-   local k, v: string, Node
+   local i = self._most_deps
+   local iter = values(self._nodes[i])
    return function(): Node
-      k, v = next(self._nodes, k)
-      return v
+      local n: Node
+      while i >= 0 do
+         n = iter()
+         if n then
+            return n
+         end
+         i = i - 1
+         iter = values(self._nodes[i])
+      end
    end
 end
 
@@ -50,6 +63,7 @@ function Dag:mark_each(predicate: function(fs.Path): boolean)
    end
 end
 
+-- Iterate over nodes in order of dependents
 function Dag:marked_nodes(m: Node.Mark): function(): Node
    local iter = self:nodes()
    return function(): Node
@@ -67,7 +81,8 @@ local graph <const> = {
 }
 
 function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
-   local nodes <const>: {string:Node} = {}
+   local nodes_by_filename <const>: {string:Node} = {} -- file name -> Node
+   local d <const>: Dag = {}
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
@@ -80,7 +95,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
             for _, mod_name in ipairs(require_calls) do
                modules[mod_name] = common.search_module(mod_name, true)
             end
-            nodes[path] = {
+            nodes_by_filename[path] = {
                input = full_p,
                modules = modules,
                dependents = {},
@@ -89,22 +104,30 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
       end
    end
 
-   for _, node in pairs(nodes) do
-      for _, mod_path in pairs(node.modules) do
-         local dep_node = nodes[mod_path:to_real_path()]
+   for node in values(nodes_by_filename) do
+      for mod_path in values(node.modules) do
+         local dep_node = nodes_by_filename[mod_path:to_real_path()]
          if dep_node then
             table.insert(dep_node.dependents, node)
          end
       end
    end
 
+   d._most_deps = 0
+   d._nodes = setmetatable({}, {
+      __index = function(self: {number:{Node}}, key: number): {Node}
+         if key > d._most_deps then d._most_deps = key end
+         rawset(self, key, {})
+         return rawget(self, key)
+      end
+   })
+   for node in values(nodes_by_filename) do
+      table.insert(d._nodes[#node.dependents], node)
+   end
+
    -- TODO: check for circular deps
-   return setmetatable(
-      {
-         _nodes = nodes
-      } as Dag,
-      { __index = Dag } as metatable<Dag>
-   )
+
+   return setmetatable(d, { __index = Dag })
 end
 
 return graph

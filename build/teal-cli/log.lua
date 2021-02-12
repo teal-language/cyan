@@ -7,12 +7,19 @@ local str = util.str
 local inspect
 do
    local ok, actual_inspect = pcall(require, "inspect")
+   local inspect_opts = {
+      process = function(item, path)
+         if path[#path] ~= (actual_inspect).METATABLE then
+            return item
+         end
+      end,
+   }
    if ok then
       inspect = function(x)
          if type(x) == "string" then
             return x
          else
-            return actual_inspect(x)
+            return actual_inspect(x, inspect_opts)
          end
       end
    else

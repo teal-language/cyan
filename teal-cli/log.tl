@@ -6,13 +6,20 @@ local str <const> = util.str
 
 local inspect: function(any): string
 do
-   local ok, actual_inspect = pcall(require, "inspect") as (boolean, function(any): string)
+   local ok, actual_inspect = pcall(require, "inspect") as (boolean, function(any, any): string)
+   local inspect_opts <const> = {
+      process = function(item: any, path: {any}): any
+         if path[#path] ~= (actual_inspect as {string:any}).METATABLE then
+            return item
+         end
+      end
+   }
    if ok then
       inspect = function(x: any): string
          if type(x) == "string" then
             return x as string
          else
-            return actual_inspect(x)
+            return actual_inspect(x, inspect_opts)
          end
       end
    else
