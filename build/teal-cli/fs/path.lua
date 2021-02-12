@@ -90,7 +90,8 @@ function Path:exists()
 end
 
 function Path:append(other)
-   local p = type(other) == "string" and path.new(other) or other; if p:is_absolute() then
+   local p = type(other) == "string" and path.new(other) or other
+   if p:is_absolute() then
       error("Attempt to append absolute path", 2)
    end
    append_to_path(self, p)
@@ -128,6 +129,10 @@ function Path:ancestors()
       end
       return setmetatable(p, PathMt)
    end
+end
+
+function Path:is_file()
+   return lfs.attributes(self:to_real_path(), "mode") == "file"
 end
 
 function Path:is_directory()

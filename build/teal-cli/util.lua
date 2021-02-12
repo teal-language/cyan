@@ -50,6 +50,18 @@ function tab.map(t, fn)
    return new
 end
 
+function tab.map_ipairs(t, fn)
+   local i = 0
+   return function()
+      i = i + 1
+      if not t[i] then
+         return
+      else
+         return i, fn(t[i])
+      end
+   end
+end
+
 function tab.filter(t, pred)
    local pass = {}
    local fail = {}

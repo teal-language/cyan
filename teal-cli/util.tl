@@ -50,6 +50,18 @@ function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
    return new
 end
 
+function tab.map_ipairs<T, K>(t: {T}, fn: function(T): K): function(): number, K
+   local i = 0
+   return function(): number, K
+      i = i + 1
+      if not t[i] then
+         return
+      else
+         return i, fn(t[i])
+      end
+   end
+end
+
 function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
    local pass <const>: {T} = {}
    local fail <const>: {T} = {}

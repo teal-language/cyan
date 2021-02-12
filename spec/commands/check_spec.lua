@@ -29,4 +29,16 @@ describe("check command", function()
          exit_code = 1,
       })
    end)
+
+   it("should handle being told to type check a non-file", function()
+      util.run_mock_project(finally, {
+         cmd = "check",
+         args = { "foo" },
+         dir_structure = {
+            foo = {},
+         },
+         cmd_output_match = "is not a file",
+         exit_code = 1,
+      })
+   end)
 end)

@@ -76,8 +76,8 @@ end
 colorstring_mt.__index = ColorString
 
 colorstring_mt.__concat = function(a: string | ColorString, b: string | ColorString): ColorString
-   local cs_a <const>: ColorString = a is string and { content = {a} } as ColorString or a
-   local cs_b <const>: ColorString = b is string and { content = {b} } as ColorString or b
+   local cs_a <const>: ColorString = a is string and { content = {a} } as ColorString or a as ColorString
+   local cs_b <const>: ColorString = b is string and { content = {b} } as ColorString or b as ColorString
    local new_content <const> = {}
    for val in ivalues(cs_a.content) do
       table.insert(new_content, val)

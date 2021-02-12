@@ -90,7 +90,8 @@ function Path:exists(): boolean
 end
 
 function Path:append(other: string | Path)
-   local p = other is string and path.new(other) or other if p:is_absolute() then
+   local p = other is string and path.new(other) or other as Path
+   if p:is_absolute() then
       error("Attempt to append absolute path", 2)
    end
    append_to_path(self, p)
@@ -130,6 +131,10 @@ function Path:ancestors(): function(): Path
    end
 end
 
+function Path:is_file(): boolean
+   return lfs.attributes(self:to_real_path(), "mode") == "file"
+end
+
 function Path:is_directory(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "directory"
 end
@@ -164,7 +169,7 @@ function Path:mkdir(): boolean, string
 end
 
 function Path:remove_leading(p: string | Path)
-   local leading <const> = p is string and path.new(p) or p
+   local leading <const> = p is string and path.new(p) or p as Path
    if util.xor(leading:is_absolute(), self:is_absolute()) then
       error("Attempt to mix absolute and non-absolute path", 2)
    end
@@ -200,8 +205,8 @@ PathMt.__eq = function(a: string | Path, b: string | Path): boolean
       return true
    end
 
-   local pa <const> = a is string and parse_string_path(a) or a
-   local pb <const> = b is string and parse_string_path(b) or b
+   local pa <const> = a is string and parse_string_path(a) or a as Path
+   local pb <const> = b is string and parse_string_path(b) or b as Path
 
    if rawlen(pa) ~= rawlen(pb) then
       return false

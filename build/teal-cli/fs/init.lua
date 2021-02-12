@@ -13,7 +13,7 @@ local fs = {
 
 function fs.dir(dir, include_dotfiles)
    local iter, data = lfs.dir(
-   type(dir) == "string" and dir or dir:to_real_path())
+   type(dir) == "table" and dir:to_real_path() or dir)
 
    return function()
       local p
@@ -68,7 +68,7 @@ function fs.extension_split(p, ndots)
    if not p then
       return nil
    end
-   local str_path = type(p) == "string" and p or p:to_real_path()
+   local str_path = type(p) == "table" and p:to_real_path() or p
    for n = ndots or 1, 1, -1 do
       local patt = "^(.-)(" .. ("%.%a+"):rep(n) .. ")$"
       local base, ext = str_path:match(patt)
