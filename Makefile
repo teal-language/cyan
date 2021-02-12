@@ -2,7 +2,7 @@
 SRC = $(wildcard teal-cli/*.tl) $(wildcard teal-cli/*/*.tl)
 LUA = $(SRC:%.tl=build/%.lua)
 
-TL = tl
+TL = ${OLD_TL}
 TLFLAGS = --quiet
 
 build/%.lua: %.tl

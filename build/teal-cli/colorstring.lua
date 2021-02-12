@@ -105,7 +105,7 @@ local colorstring = {
       file = { 33 },
       number = { 31 },
       emphasis = { 1 },
-      teal = rgb_fg(0, 0xA5, 0xA5),
+      teal = rgb_fg(0, 0xAA, 0xB4),
    },
 
    rgb_fg = rgb_fg,
