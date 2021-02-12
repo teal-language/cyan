@@ -24,5 +24,15 @@ describe("config loading", function()
       assert.is["nil"](errs)
       assert.are.same(warnings, {})
    end)
+
+   it("should warn on unknown keys", function()
+      local c = {
+         uhhhhh = "wat"
+      }
+      local res, errs, warnings = config.is_config(c)
+      assert.are.equal(c, res)
+      assert.is["nil"](errs)
+      assert.are.same(warnings, { "Unknown key 'uhhhhh'" })
+   end)
 end)
 

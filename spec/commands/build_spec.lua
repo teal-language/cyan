@@ -28,6 +28,18 @@ describe("build command", function()
          exit_code = 0,
       })
    end)
+   it("should report syntax errors", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            ["tlconfig.lua"] = [[return {}]],
+            ["foo.tl"] = [[a b c]],
+         },
+         generated_files = {},
+         exit_code = 1,
+         output_match = "syntax error",
+      })
+   end)
    it("should only compile .tl files", function()
       util.run_mock_project(finally, {
          cmd = "build",

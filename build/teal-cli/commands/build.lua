@@ -64,8 +64,8 @@ local function build(args)
    local exclude = loaded_config.exclude or {}
 
    local dag = graph.scan_dir(source_dir, include, exclude)
-
    local exit = 0
+
    local function get_output_name(src)
       local out = src:copy()
       out:remove_leading(source_dir)
@@ -87,70 +87,62 @@ local function build(args)
 
    dag:mark_each(source_is_newer)
 
-   for n in dag:marked_nodes("typecheck") do
-      local path = n.input:to_real_path()
-      local parsed = common.parse_file(path)
-      if parsed then
-         local result = common.parse_result_to_tl_result(parsed)
-         common.type_check_ast(parsed.ast, {
-            filename = path,
-            env = env,
-            result = result,
-         })
-         if not common.report_result(path, result) then
-            exit = 1
-         else
-            log.info("Type checked ", cs.highlight(cs.colors.file, n.input:tostring()))
-         end
-      else
-         exit = 1
-      end
-   end
-
    local to_write = {}
-   if exit == 0 then
-      for n in dag:marked_nodes("compile") do
-         local path = n.input:to_real_path()
-         local out = get_output_name(n.input)
-         n.output = out
-         local parsed = common.parse_file(path)
-         if parsed then
-            local result = common.parse_result_to_tl_result(parsed)
-            common.type_check_ast(parsed.ast, {
-               filename = path,
-               env = env,
-               result = result,
-            })
-            if not common.report_result(path, result) then
-               exit = 1
-            else
-               local ok, err = n.output:mk_parent_dirs()
-               if ok then
-                  log.info("Type checked ", cs.highlight(cs.colors.file, n.input:tostring()))
-                  table.insert(to_write, { n, parsed.ast })
-               else
-                  log.err("Unable to create parent dirs to ", cs.highlight(cs.colors.file, n.output:tostring()), ":", err)
-                  exit = 1
-               end
-            end
+   local function process_node(n, compile)
+      local path = n.input:to_real_path()
+      local out = get_output_name(n.input)
+      n.output = out
+      local parsed = common.parse_file(path)
+      if #parsed.errs > 0 then
+         common.report_errors(log.err, parsed.errs, path, "syntax error")
+         exit = 1
+         return
+      end
+
+      local result = common.parse_result_to_tl_result(parsed)
+      common.type_check_ast(parsed.ast, {
+         filename = path,
+         env = env,
+         result = result,
+      })
+      if not common.report_result(path, result) then
+         exit = 1
+         return
+      end
+      log.info("Type checked ", cs.highlight(cs.colors.file, n.input:tostring()))
+      if compile then
+         local ok, err = n.output:mk_parent_dirs()
+         if ok then
+            table.insert(to_write, { n, parsed.ast })
          else
+            log.err("Unable to create parent dirs to ", cs.highlight(cs.colors.file, n.output:tostring()), ":", err)
             exit = 1
          end
       end
    end
 
-   if exit == 0 then
-      for node_ast in ivalues(to_write) do
-         local n, ast = node_ast[1], node_ast[2]
-         local fh, err = io.open(n.output:to_real_path(), "w")
-         if not fh then
-            log.err("Error opening file", cs.highlight(cs.colors.file, n.output:to_real_path()), err)
-            exit = 1
-         else
-            fh:write(common.compile_ast(ast))
-            fh:close()
-            log.info("Wrote ", cs.highlight(cs.colors.file, n.output:to_real_path()))
-         end
+   for n in dag:marked_nodes("typecheck") do
+      process_node(n, false)
+   end
+
+   if exit ~= 0 then return exit end
+
+   for n in dag:marked_nodes("compile") do
+      process_node(n, true)
+   end
+
+   if exit ~= 0 then return exit end
+
+   for node_ast in ivalues(to_write) do
+      local n, ast = node_ast[1], node_ast[2]
+      local fh, err = io.open(n.output:to_real_path(), "w")
+      if not fh then
+         log.err("Error opening file", cs.highlight(cs.colors.file, n.output:to_real_path()), err)
+         exit = 1
+      else
+         fh:write(common.compile_ast(ast))
+         fh:close()
+         log.info("Wrote ", cs.highlight(cs.colors.file, n.output:to_real_path()))
       end
    end
 
