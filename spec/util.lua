@@ -326,4 +326,10 @@ function util.assert_popen_close(want1, want2, want3, ret1, ret2, ret3)
    end
 end
 
+function util.run_command(cmd)
+   local pd = io.popen(cmd, "r")
+   local output = pd:read("*a")
+   return output, pd:close()
+end
+
 return util

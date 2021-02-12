@@ -1,8 +1,9 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local table = _tl_compat and _tl_compat.table or table
 
 
 
 local argparse = require("argparse")
+local lfs = require("lfs")
 
 local common = require("teal-cli.tlcommon")
 local command = require("teal-cli.command")
@@ -29,9 +30,19 @@ end
 
 local function command_exec(should_compile)
    return function(args)
-      local _, _loaded_config, env = common.load_and_init_env(false, "tlconfig.lua", args)
+      local starting_dir = fs.current_dir()
+      local config_path = fs.search_parent_dirs(lfs.currentdir(), "tlconfig.lua")
+      local root_dir
+      if config_path then
+         root_dir = config_path:copy()
+         table.remove(root_dir)
+         if not lfs.chdir(root_dir:to_real_path()) then
+            log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
+            return 1
+         end
+      end
 
-      local files = args.files
+      local _, _loaded_config, env = common.load_and_init_env(false, "tlconfig.lua", args)
 
       local exit = 0
 
@@ -69,20 +80,32 @@ local function command_exec(should_compile)
             return
          end
          log.info("Type checked ", disp_file)
-         if should_compile then
-            local fh, err = io.open(outfile, "w")
-            if fh then
-               fh:write(common.compile_ast(parsed.ast))
-               fh:close()
-               log.info("Wrote ", disp_outfile)
-            else
-               log.err("Unable to write to ", disp_outfile, "\n", err)
-               exit = 1
-            end
+         if not should_compile then
+            return
+         end
+         local fh, err = io.open(outfile, "w")
+         if fh then
+            fh:write(common.compile_ast(parsed.ast))
+            fh:close()
+            log.info("Wrote ", disp_outfile)
+         else
+            log.err("Unable to write to ", disp_outfile, "\n", err)
+            exit = 1
          end
       end
 
-      for _, path in map_ipairs(files, fs.path.new) do
+      local function fix_path(f)
+         local p = fs.path.new(f)
+         if config_path then
+            if not p:is_absolute() then
+               p:prepend(starting_dir)
+               p:remove_leading(root_dir)
+            end
+         end
+         return p
+      end
+
+      for _, path in map_ipairs(args.files, fix_path) do
          process_file(path)
       end
 

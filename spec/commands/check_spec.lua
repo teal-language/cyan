@@ -41,4 +41,18 @@ describe("check command", function()
          exit_code = 1,
       })
    end)
+
+   it("should chdir into the root before checking", function()
+      util.do_in(util.write_tmp_dir(finally, {
+         ["tlconfig.lua"] = [[return {}]],
+         foo = {
+            ["bar.tl"] = [[require("foo.baz")]],
+            ["baz.tl"] = [[return 10]],
+         },
+      }), function()
+         local out = util.run_command("cd foo && " .. util.tl_cmd("check", "bar.tl") .. " 2>&1")
+         assert.match("Type checked", out)
+      end)
+   end)
+
 end)

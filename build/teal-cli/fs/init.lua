@@ -11,6 +11,10 @@ local fs = {
    Path = Path,
 }
 
+function fs.current_dir()
+   return path.new(lfs.currentdir())
+end
+
 function fs.dir(dir, include_dotfiles)
    local iter, data = lfs.dir(
    type(dir) == "table" and dir:to_real_path() or dir)

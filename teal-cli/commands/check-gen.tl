@@ -3,6 +3,7 @@
 -- so to avoid writing the same file twice, just implement them both here
 
 local argparse <const> = require("argparse")
+local lfs <const> = require("lfs")
 
 local common <const> = require("teal-cli.tlcommon")
 local command <const> = require("teal-cli.command")
@@ -29,9 +30,19 @@ end
 
 local function command_exec(should_compile: boolean): function(command.Command.Args): number
    return function(args: command.Command.Args): number
-      local _, _loaded_config <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
+      local starting_dir <const> = fs.current_dir()
+      local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), "tlconfig.lua")
+      local root_dir: fs.Path
+      if config_path then
+         root_dir = config_path:copy()
+         table.remove(root_dir)
+         if not lfs.chdir(root_dir:to_real_path()) then
+            log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
+            return 1
+         end
+      end
 
-      local files <const> = args.files
+      local _, _loaded_config <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
 
       local exit = 0
 
@@ -69,20 +80,32 @@ local function command_exec(should_compile: boolean): function(command.Command.A
             return
          end
          log.info("Type checked ", disp_file)
-         if should_compile then
-            local fh <const>, err <const> = io.open(outfile, "w")
-            if fh then
-               fh:write(common.compile_ast(parsed.ast))
-               fh:close()
-               log.info("Wrote ", disp_outfile)
-            else
-               log.err("Unable to write to ", disp_outfile, "\n", err)
-               exit = 1
-            end
+         if not should_compile then
+            return
+         end
+         local fh <const>, err <const> = io.open(outfile, "w")
+         if fh then
+            fh:write(common.compile_ast(parsed.ast))
+            fh:close()
+            log.info("Wrote ", disp_outfile)
+         else
+            log.err("Unable to write to ", disp_outfile, "\n", err)
+            exit = 1
          end
       end
 
-      for _, path in map_ipairs(files, fs.path.new) do
+      local function fix_path(f: string): fs.Path
+         local p <const> = fs.path.new(f)
+         if config_path then
+            if not p:is_absolute() then
+               p:prepend(starting_dir)
+               p:remove_leading(root_dir)
+            end
+         end
+         return p
+      end
+
+      for _, path in map_ipairs(args.files, fix_path) do
          process_file(path)
       end
 

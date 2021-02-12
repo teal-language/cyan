@@ -11,6 +11,10 @@ local fs <const> = {
    Path = Path,
 }
 
+function fs.current_dir(): Path
+   return path.new(lfs.currentdir())
+end
+
 function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
    local iter <const>, data <const> = lfs.dir(
       dir is Path and dir:to_real_path() or dir as string
