@@ -16,17 +16,10 @@ local record Config
    exclude: {string}
    preload_modules: {string}
    include_dir: {string}
-   enum GenCompat
-      "off"
-      "optional"
-      "required"
-   end
-   gen_compat: GenCompat
-   enum GenTarget
-      "5.1"
-      "5.3"
-   end
-   gen_target: GenTarget
+   module_name: string
+
+   gen_compat: tl.CompatMode
+   gen_target: tl.TargetMode
    disable_warnings: {tl.WarningKind}
    warning_errors: {tl.WarningKind}
 
@@ -65,6 +58,7 @@ function config.is_config(c: any): Config, {string}, {string}
    local valid_keys <const>: {string:string|{string:boolean}} = {
       build_dir = "string",
       source_dir = "string",
+      module_name = "string",
 
       include = "{string}",
       exclude = "{string}",

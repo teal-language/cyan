@@ -117,5 +117,24 @@ describe("build command", function()
          exit_code = 0,
       })
    end)
+   it("should be able to resolve requires with `module_name` and `source_dir` set", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            ["tlconfig.lua"] = [[return { source_dir = "src", module_name = "foo", build_dir = "build" }]],
+            src = {
+               ["bar.tl"] = [[return 10]],
+               ["baz.tl"] = [[local x: number = require("foo.bar")]],
+            },
+            generated_files = {
+               build = {
+                  "bar.lua",
+                  "baz.lua",
+               }
+            },
+         },
+         exit_code = 0,
+      })
+   end)
 end)
 

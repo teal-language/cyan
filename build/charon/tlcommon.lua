@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -198,6 +198,24 @@ function common.prepend_to_lua_path(path_str)
    package.cpath
 end
 
+local old_tl_search_module = tl.search_module
+local substitutions = {}
+function common.add_module_substitute(source_dir, mod_name)
+   substitutions[source_dir] = "^" .. util.str.esc(mod_name)
+end
+
+tl.search_module = function(module_name, search_dtl)
+   for src, mod in pairs(substitutions) do
+      if module_name:match(mod) then
+         local a, b, c = old_tl_search_module(module_name:gsub(mod, src), search_dtl)
+         if a then
+            return a, b, c
+         end
+      end
+   end
+   return old_tl_search_module(module_name, search_dtl)
+end
+
 function common.apply_config_to_environment(cfg, tl_env)
    local env = tl_env or common.init_teal_env(cfg.gen_compat, cfg.gen_target)
 
@@ -207,6 +225,10 @@ function common.apply_config_to_environment(cfg, tl_env)
 
    for module in ivalues(cfg.preload_modules or {}) do
       common.load_module_into_env(module, env)
+   end
+
+   if cfg.source_dir and cfg.module_name then
+      common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
    return env
