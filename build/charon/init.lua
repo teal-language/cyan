@@ -1,9 +1,9 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
-local command = require("teal-cli.command")
-local common = require("teal-cli.tlcommon")
-local log = require("teal-cli.log")
+local command = require("charon.command")
+local common = require("charon.tlcommon")
+local log = require("charon.log")
 
-local parser = argparse("tl", "Teal, a minimalistic typed dialect of Lua.")
+local parser = argparse("charon", "The Teal build system")
 
 local function forward_arg(fn)
    return function(a, key, val)
@@ -46,9 +46,9 @@ parser:flag("-q --quiet", "Do not print information messages to stdout. Errors m
 
 parser:command_target("command")
 
-require("teal-cli.commands.check-gen")
-require("teal-cli.commands.run")
-require("teal-cli.commands.build")
+require("charon.commands.check-gen")
+require("charon.commands.run")
+require("charon.commands.build")
 
 command.register_all(parser)
 

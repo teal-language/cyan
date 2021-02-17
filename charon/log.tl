@@ -1,6 +1,6 @@
 
-local util <const> = require("teal-cli.util")
-local cs <const> = require("teal-cli.colorstring")
+local util <const> = require("charon.util")
+local cs <const> = require("charon.colorstring")
 local tab <const> = util.tab
 local str <const> = util.str
 

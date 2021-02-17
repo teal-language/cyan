@@ -1,4 +1,4 @@
 return {
-   build_dir = "tmp/teal-cli",
-   source_dir = "teal-cli",
+   build_dir = "tmp/charon",
+   source_dir = "charon",
 }

@@ -2,8 +2,8 @@
 -- Some wrappers/conveniences around working with ansi escape codes
 -- For example getting the length of a string that contains escape codes shouldnt include them
 
-local ansi <const> = require("teal-cli.ansi")
-local util <const> = require("teal-cli.util")
+local ansi <const> = require("charon.ansi")
+local util <const> = require("charon.util")
 local map <const>, ivalues <const> = util.tab.map, util.tab.ivalues
 
 local setmt <const> = setmetatable as function<T>(T, metatable<T>): T

@@ -1,2 +1,0 @@
-#!/usr/bin/env lua
-require("teal-cli")

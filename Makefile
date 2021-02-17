@@ -1,8 +1,8 @@
 
-SRC = $(wildcard teal-cli/*.tl) $(wildcard teal-cli/*/*.tl)
+SRC = $(wildcard charon/*.tl) $(wildcard charon/*/*.tl)
 LUA = $(SRC:%.tl=build/%.lua)
 
-TL = ${OLD_TL}
+TL = tl
 TLFLAGS = --quiet
 
 build/%.lua: %.tl
@@ -15,21 +15,21 @@ all: clean default
 
 clean:
 	rm -rf build tmp
-	mkdir -p build/teal-cli/fs build/teal-cli/commands
+	mkdir -p build/charon/fs build/charon/commands
 
 bootstrap: default
 	@echo "Initial build"
-	bin/bootstrap-tl build
+	bin/bootstrap build
 	@echo "Replacing code"
 	rm -rf build
 	mv tmp build
 	@echo "Building with self compiled code"
-	bin/bootstrap-tl build
+	bin/bootstrap build
 	@echo "Replacing code"
 	rm -rf build
 	mv tmp build
 	@echo "Final build with self compiled code"
-	bin/bootstrap-tl build
+	bin/bootstrap build
 	rm -rf build
 	mv tmp build
 	busted

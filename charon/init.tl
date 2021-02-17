@@ -1,9 +1,9 @@
 local argparse <const> = require("argparse")
-local command <const> = require("teal-cli.command")
-local common <const> = require("teal-cli.tlcommon")
-local log <const> = require("teal-cli.log")
+local command <const> = require("charon.command")
+local common <const> = require("charon.tlcommon")
+local log <const> = require("charon.log")
 
-local parser <const> = argparse("tl", "Teal, a minimalistic typed dialect of Lua.")
+local parser <const> = argparse("charon", "The Teal build system")
 
 local function forward_arg(fn: function(string | boolean | {string})): argparse.ActionCallback
    return function(a: argparse.Args, key: string, val: string | boolean | {string})
@@ -46,9 +46,9 @@ parser:flag("-q --quiet", "Do not print information messages to stdout. Errors m
 
 parser:command_target("command")
 
-require("teal-cli.commands.check-gen")
-require("teal-cli.commands.run")
-require("teal-cli.commands.build")
+require("charon.commands.check-gen")
+require("charon.commands.run")
+require("charon.commands.build")
 
 command.register_all(parser)
 

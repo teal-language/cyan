@@ -1,10 +1,10 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 local tl = require("tl")
 local argparse = require("argparse")
-local log = require("teal-cli.log")
-local command = require("teal-cli.command")
-local common = require("teal-cli.tlcommon")
-local sandbox = require("teal-cli.sandbox")
+local log = require("charon.log")
+local command = require("charon.command")
+local common = require("charon.tlcommon")
+local sandbox = require("charon.sandbox")
 
 local function add_to_argparser(cmd)
    cmd:argument("script", "The Teal script to run."):

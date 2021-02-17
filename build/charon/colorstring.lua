@@ -2,8 +2,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local ansi = require("teal-cli.ansi")
-local util = require("teal-cli.util")
+local ansi = require("charon.ansi")
+local util = require("charon.util")
 local map, ivalues = util.tab.map, util.tab.ivalues
 
 local setmt = setmetatable

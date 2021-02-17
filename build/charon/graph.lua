@@ -1,29 +1,29 @@
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
+local common = require("charon.tlcommon")
+local fs = require("charon.fs")
+local util = require("charon.util")
 
-local common <const> = require("teal-cli.tlcommon")
-local fs <const> = require("teal-cli.fs")
-local util <const> = require("teal-cli.util")
--- local log <const> = require("teal-cli.log")
 
-local values <const> = util.tab.values
+local values = util.tab.values
 
-local record Node
-   input: fs.Path
-   output: fs.Path
-   modules: {string:fs.Path} -- require argument -> path found
-   enum Mark
-      "typecheck"
-      "compile"
-   end
-   mark: Mark
-   dependents: {Node}
-end
+local Node = {}
 
-local record Dag
-   _nodes: {number:{Node}}
-   _most_deps: number
-end
 
-local function mark_for_typecheck(n: Node)
+
+
+
+
+
+
+
+
+
+local Dag = {}
+
+
+
+
+local function mark_for_typecheck(n)
    if n.mark then return end
    n.mark = "typecheck"
    for _, child in ipairs(n.dependents) do
@@ -31,7 +31,7 @@ local function mark_for_typecheck(n: Node)
    end
 end
 
-local function mark_for_compile(n: Node)
+local function mark_for_compile(n)
    if n.mark == "compile" then return end
    n.mark = "compile"
    for _, child in ipairs(n.dependents) do
@@ -39,11 +39,11 @@ local function mark_for_compile(n: Node)
    end
 end
 
-function Dag:nodes(): function(): Node
+function Dag:nodes()
    local i = self._most_deps
    local iter = values(self._nodes[i])
-   return function(): Node
-      local n: Node
+   return function()
+      local n
       while i >= 0 do
          n = iter()
          if n then
@@ -55,7 +55,7 @@ function Dag:nodes(): function(): Node
    end
 end
 
-function Dag:mark_each(predicate: function(fs.Path): boolean)
+function Dag:mark_each(predicate)
    for n in self:nodes() do
       if predicate(n.input) then
          mark_for_compile(n)
@@ -63,35 +63,35 @@ function Dag:mark_each(predicate: function(fs.Path): boolean)
    end
 end
 
--- Iterate over nodes in order of dependents
-function Dag:marked_nodes(m: Node.Mark): function(): Node
+
+function Dag:marked_nodes(m)
    local iter = self:nodes()
-   return function(): Node
-      local n: Node
+   return function()
+      local n
       repeat n = iter()
-      until not n
-         or n.mark == m
-      return n
+
+      until not n or
+n.mark == m; return n
    end
 end
 
-local graph <const> = {
+local graph = {
    Node = Node,
    Dag = Dag,
 }
 
-function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
-   local nodes_by_filename <const>: {string:Node} = {} -- file name -> Node
-   local d <const>: Dag = {}
+function graph.scan_dir(dir, include, exclude)
+   local nodes_by_filename = {}
+   local d = {}
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
-         local full_p <const> = dir .. p
-         local path <const> = full_p:to_real_path()
-         local res <const> = common.parse_file(path)
+         local full_p = dir .. p
+         local path = full_p:to_real_path()
+         local res = common.parse_file(path)
          if res then
-            local require_calls <const> = res.reqs
-            local modules <const>: {string:fs.Path} = {}
+            local require_calls = res.reqs
+            local modules = {}
             for _, mod_name in ipairs(require_calls) do
                modules[mod_name] = common.search_module(mod_name, true)
             end
@@ -115,17 +115,17 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
 
    d._most_deps = 0
    d._nodes = setmetatable({}, {
-      __index = function(self: {number:{Node}}, key: number): {Node}
+      __index = function(self, key)
          if key > d._most_deps then d._most_deps = key end
          rawset(self, key, {})
          return rawget(self, key)
-      end
+      end,
    })
    for node in values(nodes_by_filename) do
       table.insert(d._nodes[#node.dependents], node)
    end
 
-   -- TODO: check for circular deps
+
 
    return setmetatable(d, { __index = Dag })
 end

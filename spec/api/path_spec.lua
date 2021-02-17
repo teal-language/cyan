@@ -1,5 +1,5 @@
 local util = require("spec.util")
-local path = require("teal-cli.fs.path")
+local path = require("charon.fs.path")
 path.separator = '/'
 
 describe("fs.path api", function()
@@ -94,13 +94,13 @@ describe("fs.path api", function()
    end)
    describe("Path:match", function()
       local function assert_match(p, patt)
-         assert(getmetatable(p).__name == "teal-cli.fs.path.Path", "p is not a Path")
+         assert(getmetatable(p).__name == "charon.fs.path.Path", "p is not a Path")
          local res = p:match(patt)
          assert(res, p:tostring() .. " should have matched " .. patt)
       end
 
       local function assert_not_match(p, patt)
-         assert(getmetatable(p).__name == "teal-cli.fs.path.Path", "p is not a Path")
+         assert(getmetatable(p).__name == "charon.fs.path.Path", "p is not a Path")
          local res = p:match(patt)
          assert["not"](res, p:tostring() .. " should not have matched " .. patt)
       end

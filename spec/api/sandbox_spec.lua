@@ -1,5 +1,5 @@
 
-local sandbox = require("teal-cli.sandbox")
+local sandbox = require("charon.sandbox")
 
 describe("sandbox", function()
    it("should forcefully terminate long-running functions", function()

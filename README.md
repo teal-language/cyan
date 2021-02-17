@@ -1,6 +1,6 @@
 # teal-cli
 
-A new cli to the [Teal](https://github.com/teal-language/tl) compiler
+A build system for the Teal language
 
 # Commands
 

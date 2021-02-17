@@ -1,10 +1,10 @@
 
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
-local log <const> = require("teal-cli.log")
-local command <const> = require("teal-cli.command")
-local common <const> = require("teal-cli.tlcommon")
-local sandbox <const> = require("teal-cli.sandbox")
+local log <const> = require("charon.log")
+local command <const> = require("charon.command")
+local common <const> = require("charon.tlcommon")
+local sandbox <const> = require("charon.sandbox")
 
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("script", "The Teal script to run.")

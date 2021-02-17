@@ -6,7 +6,7 @@ local assert = require("luassert")
 local lfs = require("lfs")
 
 local current_dir = assert(lfs.currentdir(), "unable to get current dir")
-local tl_executable = current_dir .. "/bin/tl"
+local tl_executable = current_dir .. "/bin/charon"
 
 local t_unpack = unpack or table.unpack
 

@@ -2,7 +2,7 @@
 -- Filesystem and path management
 
 local lfs <const> = require("lfs")
-local path <const> = require("teal-cli.fs.path")
+local path <const> = require("charon.fs.path")
 
 local Path <const> = path.Path
 
@@ -52,7 +52,7 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
          if full:is_directory() then
             dir_iter(full)
          else
-            local inc = true
+            local inc: boolean | number = true
             if #include > 0 then
                inc = to_match:match_any(include)
             end

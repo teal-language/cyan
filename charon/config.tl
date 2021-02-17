@@ -2,9 +2,9 @@
 -- Config loading API
 
 local tl <const> = require("tl")
-local sandbox <const> = require("teal-cli.sandbox")
-local util <const> = require("teal-cli.util")
-local command <const> = require("teal-cli.command")
+local sandbox <const> = require("charon.sandbox")
+local util <const> = require("charon.util")
+local command <const> = require("charon.command")
 
 local keys <const>, sort <const>, from <const> = util.tab.keys, util.tab.sort, util.tab.from
 

@@ -1,38 +1,38 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
-local lfs = require("lfs")
 
-local util = require("teal-cli.util")
+local lfs <const> = require("lfs")
 
-local split, esc = util.str.split, util.str.esc
-local values = util.tab.values
+local util <const> = require("charon.util")
 
-local Path = {}
+local split <const>, esc <const> = util.str.split, util.str.esc
+local values <const> = util.tab.values
 
+local record Path
+   {string}
 
-
-
-
-
-local PathMt = {
+   metamethod __concat: function(Path | string, Path | string): Path
+   metamethod __eq: function(Path | string, Path | string): boolean
+   -- metamethod __tostring: function(Path): string
+end
+local PathMt <const>: metatable<Path> = {
    __index = Path,
-   __name = "teal-cli.fs.path.Path",
+   __name = "charon.fs.path.Path",
 }
 
-local path = {
+local path <const> = {
    Path = Path,
    separator = package.config:sub(1, 1),
-   shared_lib_ext = package.cpath:match("(%.%w+)%s*$") or ".so",
+   shared_lib_ext = package.cpath:match("(%.%w+)%s*$") or ".so"
 }
 
-
-
-local function parse_string_path(s)
+-- Basically the constructor for a 'raw' Path,
+-- gets the path components, doesn't set the metatable
+local function parse_string_path(s: string): {string}
    s = s:gsub(path.separator .. "+$", "")
    if #s == 0 then
       return {}
    end
 
-   local new = {}
+   local new: {string} = {}
    for chunk in split(s, path.separator, true) do
       if chunk == ".." then
          if #new > 0 then
@@ -47,62 +47,62 @@ local function parse_string_path(s)
    return new
 end
 
-function path.new(s)
+function path.new(s: string): Path
    if not s then return nil end
-   local new = parse_string_path(s)
+   local new: Path = parse_string_path(s)
    return setmetatable(new, PathMt)
 end
 
-local function string_is_absolute_path(p)
+local function string_is_absolute_path(p: string): boolean
    if path.separator == "/" then
       return p:sub(1, 1) == "/"
    elseif path.separator == "\\" then
-      return p:match("^%a:$")
+      return p:match("^%a:$") as boolean
    end
 end
 
-local function chunks(p)
-   return type(p) == "string" and split(p, path.separator, true) or
-   values(p)
+local function chunks(p: Path | string): function(): string
+   return p is string and split(p, path.separator, true)
+      or values(p as {string})
 end
 
-local function append_to_path(p, other)
+local function append_to_path(p: Path, other: Path | string)
    for chunk in chunks(other) do
       table.insert(p, chunk)
    end
 end
 
-function Path:is_absolute()
+function Path:is_absolute(): boolean
    if path.separator == "/" then
       return self[1] == ""
    elseif path.separator == "\\" then
-      return self[1]:match("^%a:$")
+      return self[1]:match("^%a:$") as boolean
    end
 end
 
-function Path:tostring()
-   local start = self[1] == "." and 2 or 1
+function Path:tostring(): string
+   local start <const> = self[1] == "." and 2 or 1
    return table.concat(self, "/", start)
 end
 
-function Path:to_real_path()
-   local res = table.concat(self, path.separator)
+function Path:to_real_path(): string
+   local res <const> = table.concat(self, path.separator)
    return #res > 0 and res or "." .. path.separator
 end
 
-function Path:exists()
+function Path:exists(): boolean
    return lfs.attributes(self:to_real_path()) ~= nil
 end
 
-function Path:append(other)
-   local p = type(other) == "string" and path.new(other) or other
+function Path:append(other: string | Path)
+   local p = other is string and path.new(other) or other as Path
    if p:is_absolute() then
       error("Attempt to append absolute path", 2)
    end
    append_to_path(self, p)
 end
 
-function Path:prepend(other)
+function Path:prepend(other: string | Path)
    if self:is_absolute() then
       error("Attempt to prepend to absolute path", 2)
    end
@@ -113,22 +113,22 @@ function Path:prepend(other)
    end
 end
 
-function Path:copy()
-   local new = {}
+function Path:copy(): Path
+   local new: Path = {}
    for i = 1, #self do
       new[i] = self[i]
    end
    return setmetatable(new, PathMt)
 end
 
-function Path:ancestors()
+function Path:ancestors(): function(): Path
    local idx = 0
-   return function()
+   return function(): Path
       idx = idx + 1
       if idx >= #self then
          return
       end
-      local p = {}
+      local p <const>: Path = {}
       for i = 1, idx do
          p[i] = self[i]
       end
@@ -136,26 +136,26 @@ function Path:ancestors()
    end
 end
 
-function Path:is_file()
+function Path:is_file(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "file"
 end
 
-function Path:is_directory()
+function Path:is_directory(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "directory"
 end
 
-function Path:mod_time()
-   return lfs.attributes(self:to_real_path(), "modification")
+function Path:mod_time(): number
+   return lfs.attributes(self:to_real_path(), "modification") as number
 end
 
-function Path:mk_parent_dirs()
+function Path:mk_parent_dirs(): boolean, string
    for p in self:ancestors() do
       if p:exists() then
          if not p:is_directory() then
             return false, p:to_real_path() .. " exists and is not a directory"
          end
       else
-         local succ, err = lfs.mkdir(p:to_real_path())
+         local succ <const>, err <const> = lfs.mkdir(p:to_real_path())
          if not succ then
             return false, err
          end
@@ -164,8 +164,8 @@ function Path:mk_parent_dirs()
    return true
 end
 
-function Path:mkdir()
-   local succ, err = self:mk_parent_dirs()
+function Path:mkdir(): boolean, string
+   local succ <const>, err <const> = self:mk_parent_dirs()
    if succ then
       return lfs.mkdir(self:to_real_path())
    else
@@ -173,8 +173,8 @@ function Path:mkdir()
    end
 end
 
-function Path:remove_leading(p)
-   local leading = type(p) == "string" and path.new(p) or p
+function Path:remove_leading(p: string | Path)
+   local leading <const> = p is string and path.new(p) or p as Path
    if util.xor(leading:is_absolute(), self:is_absolute()) then
       error("Attempt to mix absolute and non-absolute path", 2)
    end
@@ -193,25 +193,25 @@ function Path:remove_leading(p)
    end
 end
 
-PathMt.__concat = function(a, b)
-   if (type(b) == "string" and string_is_absolute_path(b)) or (type(b) == "table" and b:is_absolute()) then
+PathMt.__concat = function(a: Path | string, b: Path | string): Path
+   if (b is string and string_is_absolute_path(b)) or (b is Path and b:is_absolute()) then
       error("Attempt to concatenate with absolute path", 2)
    end
 
-   local new = {}
+   local new <const>: Path = {}
    append_to_path(new, a)
    append_to_path(new, b)
 
    return setmetatable(new, PathMt)
 end
 
-PathMt.__eq = function(a, b)
+PathMt.__eq = function(a: string | Path, b: string | Path): boolean
    if rawequal(a, b) then
       return true
    end
 
-   local pa = type(a) == "string" and parse_string_path(a) or a
-   local pb = type(b) == "string" and parse_string_path(b) or b
+   local pa <const> = a is string and parse_string_path(a) or a as Path
+   local pb <const> = b is string and parse_string_path(b) or b as Path
 
    if rawlen(pa) ~= rawlen(pb) then
       return false
@@ -228,26 +228,26 @@ end
 
 PathMt.__tostring = Path.tostring
 
-local function patt_escape_char(c)
+local function patt_escape_char(c: string): string
    return c == "*" and ".-" or "%" .. c
 end
 
-local function process_patt_chunk(s)
-   return s == "**" and
-   "**" or
-   "^" .. esc(s, patt_escape_char) .. "$"
+local function process_patt_chunk(s: string): string
+   return s == "**"
+      and "**"
+      or "^" .. esc(s, patt_escape_char) .. "$"
 end
 
-
-local pattern_cache = setmetatable({}, { __mode = "kv" })
-local function get_patt(patt)
+-- Patterns will always use '/' as a path separator
+local pattern_cache <const>: {string:{string}} = setmetatable({}, { __mode = "kv" })
+local function get_patt(patt: string): {string}
    if not pattern_cache[patt] then
-      local path_patt = parse_string_path(patt)
+      local path_patt <const> = parse_string_path(patt)
 
-
-
+      -- clear redundant **/, as they're technically valid, but redundant and its easier to process without them
+      -- /foo/bar/**/**/baz -> /foo/bar/**/baz
       for i = #path_patt, 2, -1 do
-         if path_patt[i] == "**" and path_patt[i - 1] == "**" then
+         if path_patt[i] == "**" and path_patt[i-1] == "**" then
             table.remove(path_patt, i)
          end
       end
@@ -261,19 +261,19 @@ local function get_patt(patt)
    return pattern_cache[patt]
 end
 
-local function match(p, path_patt)
+local function match(p: {string}, path_patt: {string}): boolean
    local path_len = #p
    local patt_len = #path_patt
 
    local patt_idx = 1
    local path_idx = 1
 
-   local double_glob_stack = {}
+   local double_glob_stack <const> = {}
    local function push_state()
-      table.insert(double_glob_stack, { patt_idx, path_idx })
+      table.insert(double_glob_stack, {patt_idx, path_idx})
    end
-   local function pop_state()
-      local t = table.remove(double_glob_stack)
+   local function pop_state(): boolean
+      local t <const> = table.remove(double_glob_stack)
       if not t then return false end
       patt_idx = t[1]
       path_idx = t[2] + 1
@@ -281,8 +281,8 @@ local function match(p, path_patt)
    end
 
    while patt_idx <= patt_len and path_idx <= path_len do
-      local patt_chunk = path_patt[patt_idx]
-      local path_chunk = p[path_idx]
+      local patt_chunk <const> = path_patt[patt_idx]
+      local path_chunk <const> = p[path_idx]
 
       if patt_chunk == "**" then
          push_state()
@@ -295,18 +295,18 @@ local function match(p, path_patt)
       end
    end
 
-   return patt_idx > patt_len and
-   path_idx > path_len
+   return patt_idx > patt_len
+      and path_idx > path_len
 end
 
-function Path:match(patt)
+function Path:match(patt: string): boolean
    return match(self, get_patt(patt))
 end
 
-function Path:match_any(patts)
+function Path:match_any(patts: {string}): number, string
    for i, patt in ipairs(patts) do
       if match(self, get_patt(patt)) then
-         return true, i, patt
+         return i, patt
       end
    end
 end

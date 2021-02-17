@@ -2,12 +2,12 @@
 -- Common things needed by most commands in addition to
 -- wrappers around the tl api, since it isn't super stable
 
-local command <const> = require("teal-cli.command")
-local config <const> = require("teal-cli.config")
-local fs <const> = require("teal-cli.fs")
-local log <const> = require("teal-cli.log")
-local util <const> = require("teal-cli.util")
-local cs <const> = require("teal-cli.colorstring")
+local command <const> = require("charon.command")
+local config <const> = require("charon.config")
+local fs <const> = require("charon.fs")
+local log <const> = require("charon.log")
+local util <const> = require("charon.util")
+local cs <const> = require("charon.colorstring")
 local tl <const> = require("tl")
 
 local map <const>, filter <const>, ivalues <const> = util.tab.map, util.tab.filter, util.tab.ivalues

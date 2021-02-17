@@ -1,5 +1,5 @@
 
-local config = require("teal-cli.config")
+local config = require("charon.config")
 
 describe("config loading", function()
    it("should perform some simplistic type checking", function()
