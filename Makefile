@@ -1,11 +1,11 @@
 
-SRC = $(wildcard charon/*.tl) $(wildcard charon/*/*.tl)
-LUA = $(SRC:%.tl=build/%.lua)
+SRC = $(wildcard src/charon/*.tl) $(wildcard src/charon/*/*.tl)
+LUA = $(SRC:src/%.tl=build/%.lua)
 
 TL = tl
-TLFLAGS = --quiet
+TLFLAGS = --quiet -I src
 
-build/%.lua: %.tl
+build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) check $<
 	$(TL) $(TLFLAGS) gen $< -o $@
 
