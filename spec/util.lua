@@ -10,7 +10,7 @@ local tl_executable = current_dir .. "/bin/charon"
 
 local t_unpack = unpack or table.unpack
 
-util.tl_executable = tl_executable
+util.configfile = require("charon.config").filename
 
 --------------------------------------------------------------------------------
 -- 'finally' queue - each Busted test can trigger only one 'finally' callback.

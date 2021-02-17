@@ -44,7 +44,7 @@ describe("check command", function()
 
    it("should chdir into the root before checking", function()
       util.do_in(util.write_tmp_dir(finally, {
-         ["tlconfig.lua"] = [[return {}]],
+         [util.configfile] = [[return {}]],
          foo = {
             ["bar.tl"] = [[require("foo.baz")]],
             ["baz.tl"] = [[return 10]],

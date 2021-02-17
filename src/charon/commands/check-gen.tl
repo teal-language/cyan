@@ -5,6 +5,7 @@
 local argparse <const> = require("argparse")
 local lfs <const> = require("lfs")
 
+local config <const> = require("charon.config")
 local common <const> = require("charon.tlcommon")
 local command <const> = require("charon.command")
 local cs <const> = require("charon.colorstring")
@@ -31,7 +32,7 @@ end
 local function command_exec(should_compile: boolean): function(command.Command.Args): number
    return function(args: command.Command.Args): number
       local starting_dir <const> = fs.current_dir()
-      local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), "tlconfig.lua")
+      local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
       local root_dir: fs.Path
       if config_path then
          root_dir = config_path:copy()
@@ -42,7 +43,7 @@ local function command_exec(should_compile: boolean): function(command.Command.A
          end
       end
 
-      local _, _loaded_config <const>, env <const> = common.load_and_init_env(false, "tlconfig.lua", args)
+      local _, _loaded_config <const>, env <const> = common.load_and_init_env(false, config.filename, args)
 
       local exit = 0
 

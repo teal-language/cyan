@@ -6,7 +6,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {},
-         cmd_output_match = "tlconfig.lua not found",
+         cmd_output_match = util.configfile .. " not found",
          exit_code = 1,
       })
    end)
@@ -14,7 +14,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { build_dir = "build" }]],
+            [util.configfile] = [[return { build_dir = "build" }]],
             ["foo.tl"] = [[]],
             ["bar.tl"] = [[]],
             build = {},
@@ -32,7 +32,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return {}]],
+            [util.configfile] = [[return {}]],
             ["foo.tl"] = [[a b c]],
          },
          generated_files = {},
@@ -44,7 +44,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return {}]],
+            [util.configfile] = [[return {}]],
             ["foo.tl"] = [[]],
             ["bar.lua"] = [[]],
             ["baz.py"] = [[]],
@@ -60,7 +60,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { build_dir = "foo/bar/baz" }]],
+            [util.configfile] = [[return { build_dir = "foo/bar/baz" }]],
             ["foo.tl"] = [[]],
          },
          generated_files = {
@@ -73,7 +73,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { build_dir = "build" }]],
+            [util.configfile] = [[return { build_dir = "build" }]],
             ["build"] = [[uh oh]],
          },
          cmd_output_match = [[Build dir "build" is not a directory]],
@@ -84,7 +84,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { source_dir = "src" }]],
+            [util.configfile] = [[return { source_dir = "src" }]],
             ["src"] = [[uh oh]],
          },
          cmd_output_match = [[Source dir "src" is not a directory]],
@@ -95,7 +95,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return {}]],
+            [util.configfile] = [[return {}]],
             ["foo.tl"] = [[local x: string = 10]],
             ["bar.tl"] = [[local x: number = 10]],
          },
@@ -107,7 +107,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { build_dir = "foo" }]],
+            [util.configfile] = [[return { build_dir = "foo" }]],
             foo = {},
             a = { b = { ["c.tl"] = [[]] } },
          },
@@ -121,7 +121,7 @@ describe("build command", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { source_dir = "src", module_name = "foo", build_dir = "build" }]],
+            [util.configfile] = [[return { source_dir = "src", module_name = "foo", build_dir = "build" }]],
             src = {
                ["bar.tl"] = [[return 10]],
                ["baz.tl"] = [[local x: number = require("foo.bar")]],

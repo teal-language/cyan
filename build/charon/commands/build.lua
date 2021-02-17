@@ -2,6 +2,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local lfs = require("lfs")
 
 local argparse = require("argparse")
+local config = require("charon.config")
 local command = require("charon.command")
 local common = require("charon.tlcommon")
 local cs = require("charon.colorstring")
@@ -24,9 +25,9 @@ local function exists_and_is_dir(prefix, p)
 end
 
 local function build(args)
-   local config_path = fs.search_parent_dirs(lfs.currentdir(), "tlconfig.lua")
+   local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    if not config_path then
-      log.err("tlconfig.lua not found")
+      log.err(config.filename .. " not found")
       return 1
    end
 

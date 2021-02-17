@@ -139,7 +139,7 @@ end
 
 function common.load_config_report_errs(path, args)
 
-   local c, errs, warnings = config.load_with_args(path, args)
+   local c, errs, warnings = config.load_with_args(args)
    if #warnings > 0 then
       log.warn("in ", tostring(path), "\n", table.concat(warnings, "\n"))
       return nil

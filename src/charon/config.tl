@@ -30,6 +30,8 @@ end
 
 local config <const> = {
    Config = Config,
+
+   filename = "Charon.lua",
 }
 
 local function get_array_type(val: any, default: string): string
@@ -121,8 +123,8 @@ function config.is_config(c: any): Config, {string}, {string}
    end
 end
 
-function config.load(path_to_file: string): Config, {string}, {string}
-   local b, ferr = sandbox.from_file(path_to_file, _G)
+function config.load(): Config, {string}, {string}
+   local b, ferr = sandbox.from_file(config.filename, _G)
    if not b then
       return nil, {ferr}, {}
    end
@@ -159,8 +161,8 @@ function config.merge_with_args(cfg: Config, args: command.Command.Args)
    cfg.gen_target = args.gen_target or cfg.gen_target
 end
 
-function config.load_with_args(path_to_file: string, args: command.Command.Args): Config, {string}, {string}
-   local cfg <const>, err <const>, warnings <const> = config.load(path_to_file)
+function config.load_with_args(args: command.Command.Args): Config, {string}, {string}
+   local cfg <const>, err <const>, warnings <const> = config.load()
    if not cfg then
       return nil, err, {}
    end

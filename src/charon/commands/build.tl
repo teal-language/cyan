@@ -2,6 +2,7 @@
 local lfs <const> = require("lfs")
 
 local argparse <const> = require("argparse")
+local config <const> = require("charon.config")
 local command <const> = require("charon.command")
 local common <const> = require("charon.tlcommon")
 local cs <const> = require("charon.colorstring")
@@ -24,9 +25,9 @@ local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
 end
 
 local function build(args: command.Command.Args): number
-   local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), "tlconfig.lua")
+   local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    if not config_path then
-      log.err("tlconfig.lua not found")
+      log.err(config.filename .. " not found")
       return 1
    end
 

@@ -5,6 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local argparse = require("argparse")
 local lfs = require("lfs")
 
+local config = require("charon.config")
 local common = require("charon.tlcommon")
 local command = require("charon.command")
 local cs = require("charon.colorstring")
@@ -31,7 +32,7 @@ end
 local function command_exec(should_compile)
    return function(args)
       local starting_dir = fs.current_dir()
-      local config_path = fs.search_parent_dirs(lfs.currentdir(), "tlconfig.lua")
+      local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
       local root_dir
       if config_path then
          root_dir = config_path:copy()
@@ -42,7 +43,7 @@ local function command_exec(should_compile)
          end
       end
 
-      local _, _loaded_config, env = common.load_and_init_env(false, "tlconfig.lua", args)
+      local _, _loaded_config, env = common.load_and_init_env(false, config.filename, args)
 
       local exit = 0
 
