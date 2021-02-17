@@ -3,4 +3,4 @@ package.path = "./?.lua;"
 	.. "./?/init.lua;"
 	.. package.path
 require("tl").loader()
-require("teal-cli")
+require("charon.cli")

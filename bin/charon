@@ -1,2 +1,2 @@
 #!/usr/bin/env lua
-require("charon")
+require("charon.cli")
