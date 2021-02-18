@@ -2,9 +2,9 @@
 -- Config loading API
 
 local tl <const> = require("tl")
-local sandbox <const> = require("charon.sandbox")
-local util <const> = require("charon.util")
-local command <const> = require("charon.command")
+local sandbox <const> = require("cyan.sandbox")
+local util <const> = require("cyan.util")
+local command <const> = require("cyan.command")
 
 local keys <const>, sort <const>, from <const> = util.tab.keys, util.tab.sort, util.tab.from
 
@@ -31,7 +31,7 @@ end
 local config <const> = {
    Config = Config,
 
-   filename = "Charon.lua",
+   filename = "tlconfig.lua",
 }
 
 local function get_array_type(val: any, default: string): string

@@ -1,5 +1,5 @@
 
-local config = require("charon.config")
+local config = require("cyan.config")
 
 describe("config loading", function()
    it("should perform some simplistic type checking", function()

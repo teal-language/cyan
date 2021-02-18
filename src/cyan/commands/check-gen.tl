@@ -5,13 +5,13 @@
 local argparse <const> = require("argparse")
 local lfs <const> = require("lfs")
 
-local config <const> = require("charon.config")
-local common <const> = require("charon.tlcommon")
-local command <const> = require("charon.command")
-local cs <const> = require("charon.colorstring")
-local log <const> = require("charon.log")
-local fs <const> = require("charon.fs")
-local util <const> = require("charon.util")
+local config <const> = require("cyan.config")
+local common <const> = require("cyan.tlcommon")
+local command <const> = require("cyan.command")
+local cs <const> = require("cyan.colorstring")
+local log <const> = require("cyan.log")
+local fs <const> = require("cyan.fs")
+local util <const> = require("cyan.util")
 
 local map_ipairs <const> = util.tab.map_ipairs
 

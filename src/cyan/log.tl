@@ -1,6 +1,6 @@
 
-local util <const> = require("charon.util")
-local cs <const> = require("charon.colorstring")
+local util <const> = require("cyan.util")
+local cs <const> = require("cyan.colorstring")
 local tab <const> = util.tab
 local str <const> = util.str
 

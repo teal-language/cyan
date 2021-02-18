@@ -1,7 +1,7 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local lfs = require("lfs")
 
-local util = require("charon.util")
+local util = require("cyan.util")
 
 local split, esc = util.str.split, util.str.esc
 local values = util.tab.values
@@ -15,7 +15,7 @@ local Path = {}
 
 local PathMt = {
    __index = Path,
-   __name = "charon.fs.path.Path",
+   __name = "cyan.fs.path.Path",
 }
 
 local path = {

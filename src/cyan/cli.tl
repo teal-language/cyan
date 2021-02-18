@@ -1,9 +1,9 @@
 local argparse <const> = require("argparse")
-local command <const> = require("charon.command")
-local common <const> = require("charon.tlcommon")
-local log <const> = require("charon.log")
+local command <const> = require("cyan.command")
+local common <const> = require("cyan.tlcommon")
+local log <const> = require("cyan.log")
 
-local parser <const> = argparse("charon", "The Teal build system")
+local parser <const> = argparse("cyan", "The Teal build system")
 
 local function forward_arg(fn: function(string | boolean | {string})): argparse.ActionCallback
    return function(a: argparse.Args, key: string, val: string | boolean | {string})
@@ -46,9 +46,9 @@ parser:flag("-q --quiet", "Do not print information messages to stdout. Errors m
 
 parser:command_target("command")
 
-require("charon.commands.check-gen")
-require("charon.commands.run")
-require("charon.commands.build")
+require("cyan.commands.check-gen")
+require("cyan.commands.run")
+require("cyan.commands.build")
 
 command.register_all(parser)
 

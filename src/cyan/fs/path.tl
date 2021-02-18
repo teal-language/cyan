@@ -1,7 +1,7 @@
 
 local lfs <const> = require("lfs")
 
-local util <const> = require("charon.util")
+local util <const> = require("cyan.util")
 
 local split <const>, esc <const> = util.str.split, util.str.esc
 local values <const> = util.tab.values
@@ -15,7 +15,7 @@ local record Path
 end
 local PathMt <const>: metatable<Path> = {
    __index = Path,
-   __name = "charon.fs.path.Path",
+   __name = "cyan.fs.path.Path",
 }
 
 local path <const> = {

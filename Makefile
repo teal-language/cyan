@@ -1,5 +1,5 @@
 
-SRC = $(wildcard src/charon/*.tl) $(wildcard src/charon/*/*.tl)
+SRC = $(wildcard src/cyan/*.tl) $(wildcard src/cyan/*/*.tl)
 LUA = $(SRC:src/%.tl=build/%.lua)
 
 TL = tl
@@ -15,7 +15,7 @@ all: clean default
 
 clean:
 	rm -rf build tmp
-	mkdir -p build/charon/fs build/charon/commands
+	mkdir -p build/cyan/fs build/cyan/commands
 
 bootstrap: default
 	@echo "Initial build"

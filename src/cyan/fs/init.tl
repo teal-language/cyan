@@ -2,7 +2,7 @@
 -- Filesystem and path management
 
 local lfs <const> = require("lfs")
-local path <const> = require("charon.fs.path")
+local path <const> = require("cyan.fs.path")
 
 local Path <const> = path.Path
 

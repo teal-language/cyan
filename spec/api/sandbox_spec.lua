@@ -1,5 +1,5 @@
 
-local sandbox = require("charon.sandbox")
+local sandbox = require("cyan.sandbox")
 
 describe("sandbox", function()
    it("should forcefully terminate long-running functions", function()

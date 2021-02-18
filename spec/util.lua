@@ -6,11 +6,11 @@ local assert = require("luassert")
 local lfs = require("lfs")
 
 local current_dir = assert(lfs.currentdir(), "unable to get current dir")
-local tl_executable = current_dir .. "/bin/charon"
+local tl_executable = current_dir .. "/bin/cyan"
 
 local t_unpack = unpack or table.unpack
 
-util.configfile = require("charon.config").filename
+util.configfile = require("cyan.config").filename
 
 --------------------------------------------------------------------------------
 -- 'finally' queue - each Busted test can trigger only one 'finally' callback.

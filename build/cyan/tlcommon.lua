@@ -2,12 +2,12 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local command = require("charon.command")
-local config = require("charon.config")
-local fs = require("charon.fs")
-local log = require("charon.log")
-local util = require("charon.util")
-local cs = require("charon.colorstring")
+local command = require("cyan.command")
+local config = require("cyan.config")
+local fs = require("cyan.fs")
+local log = require("cyan.log")
+local util = require("cyan.util")
+local cs = require("cyan.colorstring")
 local tl = require("tl")
 
 local map, filter, ivalues = util.tab.map, util.tab.filter, util.tab.ivalues

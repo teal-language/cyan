@@ -5,13 +5,13 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local argparse = require("argparse")
 local lfs = require("lfs")
 
-local config = require("charon.config")
-local common = require("charon.tlcommon")
-local command = require("charon.command")
-local cs = require("charon.colorstring")
-local log = require("charon.log")
-local fs = require("charon.fs")
-local util = require("charon.util")
+local config = require("cyan.config")
+local common = require("cyan.tlcommon")
+local command = require("cyan.command")
+local cs = require("cyan.colorstring")
+local log = require("cyan.log")
+local fs = require("cyan.fs")
+local util = require("cyan.util")
 
 local map_ipairs = util.tab.map_ipairs
 

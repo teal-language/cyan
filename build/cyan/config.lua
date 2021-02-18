@@ -2,9 +2,9 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local tl = require("tl")
-local sandbox = require("charon.sandbox")
-local util = require("charon.util")
-local command = require("charon.command")
+local sandbox = require("cyan.sandbox")
+local util = require("cyan.util")
+local command = require("cyan.command")
 
 local keys, sort, from = util.tab.keys, util.tab.sort, util.tab.from
 
@@ -31,7 +31,7 @@ local Config = {}
 local config = {
    Config = Config,
 
-   filename = "Charon.lua",
+   filename = "tlconfig.lua",
 }
 
 local function get_array_type(val, default)
