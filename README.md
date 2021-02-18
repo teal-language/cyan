@@ -1,4 +1,4 @@
-# Charon
+# Cyan
 
 A build system for the Teal language
 

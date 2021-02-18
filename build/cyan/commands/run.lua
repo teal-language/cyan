@@ -12,7 +12,7 @@ local function add_to_argparser(cmd)
 end
 
 local function run(args)
-   local _, _cfg, env = common.load_and_init_env(false, "tlconfig.lua", args)
+   local _, _cfg, env = common.load_and_init_env(false, args)
 
    local arg_list = args["script"]
 

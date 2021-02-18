@@ -38,7 +38,7 @@ local function build(args: command.Command.Args): number
       return 1
    end
 
-   local cfg_ok <const>, loaded_config <const>, env <const> = common.load_and_init_env(true, config_path:to_real_path(), args)
+   local cfg_ok <const>, loaded_config <const>, env <const> = common.load_and_init_env(true, args)
    if not cfg_ok then
       return 1
    end

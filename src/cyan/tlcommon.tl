@@ -234,8 +234,8 @@ function common.apply_config_to_environment(cfg: config.Config, tl_env: tl.Env):
    return env
 end
 
-function common.load_and_init_env(require_config: boolean, path_to_file: string, args: command.Command.Args, env: tl.Env): boolean, config.Config, tl.Env
-   local cfg = common.load_config_report_errs(path_to_file)
+function common.load_and_init_env(require_config: boolean, args: command.Command.Args, env: tl.Env): boolean, config.Config, tl.Env
+   local cfg = common.load_config_report_errs(config.filename)
    if not cfg then
       if require_config then
          return false
