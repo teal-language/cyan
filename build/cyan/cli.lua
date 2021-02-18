@@ -46,6 +46,17 @@ parser:flag("-q --quiet", "Do not print information messages to stdout. Errors m
 
 parser:command_target("command")
 
+command.new({
+   name = "help",
+   exec = function()
+      log.info(parser:get_help())
+      return 0
+   end,
+})
+
+parser:flag("-h --help"):
+action(function() os.exit(command.get("help").exec()) end)
+
 require("cyan.commands.check-gen")
 require("cyan.commands.run")
 require("cyan.commands.build")
