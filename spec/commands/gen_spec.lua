@@ -47,6 +47,20 @@ describe("gen command", function()
             exit_code = 0,
          })
       end)
+
+      it("should error with multiple inputs", function()
+         util.run_mock_project(finally, {
+            cmd = "gen",
+            args = { "foo.tl", "bar.tl", "-o", "baz.lua" },
+            dir_structure = {
+               ["foo.tl"] = [[]],
+               ["bar.tl"] = [[]],
+            },
+            generated_files = {},
+            cmd_output_match = "1 output",
+            exit_code = 1,
+         })
+      end)
    end)
 
 end)

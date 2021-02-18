@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
-package.path = "./?.lua;"
-	.. "./?/init.lua;"
+package.path = "./src/?.lua;"
+	.. "./src/?/init.lua;"
 	.. package.path
 require("tl").loader()
 require("cyan.cli")

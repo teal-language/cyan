@@ -34,4 +34,7 @@ bootstrap: default
 	mv tmp build
 	busted
 
+test: default
+	busted
+
 .PHONY: clean
