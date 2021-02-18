@@ -30,4 +30,23 @@ describe("gen command", function()
          exit_code = 0,
       })
    end)
+
+   describe("--output", function()
+      it("should map a single input to a single output", function()
+         util.run_mock_project(finally, {
+            cmd = "gen",
+            args = { "foo.tl", "-o", "bar.lua" },
+            dir_structure = {
+               ["foo.tl"] = [[]],
+            },
+            generated_files = { "bar.lua" },
+            cmd_output_match_lines = {
+               [1] = "Type checked .*foo%.tl",
+               [2] = "Wrote .*bar%.lua",
+            },
+            exit_code = 0,
+         })
+      end)
+   end)
+
 end)

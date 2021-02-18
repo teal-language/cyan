@@ -15,20 +15,6 @@ local util = require("cyan.util")
 
 local map_ipairs = util.tab.map_ipairs
 
-local function add_to_argparser(cmd)
-   cmd:argument("files", "The Teal source files to process."):
-   args("+")
-end
-
-local function get_output_filename(path)
-   local base, ext = fs.extension_split(path)
-   if ext == ".lua" then
-      return base .. ".out.lua"
-   else
-      return base .. ".lua"
-   end
-end
-
 local function command_exec(should_compile)
    return function(args)
       local starting_dir = fs.current_dir()
@@ -40,6 +26,23 @@ local function command_exec(should_compile)
          if not lfs.chdir(root_dir:to_real_path()) then
             log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
             return 1
+         end
+      end
+
+      if args["output"] and #args.files ~= 1 then
+         log.err("--output can only map 1 input to 1 output")
+         return 1
+      end
+
+      local function get_output_filename(path)
+         if args["output"] then
+            return args["output"]
+         end
+         local base, ext = fs.extension_split(path)
+         if ext == ".lua" then
+            return base .. ".out.lua"
+         else
+            return base .. ".lua"
          end
       end
 
@@ -117,13 +120,22 @@ end
 command.new({
    name = "check",
    description = [[Type check any number of Teal files.]],
-   argparse = add_to_argparser,
+   argparse = function(cmd)
+      cmd:argument("files", "The Teal source files to process."):
+      args("+")
+   end,
    exec = command_exec(false),
 })
 
 command.new({
    name = "gen",
    description = [[Type check, then compile any number of Teal files into Lua files.]],
-   argparse = add_to_argparser,
+   argparse = function(cmd)
+      cmd:argument("files", "The Teal source files to process."):
+      args("+")
+
+      cmd:option("-o --output", "The name of the output file"):
+      args(1)
+   end,
    exec = command_exec(true),
 })
