@@ -46,9 +46,12 @@ end
 function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
    include = include or {}
    exclude = exclude or {}
-   local function dir_iter(d: string | Path)
+   local function dir_iter(_d: string | Path)
+      local d <const> = _d is string and path.new(_d) or _d as Path
       for p in fs.dir(d) do
-         local full <const> = d .. p
+         -- dont bother putting "./foo", just do "foo"
+         local full <const> = d:to_real_path() ~= "." and d .. p
+            or p
          local to_match <const> = full:copy()
          to_match:remove_leading(dir)
          if full:is_directory() then

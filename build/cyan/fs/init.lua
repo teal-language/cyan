@@ -46,9 +46,12 @@ end
 function fs.scan_dir(dir, include, exclude)
    include = include or {}
    exclude = exclude or {}
-   local function dir_iter(d)
+   local function dir_iter(_d)
+      local d = type(_d) == "string" and path.new(_d) or _d
       for p in fs.dir(d) do
-         local full = d .. p
+
+         local full = d:to_real_path() ~= "." and d .. p or
+         p
          local to_match = full:copy()
          to_match:remove_leading(dir)
          if full:is_directory() then
