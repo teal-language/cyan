@@ -23,16 +23,21 @@ local function exec(args)
    end
 
    local function try_mkdir(p)
-      if p:exists() and not p:is_directory() then
-         log.err(p:to_real_path(), " exists and is not a directory")
-         return false
+      if p:exists() then
+         if not p:is_directory() then
+            log.err(p:to_real_path(), " exists and is not a directory")
+            return false
+         end
+      else
+         local ok, err = p:mkdir()
+         if ok then
+            log.info("Created directory ", p:to_real_path())
+            return true
+         else
+            log.err("Unable to create directory ", p:to_real_path(), ":\n   ", err)
+            return false
+         end
       end
-      local ok, err = p:mkdir()
-      if not ok then
-         log.err("Unable to create directory ", p:to_real_path(), ":\n   ", err)
-         return false
-      end
-      log.info("Created directory ", p:to_real_path())
       return true
    end
 
@@ -63,7 +68,7 @@ local function exec(args)
    fh:close()
    log.info("Wrote ", config_path)
 
-   return 1
+   return 0
 end
 
 command.new({

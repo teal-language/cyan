@@ -126,6 +126,7 @@ local valid_commands = {
    check = true,
    run = true,
    build = true,
+   init = true,
 }
 local cmd_prefix = { string.format("LUA_PATH=%q", package.path) }
 for i = 1, 4 do
