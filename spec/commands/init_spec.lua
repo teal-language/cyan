@@ -134,4 +134,23 @@ describe("init", function()
          exit_code = 1,
       })
    end)
+   it("should not error if a config file is already found and --force is used", function()
+      util.run_mock_project(finally, {
+         cmd = "init",
+         args = { "--force" },
+         dir_structure = {
+            ["tlconfig.lua"] = [[]],
+         },
+         generated_files = {
+            src = {},
+            build = {},
+         },
+         cmd_output_match_lines = {
+            "Created directory.*src",
+            "Created directory.*build",
+            "Wrote.*" .. util.configfile,
+         },
+         exit_code = 0,
+      })
+   end)
 end)

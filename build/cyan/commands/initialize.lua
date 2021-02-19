@@ -11,10 +11,12 @@ local fs = require("cyan.fs")
 local log = require("cyan.log")
 
 local function exec(args)
-   local found_config = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-   if found_config and found_config:exists() then
-      log.err("Already in a project!\n   Found config file at ", cs.highlight(cs.colors.file, found_config:to_real_path()))
-      return 1
+   if not args.force then
+      local found_config = fs.search_parent_dirs(lfs.currentdir(), config.filename)
+      if found_config and found_config:exists() then
+         log.err("Already in a project!\n   Found config file at ", cs.highlight(cs.colors.file, found_config:to_real_path()))
+         return 1
+      end
    end
 
    local directory = fs.path.new(args.directory or "./")
@@ -84,7 +86,7 @@ command.new({
    exec = exec,
    description = [[Initialize a Teal project.]],
    argparse = function(cmd)
-      cmd:argument("directory", "The name of the directory of the new project, defaults to current directory"):
+      cmd:argument("directory", "The name of the directory of the new project, defaults to current directory."):
       args("?")
 
       cmd:option("-s --source-dir", "The name of the source directory."):
@@ -92,5 +94,8 @@ command.new({
 
       cmd:option("-b --build-dir", "The name of the build directory."):
       args(1)
+
+      cmd:option("-f --force", "Force initialization, even if you are in a subdirectory of an existing project."):
+      args(0)
    end,
 })

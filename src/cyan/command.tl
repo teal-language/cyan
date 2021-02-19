@@ -26,6 +26,7 @@ local record Command
       directory: string
       source_dir: string
       build_dir: string
+      force: boolean
    end
 
    name: string
