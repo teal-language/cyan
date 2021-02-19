@@ -1,5 +1,6 @@
 
--- Config loading API
+---@brief
+--- Config loading API
 
 local tl <const> = require("tl")
 local sandbox <const> = require("cyan.sandbox")
@@ -8,6 +9,8 @@ local command <const> = require("cyan.command")
 
 local keys <const>, sort <const>, from <const> = util.tab.keys, util.tab.sort, util.tab.from
 
+---@desc
+--- The config data
 local record Config
    build_dir: string
    source_dir: string
@@ -49,9 +52,8 @@ local function get_array_type(val: any, default: string): string
    return "{" .. table.concat(ts, "|") .. "}"
 end
 
----@return Config the config, given that c conforms to the type
----@return {string} errors about how c doesn't conform
----@return {string} warnings about entries in c
+---@desc
+--- Check if `c` conforms to the `Config` type and return any errors and warnings generated from checking
 function config.is_config(c: any): Config, {string}, {string}
    if type(c) ~= "table" then
       return nil, {"Expected table, got " .. type(c)}, {}
@@ -123,6 +125,8 @@ function config.is_config(c: any): Config, {string}, {string}
    end
 end
 
+---@desc
+--- Try to load `tlconfig.lua` in the current directory
 function config.load(): Config, {string}, {string}
    local b, ferr = sandbox.from_file(config.filename, _G)
    if not b then
@@ -149,6 +153,8 @@ local function merge_list<T>(a: {T}, b: {T}): {T}
    return a
 end
 
+---@desc
+--- Merge the relevant entries of the provided command arguments into the provided config table
 function config.merge_with_args(cfg: Config, args: command.Command.Args)
    args = args or {}
 

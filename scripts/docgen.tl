@@ -14,23 +14,10 @@ if not has_teal_parser then
    os.exit(1)
 end
 
-
-if false then
-   -- TODO
-   for p in fs.scan_dir(".", {"src/cyan/**/*"}) do
-      print(p)
-   end
-
-   return
-end
-
-local root: ts.Node
-do
-   local file <const> = assert(..., "No filename provided")
-   local content <const> = assert(fs.read(file))
-   local tree <const> = assert(teal_parser:parse_string(content))
-   root = tree:root()
-end
+local query <const> = teal_parser:query[[
+   ((comment)+ @com
+     . (_) @obj
+     (#match? @com "^%-%-%-@%w+$")) ]]
 
 local record Doc
    kind: string
@@ -38,77 +25,109 @@ local record Doc
    obj: ts.Node
 end
 
-local docs <const>: {Doc} = {}
+local function gen_docs(filename: string, module_name: string): string
+   local root: ts.Node
+   do
+      local file <const> = assert(filename, "No filename provided")
+      local content <const> = assert(fs.read(file))
+      local tree <const> = assert(teal_parser:parse_string(content))
+      root = tree:root()
+   end
 
-collectgarbage("stop")
-for match in teal_parser
-   :query[[ (
-      (comment)+ @com
-      . (_) @obj
-      (#match? @com "^%-%-%-@%w+$")) ]]
-   :match(root)
-do
-   local caps <const> = match.captures as {ts.Node}
-   local n <const> = caps[match.capture_count]
-   local s = n:type()
-   if s ~= "comment" then
-      -- obj will match comments as the query will produce EVERY match
-      -- resulting in the same nodes being matched over and over
-      -- this basically guarantees the match we actually care about
-      local obj <const> = table.remove(caps, match.capture_count)
-      local kind_node = table.remove(caps, 1)
-      local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
-      local lines <const> = {}
-      local content: {string} = {}
-      for _, v in ipairs(caps) do
-         local src <const> = v:source()
-         if not src:match("^%-%-%-") then
-            break
+   local docs <const>: {Doc} = {}
+
+   for match in query:match(root) do
+      local caps <const> = match.captures as {ts.Node}
+      local n <const> = caps[match.capture_count]
+      local s = n:type()
+      if s ~= "comment" then
+         -- obj will match comments as the query will produce EVERY match
+         -- resulting in the same nodes being matched over and over
+         -- this basically guarantees the match we actually care about
+         local obj <const> = table.remove(caps, match.capture_count)
+         local kind_node = table.remove(caps, 1)
+         local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
+         local lines <const> = {}
+         local content: {string} = {}
+         for _, v in ipairs(caps) do
+            local src <const> = v:source()
+            if not src:match("^%-%-%-") then
+               break
+            end
+            local line <const> = src:match("^%-%-%-%s*(.*)%s*$")
+            if line == "" then
+               table.insert(lines, table.concat(content, " "))
+               content = {}
+            else
+               table.insert(content, line)
+            end
          end
-         local line <const> = src:match("^%-%-%-%s*(.*)%s*$")
-         if line == "" then
-            table.insert(lines, table.concat(content, " "))
-            content = {}
-         else
-            table.insert(content, line)
-         end
+         table.insert(lines, table.concat(content, " "))
+         table.insert(docs, {
+            kind = kind,
+            content = lines,
+            obj = obj,
+         })
       end
-      table.insert(lines, table.concat(content, " "))
-      table.insert(docs, {
-         kind = kind,
-         content = lines,
-         obj = obj,
-      })
+   end
+
+   local sections <const> = {}
+
+   for _, d in ipairs(docs) do
+      local node_kind <const> = d.obj:type()
+      if d.kind == "desc" then
+         if node_kind == "function_statement" then
+            local sig <const> = d.obj:child_by_field_name("signature")
+            local ret <const> = sig:child_by_field_name("return_type")
+
+            table.insert(
+               sections,
+               "### `"
+                  .. d.obj:child_by_field_name("name"):source()
+                  .. sig:child_by_field_name("arguments"):source()
+                  .. (ret and ": " .. ret:source() or "")
+                  .. "`"
+                  .. "\n"
+                  .. table.concat(d.content, "\n\n")
+                  .. "\n\n"
+            )
+         elseif node_kind == "record_declaration" then
+            table.insert(
+               sections,
+               "### record `"
+                  .. d.obj:child_by_field_name("name"):source()
+                  .. "`\n"
+                  .. table.concat(d.content, "\n\n")
+                  .. "\n\n"
+            )
+         end
+      elseif d.kind ~= "brief" then
+         io.stderr:write("Unhandled node kind: ", node_kind, "\n")
+      end
+   end
+
+   if #sections > 0 then
+      table.sort(sections)
+      table.insert(sections, 1, "## `" .. module_name .. "`\n===\n")
+
+      return table.concat(sections)
    end
 end
 
-for _, d in ipairs(docs) do
-   local node_kind <const> = d.obj:type()
-   if d.kind == "desc" then
-      if node_kind == "function_statement" then
-         local sig <const> = d.obj:child_by_field_name("signature")
-         local ret <const> = sig:child_by_field_name("return_type")
-
-         io.write(
-            "### `",
-            d.obj:child_by_field_name("name"):source(),
-            sig:child_by_field_name("arguments"):source(),
-            ret and ": " .. ret:source() or "",
-            "`",
-            "\n",
-            table.concat(d.content, "\n\n"),
-            "\n\n"
-         )
-      elseif node_kind == "record_declaration" then
-         io.write(
-            "### record `",
-            d.obj:child_by_field_name("name"):source(),
-            "`\n",
-            table.concat(d.content, "\n\n"),
-            "\n\n"
-         )
-      end
-   elseif d.kind ~= "brief" then
-      io.stderr:write("Unhandled node kind: ", node_kind, "\n")
+local output <const> = {}
+for p in fs.scan_dir("src", {"cyan/**/*"}) do
+   local file <const> = ("src" .. p):to_real_path()
+   local mod <const> = p:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
+   local docs <const> = gen_docs(file, mod)
+   if docs then
+      table.insert(output, docs)
    end
 end
+table.sort(output)
+local fh <const> = assert(io.open("docs.md", "w"))
+fh:write(
+   "# Api Documentation\n",
+   "This documentation is autogenerated and may be incomplete\n\n"
+)
+fh:write(table.concat(output))
+fh:close()

@@ -1,4 +1,7 @@
 
+---@brief
+--- Object oriented path management
+
 local lfs <const> = require("lfs")
 
 local util <const> = require("cyan.util")
@@ -6,6 +9,8 @@ local util <const> = require("cyan.util")
 local split <const>, esc <const> = util.str.split, util.str.esc
 local values <const> = util.tab.values
 
+---@desc
+--- The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths
 local record Path
    {string}
 
@@ -47,6 +52,8 @@ local function parse_string_path(s: string): {string}
    return new
 end
 
+---@brief
+--- The `Path` constructor
 function path.new(s: string): Path
    if not s then return nil end
    local new: Path = parse_string_path(s)
@@ -72,6 +79,10 @@ local function append_to_path(p: Path, other: Path | string)
    end
 end
 
+---@brief
+--- Returns whether the path is absolute
+---
+--- On windows, checks for paths like "C:\...", elsewhere looks for "/..."
 function Path:is_absolute(): boolean
    if path.separator == "/" then
       return self[1] == ""
@@ -80,20 +91,28 @@ function Path:is_absolute(): boolean
    end
 end
 
+---@brief
+--- Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
 function Path:tostring(): string
    local start <const> = self[1] == "." and 2 or 1
    return table.concat(self, "/", start)
 end
 
+---@brief
+--- Convert a `Path` to a string describing a real path
 function Path:to_real_path(): string
    local res <const> = table.concat(self, path.separator)
    return #res > 0 and res or "." .. path.separator
 end
 
+---@brief
+--- Check if the path exists
 function Path:exists(): boolean
    return lfs.attributes(self:to_real_path()) ~= nil
 end
 
+---@brief
+--- Mutate the given `Path` by appending another path to it
 function Path:append(other: string | Path)
    local p = other is string and path.new(other) or other as Path
    if p:is_absolute() then
@@ -102,6 +121,8 @@ function Path:append(other: string | Path)
    append_to_path(self, p)
 end
 
+---@brief
+--- Mutate the given `Path` by prepending another path to it
 function Path:prepend(other: string | Path)
    if self:is_absolute() then
       error("Attempt to prepend to absolute path", 2)
@@ -113,6 +134,8 @@ function Path:prepend(other: string | Path)
    end
 end
 
+---@brief
+--- Create a copy of the given path
 function Path:copy(): Path
    local new: Path = {}
    for i = 1, #self do
@@ -121,6 +144,10 @@ function Path:copy(): Path
    return setmetatable(new, PathMt)
 end
 
+---@brief
+--- Iterate over the leading folders in a path
+---
+--- ex: `path.new("foo/bar/baz/bat"):ancestors()` will construct `Path` objects from "foo", "foo/bar", "foo/bar/baz"
 function Path:ancestors(): function(): Path
    local idx = 0
    return function(): Path
@@ -136,18 +163,26 @@ function Path:ancestors(): function(): Path
    end
 end
 
+---@brief
+--- Get whether the "mode" attribute of the given path is set to "file"
 function Path:is_file(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "file"
 end
 
+---@brief
+--- Get whether the "mode" attribute of the given path is set to "directory"
 function Path:is_directory(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "directory"
 end
 
+---@brief
+--- Get the "modification" attribute of a file
 function Path:mod_time(): number
    return lfs.attributes(self:to_real_path(), "modification") as number
 end
 
+---@brief
+--- Attempt to create the leading directories of a given path
 function Path:mk_parent_dirs(): boolean, string
    for p in self:ancestors() do
       if p:exists() then
@@ -164,6 +199,9 @@ function Path:mk_parent_dirs(): boolean, string
    return true
 end
 
+---@brief
+--- Attempt to create a directory at the given path, creating the parent directories
+--- if needed. Can be seen as an equivalent to `mkdir -p`
 function Path:mkdir(): boolean, string
    local succ <const>, err <const> = self:mk_parent_dirs()
    if succ then
@@ -173,6 +211,10 @@ function Path:mkdir(): boolean, string
    end
 end
 
+---@brief
+--- Mutate the given path by removing the leading parts from the given path
+---
+--- Will error if you attempt to mix absolute and non-absolute paths
 function Path:remove_leading(p: string | Path)
    local leading <const> = p is string and path.new(p) or p as Path
    if util.xor(leading:is_absolute(), self:is_absolute()) then
@@ -302,10 +344,20 @@ local function match(p: {string}, path_patt: {string}): boolean
       and path_idx > path_len
 end
 
+---@brief
+--- See if the given path matches the pattern
+---
+--- path separators in patterns are always represented with '/'.
+---
+--- `*` characters represent any number of non-path-separator characters
+---
+--- `**/` represent any number of directories
 function Path:match(patt: string): boolean
    return match(self, get_patt(patt))
 end
 
+---@brief
+--- See if the given path matches any of the given patterns
 function Path:match_any(patts: {string}): number, string
    for i, patt in ipairs(patts) do
       if match(self, get_patt(patt)) then

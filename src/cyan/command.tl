@@ -1,5 +1,5 @@
 
--- Common interface for commands to implement
+-- The common interface for commands to implement
 
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")

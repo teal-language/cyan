@@ -1,10 +1,15 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+
+
+
 local lfs = require("lfs")
 
 local util = require("cyan.util")
 
 local split, esc = util.str.split, util.str.esc
 local values = util.tab.values
+
+
 
 local Path = {}
 
@@ -47,6 +52,8 @@ local function parse_string_path(s)
    return new
 end
 
+
+
 function path.new(s)
    if not s then return nil end
    local new = parse_string_path(s)
@@ -72,6 +79,10 @@ local function append_to_path(p, other)
    end
 end
 
+
+
+
+
 function Path:is_absolute()
    if path.separator == "/" then
       return self[1] == ""
@@ -80,19 +91,27 @@ function Path:is_absolute()
    end
 end
 
+
+
 function Path:tostring()
    local start = self[1] == "." and 2 or 1
    return table.concat(self, "/", start)
 end
+
+
 
 function Path:to_real_path()
    local res = table.concat(self, path.separator)
    return #res > 0 and res or "." .. path.separator
 end
 
+
+
 function Path:exists()
    return lfs.attributes(self:to_real_path()) ~= nil
 end
+
+
 
 function Path:append(other)
    local p = type(other) == "string" and path.new(other) or other
@@ -101,6 +120,8 @@ function Path:append(other)
    end
    append_to_path(self, p)
 end
+
+
 
 function Path:prepend(other)
    if self:is_absolute() then
@@ -113,6 +134,8 @@ function Path:prepend(other)
    end
 end
 
+
+
 function Path:copy()
    local new = {}
    for i = 1, #self do
@@ -120,6 +143,10 @@ function Path:copy()
    end
    return setmetatable(new, PathMt)
 end
+
+
+
+
 
 function Path:ancestors()
    local idx = 0
@@ -136,17 +163,25 @@ function Path:ancestors()
    end
 end
 
+
+
 function Path:is_file()
    return lfs.attributes(self:to_real_path(), "mode") == "file"
 end
+
+
 
 function Path:is_directory()
    return lfs.attributes(self:to_real_path(), "mode") == "directory"
 end
 
+
+
 function Path:mod_time()
    return lfs.attributes(self:to_real_path(), "modification")
 end
+
+
 
 function Path:mk_parent_dirs()
    for p in self:ancestors() do
@@ -164,6 +199,9 @@ function Path:mk_parent_dirs()
    return true
 end
 
+
+
+
 function Path:mkdir()
    local succ, err = self:mk_parent_dirs()
    if succ then
@@ -172,6 +210,10 @@ function Path:mkdir()
       return false, err
    end
 end
+
+
+
+
 
 function Path:remove_leading(p)
    local leading = type(p) == "string" and path.new(p) or p
@@ -302,9 +344,19 @@ local function match(p, path_patt)
    path_idx > path_len
 end
 
+
+
+
+
+
+
+
+
 function Path:match(patt)
    return match(self, get_patt(patt))
 end
+
+
 
 function Path:match_any(patts)
    for i, patt in ipairs(patts) do

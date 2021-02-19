@@ -1,12 +1,15 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
+
 local tl = require("tl")
 local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
 local command = require("cyan.command")
 
 local keys, sort, from = util.tab.keys, util.tab.sort, util.tab.from
+
+
 
 local Config = {}
 
@@ -48,7 +51,6 @@ local function get_array_type(val, default)
    end
    return "{" .. table.concat(ts, "|") .. "}"
 end
-
 
 
 
@@ -123,6 +125,8 @@ function config.is_config(c)
    end
 end
 
+
+
 function config.load()
    local b, ferr = sandbox.from_file(config.filename, _G)
    if not b then
@@ -148,6 +152,8 @@ local function merge_list(a, b)
    end
    return a
 end
+
+
 
 function config.merge_with_args(cfg, args)
    args = args or {}

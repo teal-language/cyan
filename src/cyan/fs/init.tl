@@ -1,5 +1,6 @@
 
--- Filesystem and path management
+---@brief
+--- Filesystem and path management
 
 local lfs <const> = require("lfs")
 local path <const> = require("cyan.fs.path")
@@ -11,10 +12,16 @@ local fs <const> = {
    Path = Path,
 }
 
+---@desc
+--- Get the current directory as an `fs.Path`
 function fs.current_dir(): Path
    return path.new(lfs.currentdir())
 end
 
+---@desc
+--- Iterate over the given directory, returning `fs.Path` objects
+---
+--- By default, will not include paths that start with '.'
 function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
    local iter <const>, data <const> = lfs.dir(
       dir is Path and dir:to_real_path() or dir as string
@@ -31,6 +38,11 @@ function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
 end
 
 local read_cache <const>: {string:string} = setmetatable({}, { __mode = "k" }) -- TODO: does this even do anything?
+---@desc
+--- Open a file, read it, close the file, return the contents or `nil` and an error if it couldn't be opened
+---
+--- Additionally caches results so multiple locations can read the same file for minimal cost.
+--- There is currently no way to clear out this cache.
 function fs.read(path: string): string, string
    if not read_cache[path] then
       local fh <const>, err <const> = io.open(path, "r")
@@ -43,6 +55,8 @@ function fs.read(path: string): string, string
    return read_cache[path]
 end
 
+---@desc
+--- Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
 function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
    include = include or {}
    exclude = exclude or {}
@@ -73,6 +87,15 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
    return coroutine.wrap(function() dir_iter(dir) end) as function(): Path
 end
 
+---@brief
+--- Split a path on its extension
+---
+--- the `ndots` argument lets you specify how many dots the extension can have
+---
+--- ex:
+--- `fs.extension_split("foo.d.tl") == ".tl"`
+---
+--- `fs.extension_split("foo.d.tl", 2) == ".d.tl"`
 function fs.extension_split(p: Path | string, ndots: number): string, string
    if not p then
       return nil
@@ -89,10 +112,14 @@ function fs.extension_split(p: Path | string, ndots: number): string, string
    return str_path
 end
 
+---@brief
+--- Concatenate two strings using the os path separator
 function fs.path_concat(a: string, b: string): string
    return a .. path.separator .. b
 end
 
+---@brief
+--- Search for a file in the parent directories of the given path
 function fs.search_parent_dirs(spath: string, fname: string): Path
    if lfs.attributes(fs.path_concat(spath, fname)) then
       return path.new(fs.path_concat(spath, fname))

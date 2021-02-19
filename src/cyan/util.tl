@@ -1,6 +1,7 @@
 
--- Basically some extensions of the std lib
--- Currently these lean towards a more functional style
+---@brief
+--- Basically some extensions of the std lib
+--- Currently these lean towards a more functional style
 
 local str <const> = {}
 local tab <const> = {}

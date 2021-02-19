@@ -1,6 +1,7 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string
 
 
+
 local lfs = require("lfs")
 local path = require("cyan.fs.path")
 
@@ -11,9 +12,15 @@ local fs = {
    Path = Path,
 }
 
+
+
 function fs.current_dir()
    return path.new(lfs.currentdir())
 end
+
+
+
+
 
 function fs.dir(dir, include_dotfiles)
    local iter, data = lfs.dir(
@@ -31,6 +38,11 @@ p:sub(1, 1) ~= "."; return path.new(p)
 end
 
 local read_cache = setmetatable({}, { __mode = "k" })
+
+
+
+
+
 function fs.read(path)
    if not read_cache[path] then
       local fh, err = io.open(path, "r")
@@ -42,6 +54,8 @@ function fs.read(path)
    end
    return read_cache[path]
 end
+
+
 
 function fs.scan_dir(dir, include, exclude)
    include = include or {}
@@ -73,6 +87,15 @@ function fs.scan_dir(dir, include, exclude)
    return coroutine.wrap(function() dir_iter(dir) end)
 end
 
+
+
+
+
+
+
+
+
+
 function fs.extension_split(p, ndots)
    if not p then
       return nil
@@ -89,9 +112,13 @@ function fs.extension_split(p, ndots)
    return str_path
 end
 
+
+
 function fs.path_concat(a, b)
    return a .. path.separator .. b
 end
+
+
 
 function fs.search_parent_dirs(spath, fname)
    if lfs.attributes(fs.path_concat(spath, fname)) then
