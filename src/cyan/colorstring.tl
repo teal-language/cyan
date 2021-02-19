@@ -1,14 +1,18 @@
 
--- Some wrappers/conveniences around working with ansi escape codes
--- For example getting the length of a string that contains escape codes shouldnt include them
+---@brief
+--- Some wrappers/conveniences around working with ansi escape codes
+--- For example getting the length of a string that contains escape codes shouldnt include them
 
 local ansi <const> = require("cyan.ansi")
 local util <const> = require("cyan.util")
 local map <const>, ivalues <const> = util.tab.map, util.tab.ivalues
 
+---@desc
+--- The main object that this library consumes and produces. It basically implements the
+--- 'string' interface and can be used wherever a string is.
+---
+--- Colors are described as arrays of numbers that directly correspond to ANSI escape sequences
 local record ColorString
-   -- This basically implements the 'string interface'
-
    content: {string | {number}}
    len: function(ColorString): number
    tostring: function(ColorString): string
@@ -44,11 +48,15 @@ function ColorString:append(...: string | ColorString)
    end
 end
 
+---@desc
+--- surrounds a string with a color
 function ColorString:surround(col: {number})
    table.insert(self.content, 1, col)
    table.insert(self.content, 0)
 end
 
+---@desc
+--- Converts a `Colorstring` to a regular string with the correct ANSI escapes
 function ColorString:tostring(): string
    return table.concat(map(self.content, function(chunk: {number} | string): string
       if chunk is string then
@@ -61,14 +69,23 @@ end
 
 local colorstring_mt <const>: metatable<ColorString> = {}
 
-local function new(...: string | {number}): ColorString
+local colorstring <const> = {
+   ColorString = ColorString,
+   colors: {string:{number}} = {}
+}
+
+---@desc
+--- The `Colorstring` constructor
+function colorstring.new(...: string | {number}): ColorString
    return setmetatable({
       content = { ... }
    } as ColorString, colorstring_mt)
 end
 
-local function highlight(hl: {number}, str: string): ColorString
-   return new(hl, str, {0})
+---@desc
+--- Create a `Colorstring` by surrounding a string with the given ANSI color and an ANSI reset
+function colorstring.highlight(hl: {number}, str: string): ColorString
+   return colorstring.new(hl, str, {0})
 end
 
 colorstring_mt.__index = ColorString
@@ -89,31 +106,23 @@ end
 colorstring_mt.__tostring = ColorString.tostring
 colorstring_mt.__len = ColorString.len
 
-local function rgb_fg(r: number, g: number, b: number): {number, number, number, number, number}
+---@desc
+--- The ansi escape for an arbitrary RGB foreground color
+function colorstring.rgb_fg(r: number, g: number, b: number): {number, number, number, number, number}
    return {38, 2, r, g, b}
 end
 
-local function rgb_bg(r: number, g: number, b: number): {number, number, number, number, number}
+---@desc
+--- The ansi escape for an arbitrary RGB background color
+function colorstring.rgb_bg(r: number, g: number, b: number): {number, number, number, number, number}
    return {48, 2, r, g, b}
 end
 
-local colorstring <const> = {
-   ColorString = ColorString,
-   colors = {
-      none = {0},
-      file = {33},
-      number = {31},
-      emphasis = {1},
-      teal = rgb_fg(0, 0xAA, 0xB4),
-      cyan = rgb_fg(0, 0xFF, 0xFF),
-   },
-
-   rgb_fg = rgb_fg,
-   rgb_bg = rgb_bg,
-
-   new = new,
-   highlight = highlight,
-}
+colorstring.colors.none = {0}
+colorstring.colors.file = {33}
+colorstring.colors.number = {31}
+colorstring.colors.emphasis = {1}
+colorstring.colors.teal = colorstring.rgb_fg(0, 0xAA, 0xB4)
+colorstring.colors.cyan = colorstring.rgb_fg(0, 0xFF, 0xFF)
 
 return colorstring
-

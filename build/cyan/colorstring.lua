@@ -2,13 +2,17 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+
 local ansi = require("cyan.ansi")
 local util = require("cyan.util")
 local map, ivalues = util.tab.map, util.tab.ivalues
 
+
+
+
+
+
 local ColorString = {}
-
-
 
 
 
@@ -44,10 +48,14 @@ function ColorString:append(...)
    end
 end
 
+
+
 function ColorString:surround(col)
    table.insert(self.content, 1, col)
    table.insert(self.content, 0)
 end
+
+
 
 function ColorString:tostring()
    return table.concat(map(self.content, function(chunk)
@@ -61,14 +69,23 @@ end
 
 local colorstring_mt = {}
 
-local function new(...)
+local colorstring = {
+   ColorString = ColorString,
+   colors = {},
+}
+
+
+
+function colorstring.new(...)
    return setmetatable({
       content = { ... },
    }, colorstring_mt)
 end
 
-local function highlight(hl, str)
-   return new(hl, str, { 0 })
+
+
+function colorstring.highlight(hl, str)
+   return colorstring.new(hl, str, { 0 })
 end
 
 colorstring_mt.__index = ColorString
@@ -89,30 +106,23 @@ end
 colorstring_mt.__tostring = ColorString.tostring
 colorstring_mt.__len = ColorString.len
 
-local function rgb_fg(r, g, b)
+
+
+function colorstring.rgb_fg(r, g, b)
    return { 38, 2, r, g, b }
 end
 
-local function rgb_bg(r, g, b)
+
+
+function colorstring.rgb_bg(r, g, b)
    return { 48, 2, r, g, b }
 end
 
-local colorstring = {
-   ColorString = ColorString,
-   colors = {
-      none = { 0 },
-      file = { 33 },
-      number = { 31 },
-      emphasis = { 1 },
-      teal = rgb_fg(0, 0xAA, 0xB4),
-      cyan = rgb_fg(0, 0xFF, 0xFF),
-   },
-
-   rgb_fg = rgb_fg,
-   rgb_bg = rgb_bg,
-
-   new = new,
-   highlight = highlight,
-}
+colorstring.colors.none = { 0 }
+colorstring.colors.file = { 33 }
+colorstring.colors.number = { 31 }
+colorstring.colors.emphasis = { 1 }
+colorstring.colors.teal = colorstring.rgb_fg(0, 0xAA, 0xB4)
+colorstring.colors.cyan = colorstring.rgb_fg(0, 0xFF, 0xFF)
 
 return colorstring

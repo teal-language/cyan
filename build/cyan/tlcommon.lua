@@ -2,6 +2,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+
 local command = require("cyan.command")
 local config = require("cyan.config")
 local fs = require("cyan.fs")
@@ -17,6 +18,8 @@ local Node = {}
 
 
 local Token = {}
+
+
 
 
 
@@ -61,9 +64,13 @@ function common.parse_file(path)
 end
 
 local type_check = tl.type_check
+
+
 function common.type_check_ast(ast, opts)
    type_check(ast, opts)
 end
+
+
 
 function common.parse_result_to_tl_result(pr)
    return {
@@ -73,6 +80,11 @@ function common.parse_result_to_tl_result(pr)
       type_errors = {},
    }
 end
+
+
+
+
+
 
 function common.make_error_header(file, num_errors, category)
    return cs.new(
@@ -92,6 +104,8 @@ local function prettify_error(e)
    tostring()
 end
 
+
+
 function common.report_errors(logfn, errs, file, category)
    logfn(
    common.make_error_header(file, #errs, category),
@@ -108,6 +122,10 @@ end
 function common.promote_warning(s)
    warning_errors[s] = true
 end
+
+
+
+
 
 function common.report_result(file, r)
    local werrors, warnings = filter(r.warnings or {}, function(w)
@@ -128,6 +146,8 @@ function common.report_result(file, r)
    report(log.err, r.unknowns, "unknown")
 end
 
+
+
 function common.init_teal_env(gen_compat, gen_target, preload)
    return tl.init_env(false, gen_compat, gen_target, preload)
 end
@@ -136,6 +156,8 @@ local pretty_print_ast = tl.pretty_print_ast
 function common.compile_ast(ast)
    return pretty_print_ast(ast)
 end
+
+
 
 function common.load_config_report_errs(path, args)
 
@@ -170,6 +192,8 @@ function common.type_check_and_load_file(path, env)
 end
 
 local found_modules = {}
+
+
 function common.search_module(name, search_dtl)
    if not found_modules[name] then
       local found, fd = tl.search_module(name, search_dtl)
@@ -178,6 +202,10 @@ function common.search_module(name, search_dtl)
    end
    return found_modules[name]
 end
+
+
+
+
 
 function common.prepend_to_lua_path(path_str)
    if path_str:sub(-1) == fs.path.separator then
@@ -212,6 +240,10 @@ tl.search_module = function(module_name, search_dtl)
    return old_tl_search_module(module_name, search_dtl)
 end
 
+
+
+
+
 function common.init_env_from_cfg(cfg)
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
@@ -228,6 +260,8 @@ function common.init_env_from_cfg(cfg)
 
    return env
 end
+
+
 
 function common.load_cfg_env_report_errs(require_config, args)
    local cfg = common.load_config_report_errs(config.filename)
