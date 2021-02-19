@@ -8,6 +8,7 @@ A build system for the Teal language
  - `gen`: type check and compile one or more Teal files
  - `run`: type check and run a Teal script in a sandbox
  - `build`: build a project based on `tlconfig.lua`
+ - `init`: initialize a Teal project
 
 # API
 
