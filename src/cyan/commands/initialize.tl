@@ -64,8 +64,21 @@ local function exec(args: command.Command.Args): number
       table.insert(config_content, string.format(s, ...))
    end
 
-   ins(1, "source_dir = %q,\n", source:tostring())
    ins(1, "build_dir = %q,\n", build:tostring())
+   ins(1, "source_dir = %q,\n", source:tostring())
+   local function add_str_array(name: string, arr: {string})
+      if #arr == 0 then
+         return
+      end
+      ins(1, "%s = {\n", name)
+      for _, entry in ipairs(arr) do
+         ins(2, "%q,\n", entry)
+      end
+      ins(1, "},\n", name)
+   end
+   add_str_array("preload_modules", args.preload)
+   add_str_array("include_dir", args.include_dir)
+
    ins(0, "}")
 
    local config_path <const> = (directory .. config.filename):to_real_path()
