@@ -6,8 +6,6 @@ local ansi = require("cyan.ansi")
 local util = require("cyan.util")
 local map, ivalues = util.tab.map, util.tab.ivalues
 
-local setmt = setmetatable
-
 local ColorString = {}
 
 
@@ -64,7 +62,7 @@ end
 local colorstring_mt = {}
 
 local function new(...)
-   return setmt({
+   return setmetatable({
       content = { ... },
    }, colorstring_mt)
 end
@@ -85,7 +83,7 @@ colorstring_mt.__concat = function(a, b)
    for val in ivalues(cs_b.content) do
       table.insert(new_content, val)
    end
-   return setmt({ content = new_content }, colorstring_mt)
+   return setmetatable({ content = new_content }, colorstring_mt)
 end
 
 colorstring_mt.__tostring = ColorString.tostring
@@ -100,12 +98,14 @@ local function rgb_bg(r, g, b)
 end
 
 local colorstring = {
+   ColorString = ColorString,
    colors = {
       none = { 0 },
       file = { 33 },
       number = { 31 },
       emphasis = { 1 },
       teal = rgb_fg(0, 0xAA, 0xB4),
+      cyan = rgb_fg(0, 0xFF, 0xFF),
    },
 
    rgb_fg = rgb_fg,

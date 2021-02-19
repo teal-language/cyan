@@ -46,7 +46,7 @@ local function command_exec(should_compile: boolean): function(command.Command.A
          end
       end
 
-      local _, _loaded_config <const>, env <const> = common.load_and_init_env(false, args)
+      local _, _loaded_config <const>, env <const> = common.load_cfg_env_report_errs(false, args)
 
       local exit = 0
 

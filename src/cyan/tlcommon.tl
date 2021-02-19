@@ -128,8 +128,8 @@ function common.report_result(file: string, r: tl.Result): boolean
       and report(log.err, r.unknowns, "unknown")
 end
 
-function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode): tl.Env
-   return tl.init_env(false, gen_compat, gen_target)
+function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, preload: {string}): tl.Env, string
+   return tl.init_env(false, gen_compat, gen_target, preload)
 end
 
 local pretty_print_ast <const> = tl.pretty_print_ast as function(Node): string
@@ -179,10 +179,6 @@ function common.search_module(name: string, search_dtl: boolean): fs.Path
    return found_modules[name]
 end
 
-function common.load_module_into_env(mod_name: string, env: tl.Env)
-   tl.require_module(mod_name, false, env)
-end
-
 function common.prepend_to_lua_path(path_str: string)
    if path_str:sub(-1) == fs.path.separator then
       path_str = path_str:sub(1, -2)
@@ -216,25 +212,24 @@ tl.search_module = function(module_name: string, search_dtl: boolean): string, F
    return old_tl_search_module(module_name, search_dtl)
 end
 
-function common.apply_config_to_environment(cfg: config.Config, tl_env: tl.Env): tl.Env
-   local env = tl_env or common.init_teal_env(cfg.gen_compat, cfg.gen_target)
-
+function common.init_env_from_cfg(cfg: config.Config): tl.Env, string
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
-   end
-
-   for module in ivalues(cfg.preload_modules or {}) do
-      common.load_module_into_env(module, env)
    end
 
    if cfg.source_dir and cfg.module_name then
       common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
+   local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.preload_modules)
+   if not env then
+      return nil, err
+   end
+
    return env
 end
 
-function common.load_and_init_env(require_config: boolean, args: command.Command.Args, env: tl.Env): boolean, config.Config, tl.Env
+function common.load_cfg_env_report_errs(require_config: boolean, args: command.Command.Args): boolean, config.Config, tl.Env
    local cfg = common.load_config_report_errs(config.filename)
    if not cfg then
       if require_config then
@@ -245,7 +240,12 @@ function common.load_and_init_env(require_config: boolean, args: command.Command
    end
 
    config.merge_with_args(cfg, args)
-   env = common.apply_config_to_environment(cfg, env)
+
+   local env, err = common.init_env_from_cfg(cfg)
+   if err then
+      log.err(err)
+      return false
+   end
    return true, cfg, env
 end
 

@@ -46,7 +46,7 @@ local function command_exec(should_compile)
          end
       end
 
-      local _, _loaded_config, env = common.load_and_init_env(false, args)
+      local _, _loaded_config, env = common.load_cfg_env_report_errs(false, args)
 
       local exit = 0
 

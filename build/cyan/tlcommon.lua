@@ -128,8 +128,8 @@ function common.report_result(file, r)
    report(log.err, r.unknowns, "unknown")
 end
 
-function common.init_teal_env(gen_compat, gen_target)
-   return tl.init_env(false, gen_compat, gen_target)
+function common.init_teal_env(gen_compat, gen_target, preload)
+   return tl.init_env(false, gen_compat, gen_target, preload)
 end
 
 local pretty_print_ast = tl.pretty_print_ast
@@ -179,10 +179,6 @@ function common.search_module(name, search_dtl)
    return found_modules[name]
 end
 
-function common.load_module_into_env(mod_name, env)
-   tl.require_module(mod_name, false, env)
-end
-
 function common.prepend_to_lua_path(path_str)
    if path_str:sub(-1) == fs.path.separator then
       path_str = path_str:sub(1, -2)
@@ -216,25 +212,24 @@ tl.search_module = function(module_name, search_dtl)
    return old_tl_search_module(module_name, search_dtl)
 end
 
-function common.apply_config_to_environment(cfg, tl_env)
-   local env = tl_env or common.init_teal_env(cfg.gen_compat, cfg.gen_target)
-
+function common.init_env_from_cfg(cfg)
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
-   end
-
-   for module in ivalues(cfg.preload_modules or {}) do
-      common.load_module_into_env(module, env)
    end
 
    if cfg.source_dir and cfg.module_name then
       common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
+   local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.preload_modules)
+   if not env then
+      return nil, err
+   end
+
    return env
 end
 
-function common.load_and_init_env(require_config, args, env)
+function common.load_cfg_env_report_errs(require_config, args)
    local cfg = common.load_config_report_errs(config.filename)
    if not cfg then
       if require_config then
@@ -245,7 +240,12 @@ function common.load_and_init_env(require_config, args, env)
    end
 
    config.merge_with_args(cfg, args)
-   env = common.apply_config_to_environment(cfg, env)
+
+   local env, err = common.init_env_from_cfg(cfg)
+   if err then
+      log.err(err)
+      return false
+   end
    return true, cfg, env
 end
 

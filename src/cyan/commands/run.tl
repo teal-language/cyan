@@ -12,7 +12,7 @@ local function add_to_argparser(cmd: argparse.Command)
 end
 
 local function run(args: command.Command.Args): number
-   local _, _cfg <const>, env <const> = common.load_and_init_env(false, args)
+   local _, _cfg <const>, env <const> = common.load_cfg_env_report_errs(false, args)
 
    local arg_list <const> = args["script"] as {string}
    -- collect all non-arguments including negative arg values

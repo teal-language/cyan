@@ -6,8 +6,6 @@ local ansi <const> = require("cyan.ansi")
 local util <const> = require("cyan.util")
 local map <const>, ivalues <const> = util.tab.map, util.tab.ivalues
 
-local setmt <const> = setmetatable as function<T>(T, metatable<T>): T
-
 local record ColorString
    -- This basically implements the 'string interface'
 
@@ -30,7 +28,7 @@ function ColorString:len(): number
    return l
 end
 
-local function append(base: ColorString, other: string | ColorString): ColorString
+local function append(base: ColorString, other: string | ColorString)
    if other is ColorString then
       for _, chunk in ipairs(other.content) do
          table.insert(base.content, chunk)
@@ -64,7 +62,7 @@ end
 local colorstring_mt <const>: metatable<ColorString> = {}
 
 local function new(...: string | {number}): ColorString
-   return setmt({
+   return setmetatable({
       content = { ... }
    } as ColorString, colorstring_mt)
 end
@@ -85,7 +83,7 @@ colorstring_mt.__concat = function(a: string | ColorString, b: string | ColorStr
    for val in ivalues(cs_b.content) do
       table.insert(new_content, val)
    end
-   return setmt({ content = new_content } as ColorString, colorstring_mt)
+   return setmetatable({ content = new_content } as ColorString, colorstring_mt)
 end
 
 colorstring_mt.__tostring = ColorString.tostring
@@ -100,12 +98,14 @@ local function rgb_bg(r: number, g: number, b: number): {number, number, number,
 end
 
 local colorstring <const> = {
+   ColorString = ColorString,
    colors = {
       none = {0},
       file = {33},
       number = {31},
       emphasis = {1},
       teal = rgb_fg(0, 0xAA, 0xB4),
+      cyan = rgb_fg(0, 0xFF, 0xFF),
    },
 
    rgb_fg = rgb_fg,
