@@ -57,6 +57,7 @@ command.new{
 parser:flag("-h --help")
       :action(function() os.exit(command.get("help").exec()) end)
 
+require("cyan.commands.initialize")
 require("cyan.commands.check-gen")
 require("cyan.commands.run")
 require("cyan.commands.build")

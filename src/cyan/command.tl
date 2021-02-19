@@ -16,12 +16,16 @@ local record Command
       quiet: boolean
       preload_modules: {string}
 
-      -- These should be in some sort of subtype/interface made by the check and run commands
+      -- These should be in some sort of subtype/interface made by the commands
       files: {string}
       output: string
       script: {string}
 
       update_all: boolean
+
+      directory: string
+      source_dir: string
+      build_dir: string
    end
 
    name: string
