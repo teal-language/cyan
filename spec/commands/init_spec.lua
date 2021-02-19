@@ -119,4 +119,19 @@ describe("init", function()
          exit_code = 1,
       })
    end)
+   it("should error if a config file is already found", function()
+      util.run_mock_project(finally, {
+         cmd = "init",
+         args = {},
+         dir_structure = {
+            ["tlconfig.lua"] = [[]],
+         },
+         generated_files = {},
+         cmd_output_match_lines = {
+            "Already in a project",
+            "Found",
+         },
+         exit_code = 1,
+      })
+   end)
 end)
