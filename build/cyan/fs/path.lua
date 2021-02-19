@@ -280,23 +280,26 @@ local function match(p, path_patt)
       return true
    end
 
-   while patt_idx <= patt_len and path_idx <= path_len do
-      local patt_chunk = path_patt[patt_idx]
-      local path_chunk = p[path_idx]
+   repeat
+      while patt_idx <= patt_len and path_idx <= path_len do
+         local patt_chunk = path_patt[patt_idx]
+         local path_chunk = p[path_idx]
 
-      if patt_chunk == "**" then
-         push_state()
-         patt_idx = patt_idx + 1
-      elseif path_chunk:match(patt_chunk) then
-         patt_idx = patt_idx + 1
-         path_idx = path_idx + 1
-      elseif not pop_state() then
-         return false
+         if patt_chunk == "**" then
+            push_state()
+            patt_idx = patt_idx + 1
+         elseif path_chunk:match(patt_chunk) then
+            patt_idx = patt_idx + 1
+            path_idx = path_idx + 1
+         elseif not pop_state() then
+            return false
+         end
       end
-   end
 
-   return patt_idx > patt_len and
-   path_idx > path_len
+   until (patt_idx >= patt_len and path_idx >= path_len) or
+      (not pop_state())
+   return patt_idx >= patt_len and
+   path_idx >= path_len
 end
 
 function Path:match(patt)

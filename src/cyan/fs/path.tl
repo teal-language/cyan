@@ -262,8 +262,8 @@ local function get_patt(patt: string): {string}
 end
 
 local function match(p: {string}, path_patt: {string}): boolean
-   local path_len = #p
-   local patt_len = #path_patt
+   local path_len <const> = #p
+   local patt_len <const> = #path_patt
 
    local patt_idx = 1
    local path_idx = 1
@@ -280,23 +280,26 @@ local function match(p: {string}, path_patt: {string}): boolean
       return true
    end
 
-   while patt_idx <= patt_len and path_idx <= path_len do
-      local patt_chunk <const> = path_patt[patt_idx]
-      local path_chunk <const> = p[path_idx]
+   repeat
+      while patt_idx <= patt_len and path_idx <= path_len do
+         local patt_chunk <const> = path_patt[patt_idx]
+         local path_chunk <const> = p[path_idx]
 
-      if patt_chunk == "**" then
-         push_state()
-         patt_idx = patt_idx + 1
-      elseif path_chunk:match(patt_chunk) then
-         patt_idx = patt_idx + 1
-         path_idx = path_idx + 1
-      elseif not pop_state() then
-         return false
+         if patt_chunk == "**" then
+            push_state()
+            patt_idx = patt_idx + 1
+         elseif path_chunk:match(patt_chunk) then
+            patt_idx = patt_idx + 1
+            path_idx = path_idx + 1
+         elseif not pop_state() then
+            return false
+         end
       end
-   end
+   until (patt_idx >= patt_len and path_idx >= path_len)
+      or (not pop_state())
 
-   return patt_idx > patt_len
-      and path_idx > path_len
+   return patt_idx >= patt_len
+      and path_idx >= path_len
 end
 
 function Path:match(patt: string): boolean

@@ -44,6 +44,8 @@ function fs.read(path)
 end
 
 function fs.scan_dir(dir, include, exclude)
+   include = include or {}
+   exclude = exclude or {}
    local function dir_iter(d)
       for p in fs.dir(d) do
          local full = d .. p

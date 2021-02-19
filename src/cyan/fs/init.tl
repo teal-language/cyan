@@ -44,6 +44,8 @@ function fs.read(path: string): string, string
 end
 
 function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
+   include = include or {}
+   exclude = exclude or {}
    local function dir_iter(d: string | Path)
       for p in fs.dir(d) do
          local full <const> = d .. p
