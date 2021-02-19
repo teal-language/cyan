@@ -295,11 +295,11 @@ local function match(p: {string}, path_patt: {string}): boolean
             return false
          end
       end
-   until (patt_idx >= patt_len and path_idx >= path_len)
+   until (patt_idx > patt_len and path_idx > path_len)
       or (not pop_state())
 
-   return patt_idx >= patt_len
-      and path_idx >= path_len
+   return patt_idx > patt_len
+      and path_idx > path_len
 end
 
 function Path:match(patt: string): boolean

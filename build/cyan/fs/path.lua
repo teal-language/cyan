@@ -296,10 +296,10 @@ local function match(p, path_patt)
          end
       end
 
-   until (patt_idx >= patt_len and path_idx >= path_len) or
+   until (patt_idx > patt_len and path_idx > path_len) or
       (not pop_state())
-   return patt_idx >= patt_len and
-   path_idx >= path_len
+   return patt_idx > patt_len and
+   path_idx > path_len
 end
 
 function Path:match(patt)
