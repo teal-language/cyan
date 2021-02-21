@@ -52,7 +52,7 @@ local function parse_string_path(s: string): {string}
    return new
 end
 
----@brief
+---@desc
 --- The `Path` constructor
 function path.new(s: string): Path
    if not s then return nil end
@@ -79,7 +79,7 @@ local function append_to_path(p: Path, other: Path | string)
    end
 end
 
----@brief
+---@desc
 --- Returns whether the path is absolute
 ---
 --- On windows, checks for paths like "C:\...", elsewhere looks for "/..."
@@ -91,27 +91,27 @@ function Path:is_absolute(): boolean
    end
 end
 
----@brief
+---@desc
 --- Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
 function Path:tostring(): string
    local start <const> = self[1] == "." and 2 or 1
    return table.concat(self, "/", start)
 end
 
----@brief
+---@desc
 --- Convert a `Path` to a string describing a real path
 function Path:to_real_path(): string
    local res <const> = table.concat(self, path.separator)
    return #res > 0 and res or "." .. path.separator
 end
 
----@brief
+---@desc
 --- Check if the path exists
 function Path:exists(): boolean
    return lfs.attributes(self:to_real_path()) ~= nil
 end
 
----@brief
+---@desc
 --- Mutate the given `Path` by appending another path to it
 function Path:append(other: string | Path)
    local p = other is string and path.new(other) or other as Path
@@ -121,7 +121,7 @@ function Path:append(other: string | Path)
    append_to_path(self, p)
 end
 
----@brief
+---@desc
 --- Mutate the given `Path` by prepending another path to it
 function Path:prepend(other: string | Path)
    if self:is_absolute() then
@@ -134,7 +134,7 @@ function Path:prepend(other: string | Path)
    end
 end
 
----@brief
+---@desc
 --- Create a copy of the given path
 function Path:copy(): Path
    local new: Path = {}
@@ -144,7 +144,7 @@ function Path:copy(): Path
    return setmetatable(new, PathMt)
 end
 
----@brief
+---@desc
 --- Iterate over the leading folders in a path
 ---
 --- ex: `path.new("foo/bar/baz/bat"):ancestors()` will construct `Path` objects from "foo", "foo/bar", "foo/bar/baz"
@@ -163,25 +163,25 @@ function Path:ancestors(): function(): Path
    end
 end
 
----@brief
+---@desc
 --- Get whether the "mode" attribute of the given path is set to "file"
 function Path:is_file(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "file"
 end
 
----@brief
+---@desc
 --- Get whether the "mode" attribute of the given path is set to "directory"
 function Path:is_directory(): boolean
    return lfs.attributes(self:to_real_path(), "mode") == "directory"
 end
 
----@brief
+---@desc
 --- Get the "modification" attribute of a file
 function Path:mod_time(): number
    return lfs.attributes(self:to_real_path(), "modification") as number
 end
 
----@brief
+---@desc
 --- Attempt to create the leading directories of a given path
 function Path:mk_parent_dirs(): boolean, string
    for p in self:ancestors() do
@@ -199,7 +199,7 @@ function Path:mk_parent_dirs(): boolean, string
    return true
 end
 
----@brief
+---@desc
 --- Attempt to create a directory at the given path, creating the parent directories
 --- if needed. Can be seen as an equivalent to `mkdir -p`
 function Path:mkdir(): boolean, string
@@ -211,7 +211,7 @@ function Path:mkdir(): boolean, string
    end
 end
 
----@brief
+---@desc
 --- Mutate the given path by removing the leading parts from the given path
 ---
 --- Will error if you attempt to mix absolute and non-absolute paths
@@ -344,7 +344,7 @@ local function match(p: {string}, path_patt: {string}): boolean
       and path_idx > path_len
 end
 
----@brief
+---@desc
 --- See if the given path matches the pattern
 ---
 --- path separators in patterns are always represented with '/'.
@@ -356,7 +356,7 @@ function Path:match(patt: string): boolean
    return match(self, get_patt(patt))
 end
 
----@brief
+---@desc
 --- See if the given path matches any of the given patterns
 function Path:match_any(patts: {string}): number, string
    for i, patt in ipairs(patts) do
@@ -364,6 +364,42 @@ function Path:match_any(patts: {string}): number, string
          return i, patt
       end
    end
+end
+
+---@desc
+--- expresses an absolute path in terms of another absolute path
+--- returns an actual path since path objects cannot contain '..'
+---
+--- for example: `path.new("/foo/bar/baz"):relative_to(path.new("/foo/bat")) == "../bar/baz"`
+function Path:relative_to(other: Path): string
+   if not self:is_absolute() then
+      error("Base path of relative_to must be absolute", 2)
+   end
+   if not other:is_absolute() then
+      error("Target path of relative_to must be absolute", 2)
+   end
+   local mismatch = false
+   local idx: number
+   for i = 1, math.min(#self, #other) do
+      if self[i] ~= other[i] then
+         mismatch = true
+         break
+      end
+      idx = i
+   end
+   if #other > #self then
+      mismatch = true
+   end
+   local ret: {string} = {}
+   if mismatch then
+      for _ = 1, #other - idx do
+         table.insert(ret, "..")
+      end
+   end
+   for i = idx + 1, #self do
+      table.insert(ret, self[i])
+   end
+   return table.concat(ret, path.separator)
 end
 
 return path

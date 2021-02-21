@@ -49,7 +49,75 @@ The config data
 ## `cyan.fs.path`
 ===
 
+Object oriented path management
+
+### `Path:ancestors(): function(): Path`
+Iterate over the leading folders in a path
+
+ex: `path.new("foo/bar/baz/bat"):ancestors()` will construct `Path` objects from "foo", "foo/bar", "foo/bar/baz"
+
+### `Path:append(other: string | Path)`
+Mutate the given `Path` by appending another path to it
+
+### `Path:copy(): Path`
+Create a copy of the given path
+
+### `Path:exists(): boolean`
+Check if the path exists
+
+### `Path:is_absolute(): boolean`
+Returns whether the path is absolute
+
+On windows, checks for paths like "C:\...", elsewhere looks for "/..."
+
+### `Path:is_directory(): boolean`
+Get whether the "mode" attribute of the given path is set to "directory"
+
+### `Path:is_file(): boolean`
+Get whether the "mode" attribute of the given path is set to "file"
+
+### `Path:match(patt: string): boolean`
+See if the given path matches the pattern
+
+path separators in patterns are always represented with '/'.
+
+`*` characters represent any number of non-path-separator characters
+
+`**/` represent any number of directories
+
+### `Path:match_any(patts: {string}): number, string`
 See if the given path matches any of the given patterns
+
+### `Path:mk_parent_dirs(): boolean, string`
+Attempt to create the leading directories of a given path
+
+### `Path:mkdir(): boolean, string`
+Attempt to create a directory at the given path, creating the parent directories if needed. Can be seen as an equivalent to `mkdir -p`
+
+### `Path:mod_time(): number`
+Get the "modification" attribute of a file
+
+### `Path:prepend(other: string | Path)`
+Mutate the given `Path` by prepending another path to it
+
+### `Path:relative_to(other: Path): string`
+expresses an absolute path in terms of another absolute path returns an actual path since path objects cannot contain '..'
+
+for example: `path.new("/foo/bar/baz"):relative_to(path.new("/foo/bat")) == "../bar/baz"`
+
+### `Path:remove_leading(p: string | Path)`
+Mutate the given path by removing the leading parts from the given path
+
+Will error if you attempt to mix absolute and non-absolute paths
+
+### `Path:to_real_path(): string`
+Convert a `Path` to a string describing a real path
+
+### `Path:tostring(): string`
+Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
+
+### `path.new(s: string): Path`
+The `Path` constructor
 
 ### record `Path`
 The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths

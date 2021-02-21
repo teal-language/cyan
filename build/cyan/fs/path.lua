@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -364,6 +364,42 @@ function Path:match_any(patts)
          return i, patt
       end
    end
+end
+
+
+
+
+
+
+function Path:relative_to(other)
+   if not self:is_absolute() then
+      error("Base path of relative_to must be absolute", 2)
+   end
+   if not other:is_absolute() then
+      error("Target path of relative_to must be absolute", 2)
+   end
+   local mismatch = false
+   local idx
+   for i = 1, math.min(#self, #other) do
+      if self[i] ~= other[i] then
+         mismatch = true
+         break
+      end
+      idx = i
+   end
+   if #other > #self then
+      mismatch = true
+   end
+   local ret = {}
+   if mismatch then
+      for _ = 1, #other - idx do
+         table.insert(ret, "..")
+      end
+   end
+   for i = idx + 1, #self do
+      table.insert(ret, self[i])
+   end
+   return table.concat(ret, path.separator)
 end
 
 return path
