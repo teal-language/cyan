@@ -25,6 +25,7 @@ local function exists_and_is_dir(prefix, p)
 end
 
 local function build(args)
+   local starting_dir = fs.current_dir()
    local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    if not config_path then
       log.err(config.filename .. " not found")
@@ -90,6 +91,10 @@ common.load_cfg_env_report_errs(true, args)
 
    dag:mark_each(source_is_newer)
 
+   local function display_filename(f)
+      return cs.highlight(cs.colors.file, f:relative_to(starting_dir))
+   end
+
    local to_write = {}
    local function process_node(n, compile)
       local path = n.input:to_real_path()
@@ -112,13 +117,13 @@ common.load_cfg_env_report_errs(true, args)
          exit = 1
          return
       end
-      log.info("Type checked ", cs.highlight(cs.colors.file, n.input:tostring()))
+      log.info("Type checked ", display_filename(n.input))
       if compile then
          local ok, err = n.output:mk_parent_dirs()
          if ok then
             table.insert(to_write, { n, parsed.ast })
          else
-            log.err("Unable to create parent dirs to ", cs.highlight(cs.colors.file, n.output:tostring()), ":", err)
+            log.err("Unable to create parent dirs to ", display_filename(n.output), ":", err)
             exit = 1
          end
       end
@@ -140,12 +145,12 @@ common.load_cfg_env_report_errs(true, args)
       local n, ast = node_ast[1], node_ast[2]
       local fh, err = io.open(n.output:to_real_path(), "w")
       if not fh then
-         log.err("Error opening file", cs.highlight(cs.colors.file, n.output:to_real_path()), err)
+         log.err("Error opening file", display_filename(n.output), err)
          exit = 1
       else
          fh:write(common.compile_ast(ast))
          fh:close()
-         log.info("Wrote ", cs.highlight(cs.colors.file, n.output:to_real_path()))
+         log.info("Wrote ", display_filename(n.output))
       end
    end
 

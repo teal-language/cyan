@@ -8,6 +8,7 @@ local util = require("cyan.util")
 
 local split, esc = util.str.split, util.str.esc
 local values = util.tab.values
+local xor = util.xor
 
 
 
@@ -217,7 +218,7 @@ end
 
 function Path:remove_leading(p)
    local leading = type(p) == "string" and path.new(p) or p
-   if util.xor(leading:is_absolute(), self:is_absolute()) then
+   if xor(leading:is_absolute(), self:is_absolute()) then
       error("Attempt to mix absolute and non-absolute path", 2)
    end
    local ptr = 1
@@ -371,33 +372,39 @@ end
 
 
 
+
+
 function Path:relative_to(other)
-   if not self:is_absolute() then
-      error("Base path of relative_to must be absolute", 2)
+   local a, b = self:copy(), other:copy()
+   if xor(a:is_absolute(), b:is_absolute()) then
+      if not a:is_absolute() then
+         a = path.new(lfs.currentdir()) .. a
+      else
+         b = path.new(lfs.currentdir()) .. b
+      end
    end
-   if not other:is_absolute() then
-      error("Target path of relative_to must be absolute", 2)
-   end
+   local a_len = #a
+   local b_len = #b
    local mismatch = false
-   local idx
-   for i = 1, math.min(#self, #other) do
-      if self[i] ~= other[i] then
+   local idx = 0
+   for i = 1, math.min(a_len, b_len) do
+      if a[i] ~= b[i] then
          mismatch = true
          break
       end
       idx = i
    end
-   if #other > #self then
+   if b_len > a_len then
       mismatch = true
    end
    local ret = {}
    if mismatch then
-      for _ = 1, #other - idx do
+      for _ = 1, b_len - idx do
          table.insert(ret, "..")
       end
    end
-   for i = idx + 1, #self do
-      table.insert(ret, self[i])
+   for i = idx + 1, a_len do
+      table.insert(ret, a[i])
    end
    return table.concat(ret, path.separator)
 end

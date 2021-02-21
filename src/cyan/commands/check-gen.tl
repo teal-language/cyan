@@ -34,20 +34,22 @@ local function command_exec(should_compile: boolean): function(command.Command.A
          return 1
       end
 
-      local function get_output_filename(path: string): string
+      local function get_output_filename(path: fs.Path): fs.Path
          if args["output"] then
             local p <const> = fs.path.new(args["output"] as string)
             if not p:is_absolute() then
                p:prepend(starting_dir)
             end
-            return p:to_real_path()
+            return p
          end
-         local base, ext = fs.extension_split(path)
+         local new <const> = path:copy()
+         local base <const>, ext <const> = fs.extension_split(path[#path])
          if ext == ".lua" then
-            return base .. ".out.lua"
+            new[#new] = base .. ".out.lua"
          else
-            return base .. ".lua"
+            new[#new] = base .. ".lua"
          end
+         return new
       end
 
       local _, _loaded_config <const>, env <const> = common.load_cfg_env_report_errs(false, args)
@@ -55,17 +57,17 @@ local function command_exec(should_compile: boolean): function(command.Command.A
       local exit = 0
 
       local function process_file(path: fs.Path)
-         local real_path <const> = path:to_real_path()
-         local disp_file <const> = cs.new(cs.colors.file, real_path, {0})
-
-         local outfile <const> = get_output_filename(real_path)
-         local disp_outfile <const> = cs.new(cs.colors.file, outfile, {0})
-
+         local disp_file <const> = cs.new(cs.colors.file, path:relative_to(starting_dir), {0})
          if not path:is_file() then
             log.err(disp_file, " is not a file")
             exit = 1
             return
          end
+
+         local real_path <const> = path:to_real_path()
+         local outfile <const> = get_output_filename(path)
+         local disp_outfile <const> = cs.new(cs.colors.file, outfile:relative_to(starting_dir), {0})
+
          local parsed <const>, perr <const> = common.parse_file(real_path)
          if not parsed then
             log.err("Error parsing file ", disp_file .. "\n   " .. tostring(perr))
@@ -91,7 +93,7 @@ local function command_exec(should_compile: boolean): function(command.Command.A
          if not should_compile then
             return
          end
-         local fh <const>, err <const> = io.open(outfile, "w")
+         local fh <const>, err <const> = io.open(outfile:to_real_path(), "w")
          if fh then
             fh:write(common.compile_ast(parsed.ast))
             fh:close()

@@ -8,6 +8,7 @@ local util <const> = require("cyan.util")
 
 local split <const>, esc <const> = util.str.split, util.str.esc
 local values <const> = util.tab.values
+local xor <const> = util.xor
 
 ---@desc
 --- The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths
@@ -217,7 +218,7 @@ end
 --- Will error if you attempt to mix absolute and non-absolute paths
 function Path:remove_leading(p: string | Path)
    local leading <const> = p is string and path.new(p) or p as Path
-   if util.xor(leading:is_absolute(), self:is_absolute()) then
+   if xor(leading:is_absolute(), self:is_absolute()) then
       error("Attempt to mix absolute and non-absolute path", 2)
    end
    local ptr = 1
@@ -347,7 +348,7 @@ end
 ---@desc
 --- See if the given path matches the pattern
 ---
---- path separators in patterns are always represented with '/'.
+--- Path separators in patterns are always represented with '/'.
 ---
 --- `*` characters represent any number of non-path-separator characters
 ---
@@ -367,37 +368,43 @@ function Path:match_any(patts: {string}): number, string
 end
 
 ---@desc
---- expresses an absolute path in terms of another absolute path
---- returns an actual path since path objects cannot contain '..'
+--- Expresses a path in terms of another path.
+--- If any relative paths are given, they are treated as though they are in the current directory
+---
+--- Returns an actual path since path objects cannot contain '..'
 ---
 --- for example: `path.new("/foo/bar/baz"):relative_to(path.new("/foo/bat")) == "../bar/baz"`
 function Path:relative_to(other: Path): string
-   if not self:is_absolute() then
-      error("Base path of relative_to must be absolute", 2)
+   local a, b: Path, Path = self:copy(), other:copy()
+   if xor(a:is_absolute(), b:is_absolute()) then
+      if not a:is_absolute() then
+         a = path.new(lfs.currentdir()) .. a
+      else
+         b = path.new(lfs.currentdir()) .. b
+      end
    end
-   if not other:is_absolute() then
-      error("Target path of relative_to must be absolute", 2)
-   end
+   local a_len <const> = #a
+   local b_len <const> = #b
    local mismatch = false
-   local idx: number
-   for i = 1, math.min(#self, #other) do
-      if self[i] ~= other[i] then
+   local idx = 0
+   for i = 1, math.min(a_len, b_len) do
+      if a[i] ~= b[i] then
          mismatch = true
          break
       end
       idx = i
    end
-   if #other > #self then
+   if b_len > a_len then
       mismatch = true
    end
    local ret: {string} = {}
    if mismatch then
-      for _ = 1, #other - idx do
+      for _ = 1, b_len - idx do
          table.insert(ret, "..")
       end
    end
-   for i = idx + 1, #self do
-      table.insert(ret, self[i])
+   for i = idx + 1, a_len do
+      table.insert(ret, a[i])
    end
    return table.concat(ret, path.separator)
 end

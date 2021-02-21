@@ -79,7 +79,7 @@ Get whether the "mode" attribute of the given path is set to "file"
 ### `Path:match(patt: string): boolean`
 See if the given path matches the pattern
 
-path separators in patterns are always represented with '/'.
+Path separators in patterns are always represented with '/'.
 
 `*` characters represent any number of non-path-separator characters
 
@@ -101,7 +101,9 @@ Get the "modification" attribute of a file
 Mutate the given `Path` by prepending another path to it
 
 ### `Path:relative_to(other: Path): string`
-expresses an absolute path in terms of another absolute path returns an actual path since path objects cannot contain '..'
+Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory
+
+Returns an actual path since path objects cannot contain '..'
 
 for example: `path.new("/foo/bar/baz"):relative_to(path.new("/foo/bat")) == "../bar/baz"`
 
