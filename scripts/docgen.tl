@@ -71,6 +71,7 @@ local function gen_docs(filename: string, module_name: string): string
       end
    end
 
+   local brief: string
    local sections <const> = {}
 
    for _, d in ipairs(docs) do
@@ -101,14 +102,17 @@ local function gen_docs(filename: string, module_name: string): string
                   .. "\n\n"
             )
          end
-      elseif d.kind ~= "brief" then
+      elseif d.kind == "brief" then
+         brief = table.concat(d.content, "\n\n") .. "\n\n"
+      else
          io.stderr:write("Unhandled node kind: ", node_kind, "\n")
       end
    end
 
    if #sections > 0 then
+
       table.sort(sections)
-      table.insert(sections, 1, "## `" .. module_name .. "`\n===\n")
+      table.insert(sections, 1, "## `" .. module_name .. "`\n===\n\n" .. (brief or ""))
 
       return table.concat(sections)
    end
