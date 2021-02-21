@@ -36,7 +36,11 @@ local function command_exec(should_compile)
 
       local function get_output_filename(path)
          if args["output"] then
-            return args["output"]
+            local p = fs.path.new(args["output"])
+            if not p:is_absolute() then
+               p:prepend(starting_dir)
+            end
+            return p:to_real_path()
          end
          local base, ext = fs.extension_split(path)
          if ext == ".lua" then

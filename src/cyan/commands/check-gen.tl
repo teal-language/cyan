@@ -36,7 +36,11 @@ local function command_exec(should_compile: boolean): function(command.Command.A
 
       local function get_output_filename(path: string): string
          if args["output"] then
-            return args["output"] as string
+            local p <const> = fs.path.new(args["output"] as string)
+            if not p:is_absolute() then
+               p:prepend(starting_dir)
+            end
+            return p:to_real_path()
          end
          local base, ext = fs.extension_split(path)
          if ext == ".lua" then
