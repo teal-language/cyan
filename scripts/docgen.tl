@@ -93,11 +93,17 @@ local function gen_docs(filename: string, module_name: string): string
                   .. "\n\n"
             )
          elseif node_kind == "record_declaration" then
+            local key = d.obj:child_by_field_name("key")
+            if not key then
+               key = d.obj:child_by_field_name("string_key")
+            end
             table.insert(
                sections,
                "### record `"
                   .. d.obj:child_by_field_name("name"):source()
-                  .. "`\n"
+                  .. "`\n```\n"
+                  .. d.obj:source()
+                  .. "\n```\n"
                   .. table.concat(d.content, "\n\n")
                   .. "\n\n"
             )

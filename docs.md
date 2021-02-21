@@ -25,6 +25,17 @@ The ansi escape for an arbitrary RGB background color
 The ansi escape for an arbitrary RGB foreground color
 
 ### record `ColorString`
+```
+local record ColorString
+   content: {string | {number}}
+   len: function(ColorString): number
+   tostring: function(ColorString): string
+
+   metamethod __len: function(ColorString): number
+   metamethod __concat: function(ColorString | string, ColorString | string): ColorString
+   -- metamethod __tostring: function(ColorString): string
+end
+```
 The main object that this library consumes and produces. It basically implements the 'string' interface and can be used wherever a string is.
 
 Colors are described as arrays of numbers that directly correspond to ANSI escape sequences
@@ -44,6 +55,27 @@ Try to load `tlconfig.lua` in the current directory
 Merge the relevant entries of the provided command arguments into the provided config table
 
 ### record `Config`
+```
+local record Config
+   build_dir: string
+   source_dir: string
+   files: {string}
+   include: {string}
+   exclude: {string}
+   preload_modules: {string}
+   include_dir: {string}
+   module_name: string
+
+   gen_compat: tl.CompatMode
+   gen_target: tl.TargetMode
+   disable_warnings: {tl.WarningKind}
+   warning_errors: {tl.WarningKind}
+
+   -- externals field to allow for external tools to take entries in the config
+   -- without our type checking complaining
+   externals: {any:any}
+end
+```
 The config data
 
 ## `cyan.fs.path`
@@ -122,6 +154,15 @@ Convert a path to a string. Always uses '/' as a path separator. Intended for di
 The `Path` constructor
 
 ### record `Path`
+```
+local record Path
+   {string}
+
+   metamethod __concat: function(Path | string, Path | string): Path
+   metamethod __eq: function(Path | string, Path | string): boolean
+   -- metamethod __tostring: function(Path): string
+end
+```
 The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths
 
 ## `cyan.fs`
@@ -187,5 +228,13 @@ A wrapper around `tl.search_module` but, returns an `fs.Path` and will cache res
 Just type checks an ast
 
 ### record `ParseResult`
+```
+local record ParseResult
+   tks: {Token}
+   ast: Node
+   reqs: {string}
+   errs: {tl.Error}
+end
+```
 The result from parsing source code including the tokens, ast, calls to require, and errors
 
