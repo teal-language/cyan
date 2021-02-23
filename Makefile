@@ -6,7 +6,7 @@ TL = tl
 TLFLAGS = --quiet -I src
 
 build/%.lua: src/%.tl
-	$(TL) $(TLFLAGS) check $< && $(TL) $(TLFLAGS) gen $< -o $@
+	$(TL) $(TLFLAGS) gen --check $< -o $@
 
 default: $(LUA)
 
