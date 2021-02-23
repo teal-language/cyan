@@ -11,6 +11,10 @@ description = {
    license = "MIT",
    issues_url = "https://github.com/teal-language/cyan/issues",
 }
+dependencies = {
+   "tl",
+   "luafilesystem",
+}
 build = {
    type = "builtin",
    -- TODO: we can probably auto generate this
