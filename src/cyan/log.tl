@@ -6,7 +6,8 @@ local str <const> = util.str
 
 local inspect: function(any): string
 do
-   local ok, actual_inspect = pcall(require, "inspect") as (boolean, function(any, any): string)
+   local req <const> = require
+   local ok, actual_inspect = pcall(req, "inspect") as (boolean, function(any, any): string)
    local inspect_opts <const> = {
       process = function(item: any, path: {any}): any
          if path[#path] ~= (actual_inspect as {string:any}).METATABLE then

@@ -6,7 +6,8 @@ local str = util.str
 
 local inspect
 do
-   local ok, actual_inspect = pcall(require, "inspect")
+   local req = require
+   local ok, actual_inspect = pcall(req, "inspect")
    local inspect_opts = {
       process = function(item, path)
          if path[#path] ~= (actual_inspect).METATABLE then

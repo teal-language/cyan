@@ -113,6 +113,7 @@ function graph.scan_dir(dir, include, exclude)
       end
    end
 
+
    d._most_deps = 0
    d._nodes = setmetatable({}, {
       __index = function(self, key)

@@ -113,6 +113,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
       end
    end
 
+   -- TODO: nodes should count their child's dependents as their dependents as well
    d._most_deps = 0
    d._nodes = setmetatable({}, {
       __index = function(self: {number:{Node}}, key: number): {Node}
