@@ -4,40 +4,39 @@
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
-local record Command
-   record Args
-      command: string
-      preload: {string}
-      include_dir: {string}
-      wdisable: {string}
-      werror: {string}
-      gen_compat: tl.CompatMode
-      gen_target: tl.TargetMode
-      quiet: boolean
-      preload_modules: {string}
+local record command
+   record Command
+      record Args
+         command: string
+         preload: {string}
+         include_dir: {string}
+         wdisable: {string}
+         werror: {string}
+         gen_compat: tl.CompatMode
+         gen_target: tl.TargetMode
+         quiet: boolean
+         preload_modules: {string}
 
-      -- These should be in some sort of subtype/interface made by the commands
-      files: {string}
-      output: string
-      script: {string}
+         -- These should be in some sort of subtype/interface made by the commands
+         files: {string}
+         output: string
+         script: {string}
 
-      update_all: boolean
+         update_all: boolean
 
-      directory: string
-      source_dir: string
-      build_dir: string
-      force: boolean
+         directory: string
+         source_dir: string
+         build_dir: string
+         force: boolean
+      end
+
+      name: string
+      description: string
+      argparse: function(argparse.Command)
+      exec: function(Args): number -- return value is the exit code
    end
-
-   name: string
-   description: string
-   argparse: function(argparse.Command)
-   exec: function(Args): number -- return value is the exit code
 end
-
-local command <const> = {
-   Command = Command,
-}
+local type Command = command.Command
 
 local commands <const>: {string:Command} = {}
 

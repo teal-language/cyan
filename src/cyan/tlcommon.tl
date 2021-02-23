@@ -34,27 +34,37 @@ local record ParseResult
 end
 
 local common <const> = {
-   Token = Token,
    ParseResult = ParseResult,
 }
 
+local lex_cache <const>: {string:{{Token}, {Token}}} = {}
+function common.lex_file(path: string): {Token}, {Token}, string
+   if not lex_cache[path] then
+      local src <const>, read_err <const> = fs.read(path)
+      if not src then
+         return nil, nil, read_err
+      end
+      local tks <const>, errs <const> = tl.lex(src) as ({Token}, {Token})
+      lex_cache[path] = {tks, errs}
+      return tks, errs
+   end
+   return lex_cache[path][1], lex_cache[path][2]
+end
+
+local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): number, Node, {string}
 local parse_cache <const>: {string:ParseResult} = {}
 function common.parse_file(path: string): ParseResult, string
    if not parse_cache[path] then
-      local content <const>, err <const> = fs.read(path)
-      if not content then
-         return nil, err
-      end
-      local tks <const>, lex_errs <const> = tl.lex(content)
-      if lex_errs then
-         return nil, "Error lexing"
+      local tks <const>, lex_errs <const>, f_err <const> = common.lex_file(path)
+      if lex_errs as string or f_err then
+         return nil, f_err or "Error lexing"
       end
 
       local errs <const>: {tl.Error} = {}
-      local _, ast <const>, reqs <const> = tl.parse_program(tks, errs, path)
+      local _, ast <const>, reqs <const> = parse_program(tks, errs, path)
 
       parse_cache[path] = {
-         tks = tks as {Token},
+         tks = tks,
          ast = ast,
          reqs = reqs,
          errs = errs,
@@ -95,13 +105,66 @@ function common.make_error_header(file: string, num_errors: number, category: st
    ):tostring()
 end
 
+local function highlight_token(tk: Token): string
+   -- TODO: dont rely on tk.kind and just keep a local map of keywords
+   --       since certain 'keywords' are contextual, but discouraged
+   --       from being used otherwise
+   if cs.colors[tk.kind] then
+      return cs.highlight(cs.colors[tk.kind], tk.tk):tostring()
+   end
+   return tk.tk
+end
+
+local function count_tabs(str: string): number
+   return select(2, str:gsub("\t", "")) as number
+end
+
+local function prettify_line(s: string): string
+   local tks <const> = tl.lex(s) as {Token}
+   local highlighted = {}
+   local last_x = 1
+   for _, tk in ipairs(tks) do
+      -- account for tabs
+      local ts = count_tabs(s:sub(last_x, tk.x - 1))
+      if ts > 0 then
+         local spaces = 3 * ts
+         table.insert(highlighted, (" "):rep(spaces))
+      end
+      if last_x < tk.x then
+         table.insert(highlighted, (" "):rep(tk.x - last_x))
+      end
+      table.insert(highlighted, highlight_token(tk))
+      last_x = tk.x + #tk.tk
+   end
+   return table.concat(highlighted)
+end
+
 local function prettify_error(e: tl.Error): string
-   return cs.new(
-      "   ", cs.colors.file, e.filename, {0},
-      " ", cs.colors.number, tostring(e.y), {0},
-      ":", cs.colors.number, tostring(e.x), {0},
-      " ", e.msg
-   ):tostring()
+   local ln <const> = fs.get_line(e.filename, e.y)
+
+   local tks <const> = tl.lex(ln)
+   local err_tk <const> = {
+      x = 1,
+      tk = tl.get_token_at(tks, 1, e.x) or " "
+   }
+
+   local str <const> = cs.new(
+      cs.colors.file, e.filename, {0},
+      " ", cs.colors.error_number, tostring(e.y), {0},
+      ":", cs.colors.error_number, tostring(e.x), {0}, "\n"
+   )
+
+   local num_len <const> = #tostring(e.y)
+   local prefix <const> = (" "):rep(num_len) .. " | "
+
+   str:insert(
+      "   ", cs.colors.number, tostring(e.y), {0}, " | ", prettify_line(ln),
+      "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
+      cs.colors.error, ("^"):rep(#err_tk.tk), {0}, "\n   ",
+      prefix, cs.colors.error, e.msg, {0}
+   )
+
+   return str:tostring()
 end
 
 ---@desc
@@ -109,7 +172,7 @@ end
 function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)
    logfn(
       common.make_error_header(file, #errs, category),
-      "\n", table.concat(map(errs, prettify_error), "\n")
+      "\n", table.concat(map(errs, prettify_error), "\n\n")
    )
 end
 

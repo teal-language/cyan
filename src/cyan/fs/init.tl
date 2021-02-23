@@ -4,6 +4,7 @@
 
 local lfs <const> = require("lfs")
 local path <const> = require("cyan.fs.path")
+local util <const> = require("cyan.util")
 
 local Path <const> = path.Path
 
@@ -53,6 +54,21 @@ function fs.read(path: string): string, string
       fh:close()
    end
    return read_cache[path]
+end
+
+function fs.get_line(path: string, n: number): string, string
+   local content <const>, err <const> = fs.read(path)
+   if err then
+      return nil, err
+   end
+
+   local l = 1
+   for a, b in util.str.split_find(content, "\n", true) do
+      if l == n then
+         return content:sub(a, b)
+      end
+      l = l + 1
+   end
 end
 
 ---@desc

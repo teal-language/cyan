@@ -48,6 +48,12 @@ function ColorString:append(...: string | ColorString)
    end
 end
 
+function ColorString:insert(...: string | {number})
+   for i = 1, select("#", ...) do
+      table.insert(self.content, (select(i, ...)))
+   end
+end
+
 ---@desc
 --- surrounds a string with a color
 function ColorString:surround(col: {number})
@@ -118,11 +124,19 @@ function colorstring.rgb_bg(r: number, g: number, b: number): {number, number, n
    return {48, 2, r, g, b}
 end
 
-colorstring.colors.none = {0}
-colorstring.colors.file = {33}
-colorstring.colors.number = {31}
-colorstring.colors.emphasis = {1}
-colorstring.colors.teal = colorstring.rgb_fg(0, 0xAA, 0xB4)
-colorstring.colors.cyan = colorstring.rgb_fg(0, 0xFF, 0xFF)
+local cs <const> = colorstring.colors
+
+cs.none = { 0 }
+cs.emphasis = { 1 }
+cs.file = { ansi.color.dark.yellow }
+cs.error_number = { ansi.color.dark.red }
+cs.error = { ansi.color.dark.red }
+cs.teal = colorstring.rgb_fg(0, 0xAA, 0xB4)
+cs.cyan = colorstring.rgb_fg(0, 0xFF, 0xFF)
+
+cs.keyword = cs.teal
+cs.number = { ansi.color.bright.red }
+cs.string = { ansi.color.bright.yellow }
+cs.op = { ansi.color.dark.magenta }
 
 return colorstring

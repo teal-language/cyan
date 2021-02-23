@@ -72,10 +72,10 @@ function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
    return pass, fail
 end
 
-function str.split(s: string, del: string, no_patt: boolean): function(): string
+function str.split_find(s: string, del: string, no_patt: boolean): function(): number, number
    local idx = 0
    local prev_idx, start_idx: number, number
-   return function(): string
+   return function(): number, number
       if not idx then return end
       idx = idx + 1
       prev_idx = idx
@@ -83,7 +83,16 @@ function str.split(s: string, del: string, no_patt: boolean): function(): string
       if start_idx and idx and idx < start_idx then
          error("Delimiter " .. tostring(del) .. " matched the empty string", 2)
       end
-      return s:sub(prev_idx, (start_idx or 0) - 1)
+      return prev_idx, (start_idx or 0) - 1
+   end
+end
+
+function str.split(s: string, del: string, no_patt: boolean): function(): string
+   local iter <const> = str.split_find(s, del, no_patt)
+   return function(): string
+      local a, b = iter()
+      if not a then return end
+      return s:sub(a, b)
    end
 end
 

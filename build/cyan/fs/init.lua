@@ -4,6 +4,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local lfs = require("lfs")
 local path = require("cyan.fs.path")
+local util = require("cyan.util")
 
 local Path = path.Path
 
@@ -53,6 +54,21 @@ function fs.read(path)
       fh:close()
    end
    return read_cache[path]
+end
+
+function fs.get_line(path, n)
+   local content, err = fs.read(path)
+   if err then
+      return nil, err
+   end
+
+   local l = 1
+   for a, b in util.str.split_find(content, "\n", true) do
+      if l == n then
+         return content:sub(a, b)
+      end
+      l = l + 1
+   end
 end
 
 

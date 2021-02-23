@@ -24,7 +24,7 @@ describe("check command", function()
          },
          cmd_output_match_lines = {
             [1] = "%d.*Error.*foo%.tl",
-            [3] = "Type checked.*bar%.tl",
+            [6] = "Type checked.*bar%.tl",
          },
          exit_code = 1,
       })
@@ -55,4 +55,15 @@ describe("check command", function()
       end)
    end)
 
+   it("should show type errors along with the line that they occur on", function()
+      util.run_mock_project(finally, {
+         cmd = "check",
+         args = { "foo.tl" },
+         dir_structure = {
+            ["foo.tl"] = [[local x: string = 10]],
+         },
+         cmd_output_match = [[1.-|.-local.-x: string]],
+         exit_code = 1,
+      })
+   end)
 end)

@@ -72,7 +72,7 @@ function tab.filter(t, pred)
    return pass, fail
 end
 
-function str.split(s, del, no_patt)
+function str.split_find(s, del, no_patt)
    local idx = 0
    local prev_idx, start_idx
    return function()
@@ -83,7 +83,16 @@ function str.split(s, del, no_patt)
       if start_idx and idx and idx < start_idx then
          error("Delimiter " .. tostring(del) .. " matched the empty string", 2)
       end
-      return s:sub(prev_idx, (start_idx or 0) - 1)
+      return prev_idx, (start_idx or 0) - 1
+   end
+end
+
+function str.split(s, del, no_patt)
+   local iter = str.split_find(s, del, no_patt)
+   return function()
+      local a, b = iter()
+      if not a then return end
+      return s:sub(a, b)
    end
 end
 

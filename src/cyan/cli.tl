@@ -35,12 +35,12 @@ parser:option("--werror", "Promote the given kind of warning to an error. Use '-
       :action(forward_arg(common.promote_warning))
 
 parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions.")
-      :choices({ "off", "optional", "required" })
+      :choices({ "off", "optional", "required" } as {string})
       :default("optional")
       :defmode("a")
 
 parser:option("--gen-target", "Minimum targeted Lua version for generated code.")
-      :choices({ "5.1", "5.3" })
+      :choices({ "5.1", "5.3" } as {string})
 
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
 
@@ -64,7 +64,8 @@ require("cyan.commands.build")
 
 command.register_all(parser)
 
-local args: command.Command.Args
+local type Args = command.Command.Args
+local args: Args
 do
    local ok <const>, res <const> = parser:pparse()
    if not ok then
@@ -72,9 +73,9 @@ do
       log.info(parser:get_usage())
       os.exit(1)
    end
-   args = res as command.Command.Args
+   args = res as Args
 end
-local cmd <const> = command.get(args["command"])
+local cmd <const> = command.get(args.command)
 
 if args.quiet then
    log.info = function() end

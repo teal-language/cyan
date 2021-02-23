@@ -64,6 +64,7 @@ require("cyan.commands.build")
 
 command.register_all(parser)
 
+local Args = command.Command.Args
 local args
 do
    local ok, res = parser:pparse()
@@ -74,7 +75,7 @@ do
    end
    args = res
 end
-local cmd = command.get(args["command"])
+local cmd = command.get(args.command)
 
 if args.quiet then
    log.info = function() end

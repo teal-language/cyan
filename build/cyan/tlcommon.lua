@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -34,24 +34,34 @@ local ParseResult = {}
 
 
 local common = {
-   Token = Token,
    ParseResult = ParseResult,
 }
 
+local lex_cache = {}
+function common.lex_file(path)
+   if not lex_cache[path] then
+      local src, read_err = fs.read(path)
+      if not src then
+         return nil, nil, read_err
+      end
+      local tks, errs = tl.lex(src)
+      lex_cache[path] = { tks, errs }
+      return tks, errs
+   end
+   return lex_cache[path][1], lex_cache[path][2]
+end
+
+local parse_program = tl.parse_program
 local parse_cache = {}
 function common.parse_file(path)
    if not parse_cache[path] then
-      local content, err = fs.read(path)
-      if not content then
-         return nil, err
-      end
-      local tks, lex_errs = tl.lex(content)
-      if lex_errs then
-         return nil, "Error lexing"
+      local tks, lex_errs, f_err = common.lex_file(path)
+      if lex_errs or f_err then
+         return nil, f_err or "Error lexing"
       end
 
       local errs = {}
-      local _, ast, reqs = tl.parse_program(tks, errs, path)
+      local _, ast, reqs = parse_program(tks, errs, path)
 
       parse_cache[path] = {
          tks = tks,
@@ -95,13 +105,66 @@ function common.make_error_header(file, num_errors, category)
    tostring()
 end
 
+local function highlight_token(tk)
+
+
+
+   if cs.colors[tk.kind] then
+      return cs.highlight(cs.colors[tk.kind], tk.tk):tostring()
+   end
+   return tk.tk
+end
+
+local function count_tabs(str)
+   return select(2, str:gsub("\t", ""))
+end
+
+local function prettify_line(s)
+   local tks = tl.lex(s)
+   local highlighted = {}
+   local last_x = 1
+   for _, tk in ipairs(tks) do
+
+      local ts = count_tabs(s:sub(last_x, tk.x - 1))
+      if ts > 0 then
+         local spaces = 3 * ts
+         table.insert(highlighted, (" "):rep(spaces))
+      end
+      if last_x < tk.x then
+         table.insert(highlighted, (" "):rep(tk.x - last_x))
+      end
+      table.insert(highlighted, highlight_token(tk))
+      last_x = tk.x + #tk.tk
+   end
+   return table.concat(highlighted)
+end
+
 local function prettify_error(e)
-   return cs.new(
-   "   ", cs.colors.file, e.filename, { 0 },
-   " ", cs.colors.number, tostring(e.y), { 0 },
-   ":", cs.colors.number, tostring(e.x), { 0 },
-   " ", e.msg):
-   tostring()
+   local ln = fs.get_line(e.filename, e.y)
+
+   local tks = tl.lex(ln)
+   local err_tk = {
+      x = 1,
+      tk = tl.get_token_at(tks, 1, e.x) or " ",
+   }
+
+   local str = cs.new(
+   cs.colors.file, e.filename, { 0 },
+   " ", cs.colors.error_number, tostring(e.y), { 0 },
+   ":", cs.colors.error_number, tostring(e.x), { 0 }, "\n")
+
+
+   local num_len = #tostring(e.y)
+   local prefix = (" "):rep(num_len) .. " | "
+
+   str:insert(
+   "   ", cs.colors.number, tostring(e.y), { 0 }, " | ", prettify_line(ln),
+   "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
+   cs.colors.error, ("^"):rep(#err_tk.tk), { 0 }, "\n   ",
+   prefix, cs.colors.error, e.msg, { 0 })
+
+
+   return str:tostring()
 end
 
 
@@ -109,7 +172,7 @@ end
 function common.report_errors(logfn, errs, file, category)
    logfn(
    common.make_error_header(file, #errs, category),
-   "\n", table.concat(map(errs, prettify_error), "\n"))
+   "\n", table.concat(map(errs, prettify_error), "\n\n"))
 
 end
 

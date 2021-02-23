@@ -83,7 +83,7 @@ local function gen_docs(filename: string, module_name: string): string
 
             table.insert(
                sections,
-               "### `"
+               "#### `"
                   .. d.obj:child_by_field_name("name"):source()
                   .. sig:child_by_field_name("arguments"):source()
                   .. (ret and ": " .. ret:source() or "")
@@ -99,7 +99,7 @@ local function gen_docs(filename: string, module_name: string): string
             end
             table.insert(
                sections,
-               "### record `"
+               "#### `record "
                   .. d.obj:child_by_field_name("name"):source()
                   .. "`\n```\n"
                   .. d.obj:source()
