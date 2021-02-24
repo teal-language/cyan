@@ -8,7 +8,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit"]
+        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit" ]
+        # TODO: There are some issues with luajit and my implementation
+        #       of sandboxing. I fear the solution is just to abandon sandboxing
+        #       due to the drastic changes in behavior of the debug library in luajit
 
     runs-on: ubuntu-latest
 

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local load = _tl_compat and _tl_compat.load or load; local loadfile = _tl_compat and _tl_compat.loadfile or loadfile; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local debug = _tl_compat and _tl_compat.debug or debug; local load = _tl_compat and _tl_compat.load or load; local loadfile = _tl_compat and _tl_compat.loadfile or loadfile; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
@@ -13,7 +13,21 @@ local sandbox = {
    Sandbox = Sandbox,
 }
 
+
+local function _err(msg, lvl)
+   if jit then
+
+
+      debug.sethook()
+      require("cyan.log").err("Sandbox exceeded maximum instructions!\n   ", msg)
+   else
+      error(msg, lvl + 1)
+   end
+end
+
 function Sandbox:run(max_instructions)
+
+
    max_instructions = max_instructions or 1e6
    local t = coroutine.create(self._fn)
 
@@ -21,11 +35,14 @@ function Sandbox:run(max_instructions)
    debug.sethook(t, function()
       instructions = instructions + 1000
       if instructions > max_instructions then
-         error("Exceeded maximum instructions", 2)
+         _err("Exceeded maximum instructions", 2)
       end
    end, "", 1000)
 
    local res = { coroutine.resume(t) }
+   if jit then
+      debug.sethook()
+   end
    if res[1] then
       table.remove(res, 1)
       self._result = res

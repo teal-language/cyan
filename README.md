@@ -2,6 +2,8 @@
 
 A build system for the Teal language
 
+[![test](https://github.com/teal-language/cyan/actions/workflows/test.yml/badge.svg)](https://github.com/teal-language/cyan/actions/workflows/test.yml)
+
 # Commands
 
  - `check`: type check one or more Teal files

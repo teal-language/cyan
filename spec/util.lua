@@ -100,12 +100,19 @@ end
 
 local Batch = {}
 function Batch:new(name)
-   return setmetatable({ name = name }, { __index = self })
+   return setmetatable({
+      name = name or "___",
+      _on_fail = "",
+   }, { __index = self })
 end
 
 function Batch:add(assert_func, ...)
    table.insert(self, { fn = assert_func, nargs = select("#", ...), args = {...} })
    return self
+end
+
+function Batch:show_on_failure(str)
+   self._on_fail = str
 end
 
 function Batch:assert()
@@ -118,7 +125,15 @@ function Batch:assert()
          table.insert(err_batch, indent("[" .. i .. "] " .. tostring(err)))
       end
    end
-   assert(passed, string.format("batch assertion '%s' failed:\n   %s", self.name, indent(table.concat(err_batch, "\n\n"))))
+   assert(
+      passed,
+      string.format(
+         "batch assertion '%s' failed:\n   %s\n%s",
+         self.name,
+         indent(table.concat(err_batch, "\n\n")),
+         indent(self._on_fail)
+      )
+   )
 end
 
 local valid_commands = {
@@ -171,7 +186,7 @@ lfs.mkdir("/tmp/teal_tmp")
 local function tmpname()
    local name
    -- This may be overly cautious, but whatever
-   repeat name = ("/tmp/teal_tmp/tl_%08x_%08x"):format(os.time(), math.random(0, 2^32 - 1))
+   repeat name = ("/tmp/teal_tmp/tl_%08x_%04x%04x"):format(os.time(), math.random(0, 2^16 - 1), math.random(0, 2^16 - 1))
    until not lfs.attributes(name)
    return name
 end
@@ -280,7 +295,14 @@ function util.run_mock_project(finally, t, use_folder)
    local batch = Batch:new("mock project")
    local _status, _exit, code = pd:close()
    local show_output = "Full output: " .. actual_output
-   batch:add(assert.are.equal, t.exit_code, code, string.format("Expected exit code %d, got %d\n%s", t.exit_code, code, show_output))
+   if _VERSION ~= "Lua 5.1" then
+      batch:add(
+         assert.are.equal,
+         t.exit_code,
+         code,
+         string.format("Expected exit code %d, got %d\n%s", t.exit_code, code, show_output)
+      )
+   end
 
    if t.cmd_output_match then
       batch:add(assert.match, t.cmd_output_match, actual_output, show_output)
@@ -290,17 +312,22 @@ function util.run_mock_project(finally, t, use_folder)
    end
    if t.cmd_output_match_lines then
       local i = 0
-      for ln in actual_output:gmatch("[^\n]*") do
+      for ln in actual_output:gmatch("[^\n]+") do
          i = i + 1
          if t.cmd_output_match_lines[i] then
-            batch:add(assert.match, t.cmd_output_match_lines[i], ln, 1, false, "Line " .. i .. " of output didn't match", show_output)
+            batch:add(
+               assert.match,
+               t.cmd_output_match_lines[i],
+               ln, 1, false, "Line " .. i .. " of output didn't match",
+               show_output
+            )
          end
       end
    end
    if expected_dir_structure then
       batch:add(assert.are.same, expected_dir_structure, actual_dir_structure, "Actual directory structure is not as expected")
    end
-
+   batch:show_on_failure("Command Output:\n" .. actual_output)
    batch:assert()
 end
 

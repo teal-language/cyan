@@ -43,7 +43,7 @@ describe("run command", function()
          cmd = "run",
          args = { "foo.tl" },
          dir_structure = {
-            ["foo.tl"] = [[print(require("bar"))]],
+            ["foo.tl"] = [[local bar = require("bar"); print(bar)]],
             ["bar.tl"] = [[return "hi"]],
          },
          cmd_output = "hi\n",
