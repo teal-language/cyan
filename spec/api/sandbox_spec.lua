@@ -2,12 +2,12 @@
 local sandbox = require("cyan.sandbox")
 
 describe("sandbox", function()
-   it("should forcefully terminate long-running functions", function()
+   (jit and pending or it)("should forcefully terminate long-running functions", function()
       local box = sandbox.new(function()
-         while true do
+         for i = 1, 1000 do
          end
       end)
-      assert.falsy(box:run(100))
-      assert(true)
+
+      assert(not box:run(100))
    end)
 end)

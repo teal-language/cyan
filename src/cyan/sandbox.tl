@@ -13,7 +13,21 @@ local sandbox <const> = {
    Sandbox = Sandbox,
 }
 
+global jit: any
+local function _err(msg: string, lvl: number)
+   if jit then
+      -- luajit has an error with debug.sethook that causes the hook to be set on the main thread
+      -- so instead of the coroutine gracefully stopping in a controlled way, cyan just errors out
+      debug.sethook()
+      require("cyan.log").err("Sandbox exceeded maximum instructions!\n   ", msg)
+   else
+      error(msg, lvl + 1)
+   end
+end
+
 function Sandbox:run(max_instructions: number): boolean, string
+   -- TODO: luajit runs the hook in the main thread causing cyan to error out instead of the coroutine
+   --       figure out a way to sandbox in luajit
    max_instructions = max_instructions or 1e6
    local t = coroutine.create(self._fn)
 
@@ -21,11 +35,14 @@ function Sandbox:run(max_instructions: number): boolean, string
    debug.sethook(t, function()
       instructions = instructions + 1000
       if instructions > max_instructions then
-         error("Exceeded maximum instructions", 2)
+         _err("Exceeded maximum instructions", 2)
       end
    end, "", 1000)
 
    local res = { coroutine.resume(t) }
+   if jit then
+      debug.sethook()
+   end
    if res[1] then
       table.remove(res, 1)
       self._result = res
