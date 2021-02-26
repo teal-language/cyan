@@ -112,7 +112,7 @@ local function highlight_token(tk)
    if cs.colors[tk.kind] then
       return cs.highlight(cs.colors[tk.kind], tk.tk):tostring()
    end
-   return tk.tk
+   return tk.tk == "$EOF$" and "" or tk.tk
 end
 
 local function count_tabs(str)
