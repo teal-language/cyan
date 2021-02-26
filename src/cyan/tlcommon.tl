@@ -151,8 +151,14 @@ local function prettify_error(e: tl.Error): string
    local str <const> = cs.new(
       cs.colors.file, e.filename, {0},
       " ", cs.colors.error_number, tostring(e.y), {0},
-      ":", cs.colors.error_number, tostring(e.x), {0}, "\n"
+      ":", cs.colors.error_number, tostring(e.x), {0}
    )
+
+   if e.tag then
+      str:insert(" [", cs.colors.emphasis, e.tag, {0}, "]")
+   end
+
+   str:insert("\n")
 
    local num_len <const> = #tostring(e.y)
    local prefix <const> = (" "):rep(num_len) .. " | "
