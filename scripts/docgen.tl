@@ -118,7 +118,7 @@ local function gen_docs(filename: string, module_name: string): string
    if #sections > 0 then
 
       table.sort(sections)
-      table.insert(sections, 1, "## `" .. module_name .. "`\n===\n\n" .. (brief or ""))
+      table.insert(sections, 1, "## `" .. module_name .. "`\n---\n\n" .. (brief or ""))
 
       return table.concat(sections)
    end
@@ -141,3 +141,4 @@ fh:write(
 )
 fh:write(table.concat(output))
 fh:close()
+print("Done")
