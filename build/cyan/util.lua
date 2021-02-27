@@ -43,6 +43,14 @@ function tab.from(fn, ...)
    return t
 end
 
+function tab.set(lst)
+   local s = {}
+   for _, v in ipairs(lst) do
+      s[v] = true
+   end
+   return s
+end
+
 function tab.map(t, fn)
    local new = {}
    for k, v in pairs(t) do

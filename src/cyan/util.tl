@@ -43,6 +43,14 @@ function tab.from<T>(fn: function(...: any): (T), ...: any): {T}
    return t
 end
 
+function tab.set<T>(lst: {T}): {T:boolean}
+   local s <const> = {}
+   for _, v in ipairs(lst) do
+      s[v] = true
+   end
+   return s
+end
+
 function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
    local new <const>: {K:T} = {}
    for k, v in pairs(t) do

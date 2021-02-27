@@ -24,7 +24,7 @@ local record Config
    gen_compat: tl.CompatMode
    gen_target: tl.TargetMode
    disable_warnings: {tl.WarningKind}
-   warning_errors: {tl.WarningKind}
+   warning_error: {tl.WarningKind}
 
    -- externals field to allow for external tools to take entries in the config
    -- without our type checking complaining
@@ -160,7 +160,7 @@ function config.merge_with_args(cfg: Config, args: command.Command.Args)
 
    cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
    cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
-   cfg.warning_errors = merge_list(cfg.warning_errors, args.werror as {tl.WarningKind})
+   cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
    cfg.preload_modules = merge_list(cfg.preload_modules, args.preload)
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat

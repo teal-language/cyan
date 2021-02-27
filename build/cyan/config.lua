@@ -160,7 +160,7 @@ function config.merge_with_args(cfg, args)
 
    cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
    cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
-   cfg.warning_errors = merge_list(cfg.warning_errors, args.werror)
+   cfg.warning_error = merge_list(cfg.warning_error, args.werror)
    cfg.preload_modules = merge_list(cfg.preload_modules, args.preload)
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
