@@ -11,7 +11,8 @@ local util = require("cyan.util")
 local cs = require("cyan.colorstring")
 local tl = require("tl")
 
-local map, filter, ivalues = util.tab.map, util.tab.filter, util.tab.ivalues
+local map, filter, ivalues, set =
+util.tab.map, util.tab.filter, util.tab.ivalues, util.tab.set
 
 
 local Node = {}
@@ -182,23 +183,14 @@ function common.report_errors(logfn, errs, file, category)
 
 end
 
-local warning_errors = {}
-local disabled_warnings = {}
-function common.disable_warning(s)
-   disabled_warnings[s] = true
-end
-
-function common.promote_warning(s)
-   warning_errors[s] = true
-end
 
 
 
 
-
-function common.report_result(file, r)
+function common.report_result(file, r, c)
+   local warning_error = set(c.warning_error or {})
    local werrors, warnings = filter(r.warnings or {}, function(w)
-      return warning_errors[w.tag]
+      return warning_error[w.tag]
    end)
    local function report(logfn, arr, category)
       if #arr > 0 then
@@ -244,12 +236,12 @@ function common.load_config_report_errs(path, args)
    return c
 end
 
-function common.type_check_and_load_file(path, env)
+function common.type_check_and_load_file(path, env, c)
    local result, err = tl.process(path, env)
    if not result then
       return nil, err
    end
-   if not common.report_result(path, result) then
+   if not common.report_result(path, result, c) then
       return nil
    end
    return load(

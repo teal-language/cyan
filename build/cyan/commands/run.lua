@@ -12,7 +12,7 @@ local function add_to_argparser(cmd)
 end
 
 local function run(args)
-   local _, _cfg, env = common.load_cfg_env_report_errs(false, args)
+   local _, cfg, env = common.load_cfg_env_report_errs(false, args)
 
    local arg_list = args["script"]
 
@@ -46,7 +46,7 @@ local function run(args)
       n = n + 1
    end
 
-   local chunk, load_err = common.type_check_and_load_file(arg_list[1], env)
+   local chunk, load_err = common.type_check_and_load_file(arg_list[1], env, cfg)
    if not chunk then
       log.err("Error loading file", load_err and "\n   " .. load_err or "")
       return 1

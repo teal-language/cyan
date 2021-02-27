@@ -1,20 +1,8 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
 local command = require("cyan.command")
-local common = require("cyan.tlcommon")
 local log = require("cyan.log")
 
 local parser = argparse("cyan", "The Teal build system")
-
-local function forward_arg(fn)
-   return function(a, key, val)
-      if type(a[key]) == "table" then
-         table.insert(a[key], val)
-      else
-         a[key] = val
-      end
-      fn(val)
-   end
-end
 
 parser:option("-l --preload", "Execute the equivalent of require('modulename') before processing Teal files."):
 argname("<modulename>"):
@@ -26,13 +14,11 @@ count("*")
 
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings"):
 argname("<warning>"):
-count("*"):
-action(forward_arg(common.disable_warning))
+count("*")
 
 parser:option("--werror", "Promote the given kind of warning to an error. Use '--werror all' to promote all warnings to errors"):
 argname("<warning>"):
-count("*"):
-action(forward_arg(common.promote_warning))
+count("*")
 
 parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions."):
 choices({ "off", "optional", "required" }):

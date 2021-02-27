@@ -113,7 +113,7 @@ common.load_cfg_env_report_errs(true, args)
          env = env,
          result = result,
       })
-      if not common.report_result(path, result) then
+      if not common.report_result(path, result, loaded_config) then
          exit = 1
          return
       end

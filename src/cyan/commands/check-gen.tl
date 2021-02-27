@@ -52,7 +52,7 @@ local function command_exec(should_compile: boolean): function(command.Command.A
          return new
       end
 
-      local _, _loaded_config <const>, env <const> = common.load_cfg_env_report_errs(false, args)
+      local _, loaded_config <const>, env <const> = common.load_cfg_env_report_errs(false, args)
 
       local exit = 0
 
@@ -85,7 +85,7 @@ local function command_exec(should_compile: boolean): function(command.Command.A
             env = env,
             result = result,
          })
-         if not common.report_result(real_path, result) then
+         if not common.report_result(real_path, result, loaded_config) then
             exit = 1
             return
          end

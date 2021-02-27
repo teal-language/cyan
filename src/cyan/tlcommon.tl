@@ -11,7 +11,8 @@ local util <const> = require("cyan.util")
 local cs <const> = require("cyan.colorstring")
 local tl <const> = require("tl")
 
-local map <const>, filter <const>, ivalues <const> = util.tab.map, util.tab.filter, util.tab.ivalues
+local map <const>, filter <const>, ivalues <const>, set <const>
+   = util.tab.map, util.tab.filter, util.tab.ivalues, util.tab.set
 
 -- tl.Node is not exposed :((((((((((
 local type Node = any -- tl.Node
@@ -182,23 +183,14 @@ function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file:
    )
 end
 
-local warning_errors: {tl.WarningKind:boolean} = {}
-local disabled_warnings: {tl.WarningKind:boolean} = {}
-function common.disable_warning(s: string)
-   disabled_warnings[s as tl.WarningKind] = true
-end
-
-function common.promote_warning(s: string)
-   warning_errors[s as tl.WarningKind] = true
-end
-
 ---@desc
 --- Logs all the syntax errors, warnings, type errors, etc. from a `tl.Result` with proper colors
 ---
 --- Returns if there were any warnings or unknowns. May return `true` even if some warnings were reported
-function common.report_result(file: string, r: tl.Result): boolean
+function common.report_result(file: string, r: tl.Result, c: config.Config): boolean
+   local warning_error <const> = set(c.warning_error or {})
    local werrors <const>, warnings <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
-      return warning_errors[w.tag]
+      return warning_error[w.tag]
    end)
    local function report(logfn: function(...: any), arr: {tl.Error}, category: string): boolean
       if #arr > 0 then
@@ -244,12 +236,12 @@ function common.load_config_report_errs(path: string, args: command.Command.Args
    return c
 end
 
-function common.type_check_and_load_file(path: string, env: tl.Env): function, string
+function common.type_check_and_load_file(path: string, env: tl.Env, c: config.Config): function, string
    local result <const>, err <const> = tl.process(path, env)
    if not result then
       return nil, err
    end
-   if not common.report_result(path, result) then
+   if not common.report_result(path, result, c) then
       return nil
    end
    return load(

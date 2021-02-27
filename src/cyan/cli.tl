@@ -1,20 +1,8 @@
 local argparse <const> = require("argparse")
 local command <const> = require("cyan.command")
-local common <const> = require("cyan.tlcommon")
 local log <const> = require("cyan.log")
 
 local parser <const> = argparse("cyan", "The Teal build system")
-
-local function forward_arg(fn: function(string | boolean | {string})): argparse.ActionCallback
-   return function(a: argparse.Args, key: string, val: string | boolean | {string})
-      if type(a[key]) == "table" then
-         table.insert(a[key] as {any}, val)
-      else
-         a[key] = val
-      end
-      fn(val)
-   end
-end
 
 parser:option("-l --preload", "Execute the equivalent of require('modulename') before processing Teal files.")
       :argname("<modulename>")
@@ -27,12 +15,10 @@ parser:option("-I --include-dir", "Prepend this directory to the module search p
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings")
       :argname("<warning>")
       :count("*")
-      :action(forward_arg(common.disable_warning))
 
 parser:option("--werror", "Promote the given kind of warning to an error. Use '--werror all' to promote all warnings to errors")
       :argname("<warning>")
       :count("*")
-      :action(forward_arg(common.promote_warning))
 
 parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions.")
       :choices({ "off", "optional", "required" } as {string})
