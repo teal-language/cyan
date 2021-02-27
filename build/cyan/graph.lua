@@ -113,6 +113,16 @@ function graph.scan_dir(dir, include, exclude)
       end
    end
 
+   local cache = {}
+   local function count_deps(n)
+      if cache[n] then return cache[n] end
+      local deps = 0
+      for _, v in ipairs(n.dependents) do
+         deps = deps + count_deps(v) + 1
+      end
+      cache[n] = deps
+      return deps
+   end
 
    d._most_deps = 0
    d._nodes = setmetatable({}, {
@@ -123,7 +133,7 @@ function graph.scan_dir(dir, include, exclude)
       end,
    })
    for node in values(nodes_by_filename) do
-      table.insert(d._nodes[#node.dependents], node)
+      table.insert(d._nodes[count_deps(node)], node)
    end
 
 

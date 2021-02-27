@@ -113,7 +113,17 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
       end
    end
 
-   -- TODO: nodes should count their child's dependents as their dependents as well
+   local cache <const>: {Node:number} = {}
+   local function count_deps(n: Node): number
+      if cache[n] then return cache[n] end
+      local deps = 0
+      for _, v in ipairs(n.dependents) do
+         deps = deps + count_deps(v) + 1
+      end
+      cache[n] = deps
+      return deps
+   end
+
    d._most_deps = 0
    d._nodes = setmetatable({}, {
       __index = function(self: {number:{Node}}, key: number): {Node}
@@ -123,7 +133,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
       end
    })
    for node in values(nodes_by_filename) do
-      table.insert(d._nodes[#node.dependents], node)
+      table.insert(d._nodes[count_deps(node)], node)
    end
 
    -- TODO: check for circular deps
