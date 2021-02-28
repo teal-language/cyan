@@ -104,9 +104,10 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
       end
    end
 
+
    for node in values(nodes_by_filename) do
       for mod_path in values(node.modules) do
-         local dep_node = nodes_by_filename[mod_path:to_real_path()]
+         local dep_node <const> = nodes_by_filename[mod_path:to_real_path()]
          if dep_node then
             table.insert(dep_node.dependents, node)
          end

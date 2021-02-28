@@ -104,6 +104,7 @@ function graph.scan_dir(dir, include, exclude)
       end
    end
 
+
    for node in values(nodes_by_filename) do
       for mod_path in values(node.modules) do
          local dep_node = nodes_by_filename[mod_path:to_real_path()]

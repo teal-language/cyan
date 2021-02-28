@@ -76,7 +76,9 @@ end
 
 local function append_to_path(p: Path, other: Path | string)
    for chunk in chunks(other) do
-      table.insert(p, chunk)
+      if chunk ~= "." then
+         table.insert(p, chunk)
+      end
    end
 end
 
