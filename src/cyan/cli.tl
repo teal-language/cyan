@@ -21,12 +21,12 @@ parser:option("--werror", "Promote the given kind of warning to an error. Use '-
       :count("*")
 
 parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions.")
-      :choices({ "off", "optional", "required" } as {string})
+      :choices({ "off", "optional", "required" })
       :default("optional")
       :defmode("a")
 
 parser:option("--gen-target", "Minimum targeted Lua version for generated code.")
-      :choices({ "5.1", "5.3" } as {string})
+      :choices({ "5.1", "5.3" })
 
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
 
