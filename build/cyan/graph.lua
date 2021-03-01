@@ -160,9 +160,7 @@ function Dag:insert_file(fstr)
 
    for mod_name in ivalues(res.reqs) do
 
-
       local search_result = common.search_module(mod_name, true)
-
       n.modules[mod_name] = search_result
       self:insert_file(search_result)
    end
@@ -175,6 +173,14 @@ function Dag:insert_file(fstr)
          end
       end
    end
+end
+
+function Dag:find(fstr)
+   local f = type(fstr) == "table" and
+   fstr or
+   fs.path.new(fstr)
+
+   return self._nodes_by_filename[f:to_real_path()]
 end
 
 function graph.scan_dir(dir, include, exclude)

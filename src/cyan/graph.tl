@@ -160,9 +160,7 @@ function Dag:insert_file(fstr: string | fs.Path)
 
    for mod_name in ivalues(res.reqs) do
       -- TODO: should we search for .d.tl files?
-
       local search_result <const> = common.search_module(mod_name, true)
-
       n.modules[mod_name] = search_result
       self:insert_file(search_result)
    end
@@ -177,8 +175,16 @@ function Dag:insert_file(fstr: string | fs.Path)
    end
 end
 
+function Dag:find(fstr: string | fs.Path): Node
+   local f <const> = fstr is fs.Path
+      and fstr
+      or fs.path.new(fstr as string)
+
+   return self._nodes_by_filename[f:to_real_path()]
+end
+
 function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
-   local d = graph.empty()
+   local d <const> = graph.empty()
 
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
