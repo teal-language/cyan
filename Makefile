@@ -4,6 +4,7 @@ LUA = $(SRC:src/%.tl=build/%.lua)
 
 TL = tl
 TLFLAGS = --quiet -I src
+BOOTSTRAPPER = bin/bootstrap
 
 build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@
@@ -18,17 +19,17 @@ clean:
 
 bootstrap: default
 	@echo "Initial build"
-	bin/bootstrap build
+	$(BOOTSTRAPPER) build
 	@echo "Replacing code"
 	rm -rf build
 	mv tmp build
 	@echo "Building with self compiled code"
-	bin/bootstrap build
+	$(BOOTSTRAPPER) build
 	@echo "Replacing code"
 	rm -rf build
 	mv tmp build
 	@echo "Final build with self compiled code"
-	bin/bootstrap build
+	$(BOOTSTRAPPER) build
 	rm -rf build
 	mv tmp build
 	busted
