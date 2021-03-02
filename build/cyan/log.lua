@@ -62,24 +62,24 @@ end
 local log = {
    debug = logfn(
    io.stderr,
-   cs.new({ 31, 1 }, "DEBUG", { 0 }),
-   cs.new({ 31 }, "...", { 0 }),
+   cs.highlight(cs.colors.debug, "DEBUG"),
+   cs.highlight(cs.colors.error, "..."),
    inspect),
 
    err = logfn(
    io.stderr,
-   cs.new({ 31 }, "Error", { 0 }),
-   cs.new({ 31 }, "...", { 0 })),
+   cs.highlight(cs.colors.error, "Error"),
+   cs.highlight(cs.colors.error, "...")),
 
    warn = logfn(
    io.stderr,
-   cs.new({ 33 }, "Warn", { 0 }),
-   cs.new({ 33 }, "...", { 0 })),
+   cs.highlight(cs.colors.warn, "Warn"),
+   cs.highlight(cs.colors.warn, "...")),
 
    info = logfn(
    io.stdout,
-   cs.new(cs.colors.teal, "Info", { 0 }),
-   cs.new(cs.colors.teal, "...", { 0 })),
+   cs.highlight(cs.colors.teal, "Info"),
+   cs.highlight(cs.colors.teal, "...")),
 
 }
 

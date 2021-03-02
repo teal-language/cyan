@@ -62,24 +62,24 @@ end
 local log <const> = {
    debug = logfn(
       io.stderr,
-      cs.new({31, 1}, "DEBUG", {0}) as string,
-      cs.new({31}, "...", {0}) as string,
+      cs.highlight(cs.colors.debug, "DEBUG") as string,
+      cs.highlight(cs.colors.error, "...") as string,
       inspect
    ),
    err = logfn(
       io.stderr,
-      cs.new({31}, "Error", {0}) as string,
-      cs.new({31}, "...", {0}) as string
+      cs.highlight(cs.colors.error, "Error") as string,
+      cs.highlight(cs.colors.error, "...") as string
    ),
    warn = logfn(
       io.stderr,
-      cs.new({33}, "Warn", {0}) as string,
-      cs.new({33}, "...", {0}) as string
+      cs.highlight(cs.colors.warn, "Warn") as string,
+      cs.highlight(cs.colors.warn, "...") as string
    ),
    info = logfn(
       io.stdout,
-      cs.new(cs.colors.teal, "Info", {0}) as string,
-      cs.new(cs.colors.teal, "...", {0}) as string
+      cs.highlight(cs.colors.teal, "Info") as string,
+      cs.highlight(cs.colors.teal, "...") as string
    ),
 }
 

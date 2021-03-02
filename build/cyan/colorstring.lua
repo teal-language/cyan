@@ -131,6 +131,7 @@ cs.emphasis = { 1 }
 cs.file = { ansi.color.dark.yellow }
 cs.error_number = { ansi.color.dark.red }
 cs.error = { ansi.color.dark.red }
+cs.warn = { ansi.color.dark.yellow }
 cs.teal = colorstring.rgb_fg(0, 0xAA, 0xB4)
 cs.cyan = colorstring.rgb_fg(0, 0xFF, 0xFF)
 
@@ -138,5 +139,7 @@ cs.keyword = cs.teal
 cs.number = { ansi.color.bright.red }
 cs.string = { ansi.color.bright.yellow }
 cs.op = { ansi.color.dark.magenta }
+
+cs.debug = { ansi.color.bright.red, 1 }
 
 return colorstring
