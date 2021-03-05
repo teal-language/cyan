@@ -3,9 +3,21 @@ local path = require("cyan.fs.path")
 path.separator = '/'
 
 describe("fs.path api", function()
-   it("should split a path on path separators", function()
-      local p = path.new("foo/bar/baz")
-      assert.are.same(p, {"foo", "bar", "baz"})
+   describe("new", function()
+      it("should split a path on / no matter what path.separator is", function()
+         path.separator = "teehee"
+         local p = path.new("foo/bar/baz")
+         assert.are.same(p, {"foo", "bar", "baz"})
+         finally(function() path.separator = '/' end)
+      end)
+      for _, sep in ipairs{'/', '\\'} do
+         it("should split a path on os path separators", function()
+            path.separator = sep
+            local p = path.new("foo" .. sep .. "bar" .. sep .. "baz", true)
+            assert.are.same(p, {"foo", "bar", "baz"})
+            finally(function() path.separator = '/' end)
+         end)
+      end
    end)
    describe("Path:is_absolute", function()
       it("should be able to check for absolute paths for unix", function()
@@ -14,7 +26,7 @@ describe("fs.path api", function()
       end)
       it("should be able to check for absolute paths for windows", function()
          path.separator = '\\'
-         local p = path.new("C:\\foo\\bar")
+         local p = path.new("C:\\foo\\bar", true)
          local res = p:is_absolute()
          path.separator = '/'
          assert(res)

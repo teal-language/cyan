@@ -32,14 +32,15 @@ local path = {
 
 
 
-local function parse_string_path(s)
-   s = s:gsub(path.separator .. "+$", "")
+local function parse_string_path(s, use_os_sep)
+   local sep = use_os_sep and path.separator or "/"
+   s = s:gsub(sep .. "+$", "")
    if #s == 0 then
       return {}
    end
 
    local new = {}
-   for chunk in split(s, path.separator, true) do
+   for chunk in split(s, sep, true) do
       if chunk == ".." then
          if #new > 0 then
             table.remove(new)
@@ -55,9 +56,11 @@ end
 
 
 
-function path.new(s)
+
+
+function path.new(s, use_os_sep)
    if not s then return nil end
-   local new = parse_string_path(s)
+   local new = parse_string_path(s, use_os_sep)
    return setmetatable(new, PathMt)
 end
 
@@ -250,13 +253,19 @@ PathMt.__concat = function(a, b)
    return setmetatable(new, PathMt)
 end
 
-PathMt.__eq = function(a, b)
+function Path.eq(a, b, use_os_sep)
+   if a == nil then
+      return false
+   end
+   if b == nil then
+      return false
+   end
    if rawequal(a, b) then
       return true
    end
 
-   local pa = type(a) == "string" and parse_string_path(a) or a
-   local pb = type(b) == "string" and parse_string_path(b) or b
+   local pa = type(a) == "string" and parse_string_path(a, use_os_sep) or a
+   local pb = type(b) == "string" and parse_string_path(b, use_os_sep) or b
 
    if rawlen(pa) ~= rawlen(pb) then
       return false
@@ -269,6 +278,10 @@ PathMt.__eq = function(a, b)
    end
 
    return true
+end
+
+PathMt.__eq = function(a, b)
+   return Path.eq(a, b, false)
 end
 
 PathMt.__tostring = Path.tostring

@@ -32,14 +32,15 @@ local path <const> = {
 
 -- Basically the constructor for a 'raw' Path,
 -- gets the path components, doesn't set the metatable
-local function parse_string_path(s: string): {string}
-   s = s:gsub(path.separator .. "+$", "")
+local function parse_string_path(s: string, use_os_sep: boolean): {string}
+   local sep <const> = use_os_sep and path.separator or "/"
+   s = s:gsub(sep .. "+$", "")
    if #s == 0 then
       return {}
    end
 
    local new: {string} = {}
-   for chunk in split(s, path.separator, true) do
+   for chunk in split(s, sep, true) do
       if chunk == ".." then
          if #new > 0 then
             table.remove(new)
@@ -55,9 +56,11 @@ end
 
 ---@desc
 --- The `Path` constructor
-function path.new(s: string): Path
+---
+--- By default uses '/' as a path separator
+function path.new(s: string, use_os_sep: boolean): Path
    if not s then return nil end
-   local new: Path = parse_string_path(s)
+   local new: Path = parse_string_path(s, use_os_sep)
    return setmetatable(new, PathMt)
 end
 
@@ -250,13 +253,19 @@ PathMt.__concat = function(a: Path | string, b: Path | string): Path
    return setmetatable(new, PathMt)
 end
 
-PathMt.__eq = function(a: string | Path, b: string | Path): boolean
+function Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean
+   if a == nil then
+      return false
+   end
+   if b == nil then
+      return false
+   end
    if rawequal(a, b) then
       return true
    end
 
-   local pa <const> = a is string and parse_string_path(a) or a as Path
-   local pb <const> = b is string and parse_string_path(b) or b as Path
+   local pa <const> = a is string and parse_string_path(a, use_os_sep) or a as Path
+   local pb <const> = b is string and parse_string_path(b, use_os_sep) or b as Path
 
    if rawlen(pa) ~= rawlen(pb) then
       return false
@@ -269,6 +278,10 @@ PathMt.__eq = function(a: string | Path, b: string | Path): boolean
    end
 
    return true
+end
+
+PathMt.__eq = function(a: string | Path, b: string | Path): boolean
+   return Path.eq(a, b, false)
 end
 
 PathMt.__tostring = Path.tostring
@@ -289,7 +302,7 @@ local function get_patt(patt: string): {string}
    if not pattern_cache[patt] then
       local path_patt <const> = parse_string_path(patt)
 
-      -- clear redundant **/, as they're technically valid, but redundant and its easier to process without them
+      -- clear redundant **/, as they're technically valid, but its easier to process without them
       -- /foo/bar/**/**/baz -> /foo/bar/**/baz
       for i = #path_patt, 2, -1 do
          if path_patt[i] == "**" and path_patt[i-1] == "**" then
