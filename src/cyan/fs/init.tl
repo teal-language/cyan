@@ -13,6 +13,12 @@ local fs <const> = {
    Path = Path,
 }
 
+local function to_path(s: string | Path): Path
+   return s is string
+      and assert(path.new(s))
+      or s
+end
+
 ---@desc
 --- Get the current directory as an `fs.Path`
 function fs.current_dir(): Path
@@ -25,7 +31,7 @@ end
 --- By default, will not include paths that start with '.'
 function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
    local iter <const>, data <const> = lfs.dir(
-      dir is Path and dir:to_real_path() or dir as string
+      to_path(dir):to_real_path()
    ) as (function(any): (string), any)
    return function(): Path
       local p: string
@@ -77,7 +83,7 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
    include = include or {}
    exclude = exclude or {}
    local function dir_iter(_d: string | Path)
-      local d <const> = _d is string and path.new(_d) or _d as Path
+      local d <const> = to_path(_d)
       for p in fs.dir(d) do
          -- dont bother putting "./foo", just do "foo"
          local full <const> = d:to_real_path() ~= "." and d .. p
@@ -136,12 +142,17 @@ end
 
 ---@brief
 --- Search for a file in the parent directories of the given path
-function fs.search_parent_dirs(spath: string, fname: string): Path
-   if lfs.attributes(fs.path_concat(spath, fname)) then
-      return path.new(fs.path_concat(spath, fname))
+function fs.search_parent_dirs(spath: string | Path, fname: string): Path
+   local p <const> = to_path(spath)
+
+   local in_spath <const> = p .. fname
+   if in_spath:exists() then
+      return in_spath
    end
-   for p in path.new(spath):ancestors() do
-      local full <const> = p .. fname
+
+   local ancestors <const> = util.tab.from(p:ancestors())
+   for i = #ancestors, 1, -1 do
+      local full <const> = ancestors[i] .. fname
       if full:exists() then
          return full
       end

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string
 
 
 
@@ -13,6 +13,12 @@ local fs = {
    Path = Path,
 }
 
+local function to_path(s)
+   return type(s) == "string" and
+   assert(path.new(s)) or
+   s
+end
+
 
 
 function fs.current_dir()
@@ -25,7 +31,7 @@ end
 
 function fs.dir(dir, include_dotfiles)
    local iter, data = lfs.dir(
-   type(dir) == "table" and dir:to_real_path() or dir)
+   to_path(dir):to_real_path())
 
    return function()
       local p
@@ -77,7 +83,7 @@ function fs.scan_dir(dir, include, exclude)
    include = include or {}
    exclude = exclude or {}
    local function dir_iter(_d)
-      local d = type(_d) == "string" and path.new(_d) or _d
+      local d = to_path(_d)
       for p in fs.dir(d) do
 
          local full = d:to_real_path() ~= "." and d .. p or
@@ -137,11 +143,16 @@ end
 
 
 function fs.search_parent_dirs(spath, fname)
-   if lfs.attributes(fs.path_concat(spath, fname)) then
-      return path.new(fs.path_concat(spath, fname))
+   local p = to_path(spath)
+
+   local in_spath = p .. fname
+   if in_spath:exists() then
+      return in_spath
    end
-   for p in path.new(spath):ancestors() do
-      local full = p .. fname
+
+   local ancestors = util.tab.from(p:ancestors())
+   for i = #ancestors, 1, -1 do
+      local full = ancestors[i] .. fname
       if full:exists() then
          return full
       end
