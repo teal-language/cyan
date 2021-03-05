@@ -150,8 +150,10 @@ Convert a `Path` to a string describing a real path
 #### `Path:tostring(): string`
 Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
 
-#### `path.new(s: string): Path`
+#### `path.new(s: string, use_os_sep: boolean): Path`
 The `Path` constructor
+
+By default uses '/' as a path separator
 
 #### `record Path`
 ```
@@ -180,6 +182,12 @@ By default, will not include paths that start with '.'
 
 #### `fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path`
 Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
+
+## `cyan.graph`
+---
+
+#### `Dag:insert_file(fstr: string | fs.Path)`
+Inserts a file and its dependencies into a graph
 
 ## `cyan.tlcommon`
 ---

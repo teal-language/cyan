@@ -1,4 +1,6 @@
 
+-- TODO: markdown looks a little odd, should probably generate html at somepoint
+
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
 
