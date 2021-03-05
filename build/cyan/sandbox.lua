@@ -14,20 +14,8 @@ local sandbox = {
 }
 
 
-local function _err(msg, lvl)
-   if jit then
-
-
-      debug.sethook()
-      require("cyan.log").err("Sandbox exceeded maximum instructions!\n   ", msg)
-   else
-      error(msg, lvl + 1)
-   end
-end
 
 function Sandbox:run(max_instructions)
-
-
    max_instructions = max_instructions or 1e6
    local t = coroutine.create(self._fn)
 
@@ -35,14 +23,17 @@ function Sandbox:run(max_instructions)
    debug.sethook(t, function()
       instructions = instructions + 1000
       if instructions > max_instructions then
-         _err("Exceeded maximum instructions", 2)
+         if jit then
+
+
+            debug.sethook()
+         else
+            error("Exceeded maximum instructions", 2)
+         end
       end
    end, "", 1000)
 
    local res = { coroutine.resume(t) }
-   if jit then
-      debug.sethook()
-   end
    if res[1] then
       table.remove(res, 1)
       self._result = res
