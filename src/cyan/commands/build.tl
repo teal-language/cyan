@@ -107,11 +107,9 @@ local function build(args: command.Command.Args): number
          return
       end
 
-      local result <const> = common.parse_result_to_tl_result(parsed)
-      common.type_check_ast(parsed.ast, {
+      local result <const> = common.type_check_ast(parsed.ast, {
          filename = path,
          env = env,
-         result = result,
       })
       if not common.report_result(path, result, loaded_config) then
          exit = 1

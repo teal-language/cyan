@@ -78,18 +78,7 @@ local type_check = tl.type_check
 
 
 function common.type_check_ast(ast, opts)
-   type_check(ast, opts)
-end
-
-
-
-function common.parse_result_to_tl_result(pr)
-   return {
-      syntax_errors = pr.errs,
-      warnings = {},
-      unknowns = {},
-      type_errors = {},
-   }
+   return type_check(ast, opts)
 end
 
 
@@ -203,8 +192,7 @@ function common.report_result(file, r, c)
 
    report(log.warn, warnings, "warning")
    return report(log.err, werrors, "warning error") and
-   report(log.err, r.type_errors, "type error") and
-   report(log.err, r.unknowns, "unknown")
+   report(log.err, r.type_errors, "type error")
 end
 
 

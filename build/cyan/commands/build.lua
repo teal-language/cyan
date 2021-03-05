@@ -107,11 +107,9 @@ common.load_cfg_env_report_errs(true, args)
          return
       end
 
-      local result = common.parse_result_to_tl_result(parsed)
-      common.type_check_ast(parsed.ast, {
+      local result = common.type_check_ast(parsed.ast, {
          filename = path,
          env = env,
-         result = result,
       })
       if not common.report_result(path, result, loaded_config) then
          exit = 1

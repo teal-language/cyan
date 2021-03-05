@@ -77,19 +77,8 @@ end
 local type_check = tl.type_check as function(Node, tl.TypeCheckOptions): tl.Result
 ---@desc
 --- Just type checks an ast
-function common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions)
-   type_check(ast, opts)
-end
-
----@desc
---- Creates a `tl.Result` from a `ParseResult`
-function common.parse_result_to_tl_result(pr: ParseResult): tl.Result
-   return {
-      syntax_errors = pr.errs,
-      warnings = {},
-      unknowns = {},
-      type_errors = {},
-   }
+function common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result
+   return type_check(ast, opts)
 end
 
 ---@desc
@@ -204,7 +193,6 @@ function common.report_result(file: string, r: tl.Result, c: config.Config): boo
    report(log.warn, warnings, "warning")
    return report(log.err, werrors, "warning error")
       and report(log.err, r.type_errors, "type error")
-      and report(log.err, r.unknowns, "unknown")
 end
 
 ---@desc
