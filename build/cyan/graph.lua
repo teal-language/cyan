@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local table = _tl_compat and _tl_compat.table or table
 local common = require("cyan.tlcommon")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
@@ -61,6 +61,7 @@ local function make_dependent_counter()
    return count_dependents
 end
 
+
 function Dag:nodes()
    local count = make_dependent_counter()
    local most_deps = 0
@@ -107,7 +108,6 @@ function Dag:mark_each(predicate)
    end
 end
 
-
 function Dag:marked_nodes(m)
    local iter = self:nodes()
    return function()
@@ -132,11 +132,13 @@ end
 
 
 
+
+
 function Dag:insert_file(fstr)
    local f = type(fstr) == "table" and
    fstr or
    fs.path.new(fstr)
-
+   assert(f, "No path given")
    if f:is_absolute() then
 
       return
@@ -161,8 +163,10 @@ function Dag:insert_file(fstr)
    for mod_name in ivalues(res.reqs) do
 
       local search_result = common.search_module(mod_name, true)
-      n.modules[mod_name] = search_result
-      self:insert_file(search_result)
+      if search_result then
+         n.modules[mod_name] = search_result
+         self:insert_file(search_result)
+      end
    end
 
    for node in values(self._nodes_by_filename) do
@@ -195,7 +199,7 @@ function graph.scan_dir(dir, include, exclude)
 
 
 
-   return setmetatable(d, { __index = Dag })
+   return d
 end
 
 return graph

@@ -61,6 +61,7 @@ local function make_dependent_counter(): function(Node): number
    return count_dependents
 end
 
+-- Iterate over nodes in order of dependents
 function Dag:nodes(): function(): Node
    local count <const> = make_dependent_counter()
    local most_deps = 0
@@ -107,7 +108,6 @@ function Dag:mark_each(predicate: function(fs.Path): boolean)
    end
 end
 
--- Iterate over nodes in order of dependents
 function Dag:marked_nodes(m: Node.Mark): function(): Node
    local iter = self:nodes()
    return function(): Node
@@ -132,11 +132,13 @@ end
 
 ---@desc
 --- Inserts a file and its dependencies into a graph
+---
+--- Ignores absolute paths and non `.tl` files
 function Dag:insert_file(fstr: string | fs.Path)
    local f <const> = fstr is fs.Path
       and fstr
       or fs.path.new(fstr as string)
-
+   assert(f, "No path given")
    if f:is_absolute() then
       -- If a path is absolute, assume it is out of the project
       return
@@ -161,8 +163,10 @@ function Dag:insert_file(fstr: string | fs.Path)
    for mod_name in ivalues(res.reqs) do
       -- TODO: should we search for .d.tl files?
       local search_result <const> = common.search_module(mod_name, true)
-      n.modules[mod_name] = search_result
-      self:insert_file(search_result)
+      if search_result then
+         n.modules[mod_name] = search_result
+         self:insert_file(search_result)
+      end
    end
 
    for node in values(self._nodes_by_filename) do
@@ -195,7 +199,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
 
    -- TODO: check for circular deps
 
-   return setmetatable(d, { __index = Dag })
+   return d
 end
 
 return graph
