@@ -172,18 +172,30 @@ function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file:
    )
 end
 
+function common.result_has_errors(r: tl.Result, c: config.Config): boolean
+   local warning_error <const> = set(c.warning_error or {})
+   local werrors <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
+      return warning_error[w.tag]
+   end)
+
+   local function has_errors(arr: {tl.Error}): boolean
+      return arr and #arr > 0
+   end
+   return has_errors(werrors) or has_errors(r.type_errors)
+end
+
 ---@desc
 --- Logs all the syntax errors, warnings, type errors, etc. from a `tl.Result` with proper colors
 ---
 --- Returns if there were any warnings or unknowns. May return `true` even if some warnings were reported
-function common.report_result(file: string, r: tl.Result, c: config.Config): boolean
+function common.report_result(r: tl.Result, c: config.Config): boolean
    local warning_error <const> = set(c.warning_error or {})
    local werrors <const>, warnings <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
       return warning_error[w.tag]
    end)
    local function report(logfn: function(...: any), arr: {tl.Error}, category: string): boolean
-      if #arr > 0 then
-         common.report_errors(logfn, arr, file, category)
+      if arr and #arr > 0 then
+         common.report_errors(logfn, arr, r.filename, category)
          return false
       else
          return true
@@ -193,6 +205,19 @@ function common.report_result(file: string, r: tl.Result, c: config.Config): boo
    report(log.warn, warnings, "warning")
    return report(log.err, werrors, "warning error")
       and report(log.err, r.type_errors, "type error")
+end
+
+---@desc
+--- Report all errors from a tl.Env
+---
+--- Returns false when errors were reported
+function common.report_env_results(env: tl.Env, cfg: config.Config): boolean
+   local ok = true
+   for name in ivalues(env.loaded_order) do
+      local res = env.loaded[name]
+      ok = ok and common.report_result(res, cfg)
+   end
+   return ok
 end
 
 ---@desc
@@ -229,7 +254,7 @@ function common.type_check_and_load_file(path: string, env: tl.Env, c: config.Co
    if not result then
       return nil, err
    end
-   if not common.report_result(path, result, c) then
+   if not common.report_result(result, c) then
       return nil
    end
    return load(

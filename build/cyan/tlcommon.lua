@@ -172,18 +172,30 @@ function common.report_errors(logfn, errs, file, category)
 
 end
 
+function common.result_has_errors(r, c)
+   local warning_error = set(c.warning_error or {})
+   local werrors = filter(r.warnings or {}, function(w)
+      return warning_error[w.tag]
+   end)
+
+   local function has_errors(arr)
+      return arr and #arr > 0
+   end
+   return has_errors(werrors) or has_errors(r.type_errors)
+end
 
 
 
 
-function common.report_result(file, r, c)
+
+function common.report_result(r, c)
    local warning_error = set(c.warning_error or {})
    local werrors, warnings = filter(r.warnings or {}, function(w)
       return warning_error[w.tag]
    end)
    local function report(logfn, arr, category)
-      if #arr > 0 then
-         common.report_errors(logfn, arr, file, category)
+      if arr and #arr > 0 then
+         common.report_errors(logfn, arr, r.filename, category)
          return false
       else
          return true
@@ -193,6 +205,19 @@ function common.report_result(file, r, c)
    report(log.warn, warnings, "warning")
    return report(log.err, werrors, "warning error") and
    report(log.err, r.type_errors, "type error")
+end
+
+
+
+
+
+function common.report_env_results(env, cfg)
+   local ok = true
+   for name in ivalues(env.loaded_order) do
+      local res = env.loaded[name]
+      ok = ok and common.report_result(res, cfg)
+   end
+   return ok
 end
 
 
@@ -229,7 +254,7 @@ function common.type_check_and_load_file(path, env, c)
    if not result then
       return nil, err
    end
-   if not common.report_result(path, result, c) then
+   if not common.report_result(result, c) then
       return nil
    end
    return load(

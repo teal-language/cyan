@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -56,6 +56,7 @@ local function command_exec(should_compile)
 
       local exit = 0
 
+      local to_write = {}
       local function process_file(path)
          local disp_file = cs.new(cs.colors.file, path:relative_to(starting_dir), { 0 })
          if not path:is_file() then
@@ -83,7 +84,7 @@ local function command_exec(should_compile)
             filename = real_path,
             env = env,
          })
-         if not common.report_result(real_path, result, loaded_config) then
+         if common.result_has_errors(result, loaded_config) then
             exit = 1
             return
          end
@@ -91,15 +92,11 @@ local function command_exec(should_compile)
          if not should_compile then
             return
          end
-         local fh, err = io.open(outfile:to_real_path(), "w")
-         if fh then
-            fh:write(common.compile_ast(parsed.ast))
-            fh:close()
-            log.info("Wrote ", disp_outfile)
-         else
-            log.err("Unable to write to ", disp_outfile, "\n", err)
-            exit = 1
-         end
+         table.insert(to_write, {
+            outfile = outfile,
+            disp_outfile = disp_outfile,
+            output_ast = parsed.ast,
+         })
       end
 
       local function fix_path(f)
@@ -115,6 +112,26 @@ local function command_exec(should_compile)
 
       for _, path in map_ipairs(args.files, fix_path) do
          process_file(path)
+      end
+
+      if not common.report_env_results(env, loaded_config) then
+         exit = 1
+      end
+
+      if should_compile then
+         if exit ~= 0 then return exit end
+
+         for _, data in ipairs(to_write) do
+            local fh, err = io.open(data.outfile:to_real_path(), "w")
+            if fh then
+               fh:write(common.compile_ast(data.output_ast))
+               fh:close()
+               log.info("Wrote ", data.disp_outfile)
+            else
+               log.err("Unable to write to ", data.disp_outfile, "\n", err)
+               exit = 1
+            end
+         end
       end
 
       return exit

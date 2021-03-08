@@ -1,10 +1,10 @@
 
+local argparse <const> = require("argparse")
 local lfs <const> = require("lfs")
 
-local argparse <const> = require("argparse")
-local config <const> = require("cyan.config")
 local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
+local config <const> = require("cyan.config")
 local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
@@ -111,10 +111,12 @@ local function build(args: command.Command.Args): number
          filename = path,
          env = env,
       })
-      if not common.report_result(path, result, loaded_config) then
+
+      if common.result_has_errors(result, loaded_config) then
          exit = 1
          return
       end
+
       log.info("Type checked ", display_filename(n.input))
       if compile then
          local ok <const>, err <const> = n.output:mk_parent_dirs()
@@ -131,13 +133,23 @@ local function build(args: command.Command.Args): number
       process_node(n, false)
    end
 
-   if exit ~= 0 then return exit end
+   if exit ~= 0 then
+      common.report_env_results(env, loaded_config)
+      return exit
+   end
 
    for n in dag:marked_nodes("compile") do
       process_node(n, true)
    end
 
-   if exit ~= 0 then return exit end
+   if exit ~= 0 then
+      common.report_env_results(env, loaded_config)
+      return exit
+   end
+
+   if not common.report_env_results(env, loaded_config) then
+      return 1
+   end
 
    for node_ast in ivalues(to_write) do
       local n <const>, ast <const> = node_ast[1], node_ast[2]

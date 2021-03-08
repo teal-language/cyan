@@ -1,10 +1,10 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local argparse = require("argparse")
 local lfs = require("lfs")
 
-local argparse = require("argparse")
-local config = require("cyan.config")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
+local config = require("cyan.config")
 local cs = require("cyan.colorstring")
 local fs = require("cyan.fs")
 local graph = require("cyan.graph")
@@ -111,10 +111,12 @@ common.load_cfg_env_report_errs(true, args)
          filename = path,
          env = env,
       })
-      if not common.report_result(path, result, loaded_config) then
+
+      if common.result_has_errors(result, loaded_config) then
          exit = 1
          return
       end
+
       log.info("Type checked ", display_filename(n.input))
       if compile then
          local ok, err = n.output:mk_parent_dirs()
@@ -131,13 +133,23 @@ common.load_cfg_env_report_errs(true, args)
       process_node(n, false)
    end
 
-   if exit ~= 0 then return exit end
+   if exit ~= 0 then
+      common.report_env_results(env, loaded_config)
+      return exit
+   end
 
    for n in dag:marked_nodes("compile") do
       process_node(n, true)
    end
 
-   if exit ~= 0 then return exit end
+   if exit ~= 0 then
+      common.report_env_results(env, loaded_config)
+      return exit
+   end
+
+   if not common.report_env_results(env, loaded_config) then
+      return 1
+   end
 
    for node_ast in ivalues(to_write) do
       local n, ast = node_ast[1], node_ast[2]

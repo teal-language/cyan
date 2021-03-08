@@ -30,6 +30,20 @@ describe("check command", function()
       })
    end)
 
+   it("should report errors in dependencies", function()
+      util.run_mock_project(finally, {
+         cmd = "check",
+         args = { "foo.tl" },
+         dir_structure = {
+            ["foo.tl"] = [[require"bar"]],
+            ["bar.tl"] = [[local _x: number = "hello"]],
+         },
+         -- cmd_output_match_lines = {
+         -- },
+         exit_code = 1,
+      })
+   end)
+
    it("should handle being told to type check a non-file", function()
       util.run_mock_project(finally, {
          cmd = "check",
