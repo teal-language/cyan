@@ -18,7 +18,7 @@ end
 
 local script <const> = {}
 
-local function is_valid(x: any): Script, string
+function script.is_valid(x: any): Script, string
    if type(x) ~= "table" then
       return nil, "script did not return a table"
    end
@@ -58,7 +58,7 @@ local function is_valid(x: any): Script, string
       local valid <const>: {string:boolean} = {
          ["command"] = true,
       }
-      local errmsg <const> = "script 'run_on' field must be a {Script.Hook} ( one of " .. table.concat(from(keys(valid))) .. ")"
+      local errmsg <const> = "script 'run_on' field must be a {Script.Hook} ( one of " .. table.concat(from(keys(valid)), ", ") .. " )"
       if type(maybe.run_on) ~= "table" then
          return nil, errmsg
       end
@@ -83,7 +83,7 @@ function script.load(path: string): Script, string
       end
    end
 
-   local s <const>, err <const> = is_valid(res)
+   local s <const>, err <const> = script.is_valid(res)
    if not s then
       return nil, err
    end
