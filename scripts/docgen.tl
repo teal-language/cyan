@@ -3,6 +3,7 @@
 
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
+local cs <const> = require("cyan.colorstring")
 
 local has_ltreesitter <const>, ts <const> = pcall(require, "ltreesitter")
 if not has_ltreesitter then
@@ -113,12 +114,11 @@ local function gen_docs(filename: string, module_name: string): string
       elseif d.kind == "brief" then
          brief = table.concat(d.content, "\n\n") .. "\n\n"
       else
-         io.stderr:write("Unhandled node kind: ", node_kind, "\n")
+         log.err("Unhandled node kind: ", node_kind)
       end
    end
 
    if #sections > 0 then
-
       table.sort(sections)
       table.insert(sections, 1, "## `" .. module_name .. "`\n---\n\n" .. (brief or ""))
 
@@ -132,6 +132,7 @@ for p in fs.scan_dir("src", {"cyan/**/*"}) do
    local mod <const> = p:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
    local docs <const> = gen_docs(file, mod)
    if docs then
+      log.info("Generated docs for ", cs.highlight(cs.colors.file, p:tostring()))
       table.insert(output, docs)
    end
 end
@@ -143,4 +144,4 @@ fh:write(
 )
 fh:write(table.concat(output))
 fh:close()
-print("Done")
+log.info("Wrote ", cs.highlight(cs.colors.file, "docs.md"))

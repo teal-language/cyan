@@ -6,6 +6,8 @@
 local str <const> = {}
 local tab <const> = {}
 
+---@desc
+--- Iterate over the keys of a map
 function tab.keys<K>(t: {K:any}): function(): K
    local k: K
    return function(): K
@@ -14,11 +16,15 @@ function tab.keys<K>(t: {K:any}): function(): K
    end
 end
 
+---@desc
+--- Sort a table (in place) and return that table
 function tab.sort<T>(t: {T}, fn: function(T, T): boolean): {T}
    table.sort(t, fn)
    return t
 end
 
+---@desc
+--- Iterate over the values of a map
 function tab.values<K, V>(t: {K:V}): function(): V
    local k, v: K, V
    return function(): V
@@ -27,6 +33,8 @@ function tab.values<K, V>(t: {K:V}): function(): V
    end
 end
 
+---@desc
+--- Iterate over the integer indexed values of a map
 function tab.ivalues<V>(t: {any:V}): function(): V
    local i = 0
    return function(): V
@@ -35,6 +43,8 @@ function tab.ivalues<V>(t: {any:V}): function(): V
    end
 end
 
+---@desc
+--- Collect all the values of an iterator in a list
 function tab.from<T>(fn: function(...: any): (T), ...: any): {T}
    local t = {}
    for val in fn, ... do
@@ -43,6 +53,8 @@ function tab.from<T>(fn: function(...: any): (T), ...: any): {T}
    return t
 end
 
+---@desc
+--- Create a Set from a list
 function tab.set<T>(lst: {T}): {T:boolean}
    local s <const> = {}
    for _, v in ipairs(lst) do
@@ -51,6 +63,8 @@ function tab.set<T>(lst: {T}): {T:boolean}
    return s
 end
 
+---@desc
+--- Create a Set from a list
 function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
    local new <const>: {K:T} = {}
    for k, v in pairs(t) do
@@ -59,6 +73,8 @@ function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
    return new
 end
 
+---@desc
+--- iterate over a list like ipairs does, but filter the values through `fn`
 function tab.map_ipairs<T, K>(t: {T}, fn: function(T): K): function(): number, K
    local i = 0
    return function(): number, K
@@ -71,6 +87,8 @@ function tab.map_ipairs<T, K>(t: {T}, fn: function(T): K): function(): number, K
    end
 end
 
+---@desc
+--- Create two new lists from `t`: the values that return `true` from `pred` and the values that return false
 function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
    local pass <const>: {T} = {}
    local fail <const>: {T} = {}
@@ -80,6 +98,10 @@ function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
    return pass, fail
 end
 
+---@desc
+--- Split a string by `del`, returning the indexes of the match
+---
+--- Will error if the delimiter matches the empty string
 function str.split_find(s: string, del: string, no_patt: boolean): function(): number, number
    local idx = 0
    local prev_idx, start_idx: number, number
@@ -95,6 +117,10 @@ function str.split_find(s: string, del: string, no_patt: boolean): function(): n
    end
 end
 
+---@desc
+--- Split a string by `del`, returning the substring that was matched
+---
+--- Will error if the delimiter matches the empty string
 function str.split(s: string, del: string, no_patt: boolean): function(): string
    local iter <const> = str.split_find(s, del, no_patt)
    return function(): string
@@ -107,6 +133,11 @@ end
 local function esc_char(c: string): string
    return "%" .. c
 end
+
+---@desc
+--- escape any special characters in a string
+---
+--- use `sub` to control how the characters are substituted, by default a special character `x` will be replaced with `%x`
 function str.esc(s: string, sub: string | function(string): string | {string:string}): string, number
    return s:gsub(
       "[%^%$%(%)%%%.%[%]%*%+%-%?]",
@@ -115,6 +146,8 @@ function str.esc(s: string, sub: string | function(string): string | {string:str
    )
 end
 
+---@desc
+--- Prefix `s` with spaces so the resulting string is at least `n` characters long
 function str.pad_left(s: string, n: number): string
    return (" "):rep(n - #s) .. s
 end
