@@ -20,6 +20,7 @@ local record Config
    preload_modules: {string}
    include_dir: {string}
    module_name: string
+   scripts: {string}
 
    gen_compat: tl.CompatMode
    gen_target: tl.TargetMode
@@ -70,6 +71,7 @@ function config.is_config(c: any): Config, {string}, {string}
 
       include_dir = "{string}",
       preload_modules = "{string}",
+      scripts = "{string}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true },

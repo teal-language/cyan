@@ -6,6 +6,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local str = {}
 local tab = {}
 
+
+
 function tab.keys(t)
    local k
    return function()
@@ -14,10 +16,14 @@ function tab.keys(t)
    end
 end
 
+
+
 function tab.sort(t, fn)
    table.sort(t, fn)
    return t
 end
+
+
 
 function tab.values(t)
    local k, v
@@ -27,6 +33,8 @@ function tab.values(t)
    end
 end
 
+
+
 function tab.ivalues(t)
    local i = 0
    return function()
@@ -34,6 +42,8 @@ function tab.ivalues(t)
       return t[i]
    end
 end
+
+
 
 function tab.from(fn, ...)
    local t = {}
@@ -43,6 +53,8 @@ function tab.from(fn, ...)
    return t
 end
 
+
+
 function tab.set(lst)
    local s = {}
    for _, v in ipairs(lst) do
@@ -51,6 +63,8 @@ function tab.set(lst)
    return s
 end
 
+
+
 function tab.map(t, fn)
    local new = {}
    for k, v in pairs(t) do
@@ -58,6 +72,8 @@ function tab.map(t, fn)
    end
    return new
 end
+
+
 
 function tab.map_ipairs(t, fn)
    local i = 0
@@ -71,6 +87,8 @@ function tab.map_ipairs(t, fn)
    end
 end
 
+
+
 function tab.filter(t, pred)
    local pass = {}
    local fail = {}
@@ -79,6 +97,10 @@ function tab.filter(t, pred)
    end
    return pass, fail
 end
+
+
+
+
 
 function str.split_find(s, del, no_patt)
    local idx = 0
@@ -95,6 +117,10 @@ function str.split_find(s, del, no_patt)
    end
 end
 
+
+
+
+
 function str.split(s, del, no_patt)
    local iter = str.split_find(s, del, no_patt)
    return function()
@@ -107,6 +133,11 @@ end
 local function esc_char(c)
    return "%" .. c
 end
+
+
+
+
+
 function str.esc(s, sub)
    return s:gsub(
    "[%^%$%(%)%%%.%[%]%*%+%-%?]",
@@ -114,6 +145,8 @@ function str.esc(s, sub)
    esc_char)
 
 end
+
+
 
 function str.pad_left(s, n)
    return (" "):rep(n - #s) .. s

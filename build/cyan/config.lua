@@ -31,6 +31,7 @@ local Config = {}
 
 
 
+
 local config = {
    Config = Config,
 
@@ -70,6 +71,7 @@ function config.is_config(c)
 
       include_dir = "{string}",
       preload_modules = "{string}",
+      scripts = "{string}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true },

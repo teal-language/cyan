@@ -64,7 +64,7 @@ function tab.set<T>(lst: {T}): {T:boolean}
 end
 
 ---@desc
---- Create a Set from a list
+--- Create a new map from `t` by passing each value through `fn`
 function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
    local new <const>: {K:T} = {}
    for k, v in pairs(t) do
