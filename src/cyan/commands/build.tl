@@ -25,11 +25,20 @@ local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
    return true
 end
 
+local function emit_hook(name: string, ...: any): boolean
+   local ok <const>, err <const> = script.emit_hook(name, ...)
+   if not ok then
+      log.err("Error in hook 'build:", name, "':\n   ", err)
+      coroutine.yield(1)
+   end
+   return ok
+end
+
 local function build(args: command.Command.Args): number
    local starting_dir <const> = fs.current_dir()
    local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    if not config_path then
-      log.err(config.filename .. " not found")
+      log.err(config.filename, " not found")
       return 1
    end
 
@@ -75,13 +84,7 @@ local function build(args: command.Command.Args): number
       end
    end
 
-   do
-      local ok <const>, err <const> = script.emit_hook("pre")
-      if not ok then
-         log.err("Error in hook 'pre':\n   ", err)
-         return 1
-      end
-   end
+   emit_hook("pre")
 
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude or {}
@@ -101,7 +104,7 @@ local function build(args: command.Command.Args): number
    local function source_is_newer(src: fs.Path): boolean
       if args.update_all then return true end
       local target <const> = get_output_name(src)
-      local in_t, out_t = src:mod_time(), target:mod_time()
+      local in_t <const>, out_t <const> = src:mod_time(), target:mod_time()
       if not out_t then
          return true
       end
@@ -184,11 +187,7 @@ local function build(args: command.Command.Args): number
    end
 
    if #to_write > 0 then
-      local ok <const>, err <const> = script.emit_hook("post")
-      if not ok then
-         log.err("Error in hook 'post':\n   ", err)
-         return 1
-      end
+      emit_hook("post")
    end
 
    return exit
@@ -197,7 +196,7 @@ end
 command.new{
    name = "build",
    description = [[Build a project based on tlconfig.lua.]],
-   exec = build,
+   exec = coroutine.wrap(build) as function(command.Command.Args): (number),
    argparse = function(cmd: argparse.Command)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,

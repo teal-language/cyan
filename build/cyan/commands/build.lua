@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
 local lfs = require("lfs")
 
@@ -25,11 +25,20 @@ local function exists_and_is_dir(prefix, p)
    return true
 end
 
+local function emit_hook(name, ...)
+   local ok, err = script.emit_hook(name, ...)
+   if not ok then
+      log.err("Error in hook 'build:", name, "':\n   ", err)
+      coroutine.yield(1)
+   end
+   return ok
+end
+
 local function build(args)
    local starting_dir = fs.current_dir()
    local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    if not config_path then
-      log.err(config.filename .. " not found")
+      log.err(config.filename, " not found")
       return 1
    end
 
@@ -75,13 +84,7 @@ common.load_cfg_env_report_errs(true, args)
       end
    end
 
-   do
-      local ok, err = script.emit_hook("pre")
-      if not ok then
-         log.err("Error in hook 'pre':\n   ", err)
-         return 1
-      end
-   end
+   emit_hook("pre")
 
    local include = loaded_config.include or {}
    local exclude = loaded_config.exclude or {}
@@ -184,11 +187,7 @@ common.load_cfg_env_report_errs(true, args)
    end
 
    if #to_write > 0 then
-      local ok, err = script.emit_hook("post")
-      if not ok then
-         log.err("Error in hook 'post':\n   ", err)
-         return 1
-      end
+      emit_hook("post")
    end
 
    return exit
@@ -197,7 +196,7 @@ end
 command.new({
    name = "build",
    description = [[Build a project based on tlconfig.lua.]],
-   exec = build,
+   exec = coroutine.wrap(build),
    argparse = function(cmd)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,

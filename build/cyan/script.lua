@@ -1,6 +1,9 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 local command = require("cyan.command")
 local sandbox = require("cyan.sandbox")
+local util = require("cyan.util")
+
+local set = util.tab.set
 
 local Script = {}
 
@@ -26,6 +29,14 @@ function script.is_valid(x)
    if not maybe.exec or type(maybe.exec) ~= "function" then
       return nil, "script 'exec' field is required and must be a function"
    end
+   if not maybe.run_on or type(maybe.run_on) ~= "table" then
+      return nil, "script 'run_on' field is required and must be a {string}"
+   end
+   for _, v in ipairs(maybe.run_on) do
+      if not (type(v) == "string") then
+         return nil, "script 'run_on' field must be a {string}"
+      end
+   end
 
    if maybe.reads_from then
       if type(maybe.reads_from) ~= "table" then
@@ -38,22 +49,12 @@ function script.is_valid(x)
       end
    end
    if maybe.writes_to then
-      if type(maybe.reads_from) ~= "table" then
+      if type(maybe.writes_to) ~= "table" then
          return nil, "script 'writes_to' field must be a {string}"
       end
       for _, v in ipairs(maybe.writes_to) do
          if not (type(v) == "string") then
             return nil, "script 'writes_to' field must be a {string}"
-         end
-      end
-   end
-   if maybe.run_on then
-      if type(maybe.run_on) ~= "table" then
-         return nil, "script 'run_on' field must be a {string}"
-      end
-      for _, v in ipairs(maybe.run_on) do
-         if not (type(v) == "string") then
-            return nil, "script 'run_on' field must be a {string}"
          end
       end
    end
@@ -64,10 +65,8 @@ end
 local loaded = {}
 
 function script.load(path)
-
    local ok, res
    do
-
       local box, err = sandbox.from_file(path, _G)
       if not box then
          return nil, err
@@ -96,7 +95,34 @@ local function has_hook(s, name)
    end
 end
 
-function script.emit_hook(name)
+local function io_env(s)
+   local orig = io
+   local writable = set(s.writes_to or {})
+   local readable = set(s.reads_from or {})
+   return function()
+      _G["io"] = {
+         open = function(name, mode)
+            if mode:match("^%*?r") then
+               if readable[name] then
+                  return orig.open(name, mode)
+               else
+                  return nil, "Script has not specified " .. tostring(name) .. " as readable"
+               end
+            elseif mode:match("^%*?w") then
+               if writable[name] then
+                  return orig.open(name, mode)
+               else
+                  return nil, "Script has not specified " .. tostring(name) .. " as writable"
+               end
+            end
+         end,
+      }
+   end, function()
+      _G["io"] = orig
+   end
+end
+
+function script.emit_hook(name, ...)
    assert(name, "Cannot emit nil hook")
    assert(command.running, "Attempt to emit_hook with no running command")
    assert(
@@ -104,14 +130,16 @@ function script.emit_hook(name)
    "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'")
 
    name = command.running.name .. ":" .. name
-
+   local args = { ... }
    for _, s in ipairs(loaded) do
       if has_hook(s.run_on, name) then
-
+         local setup, restore = io_env(s)
+         setup()
          local box = sandbox.new(function()
-            s.exec(name)
+            s.exec(name, _tl_table_unpack(args))
          end)
          local ok, err = box:run()
+         restore()
          if not ok then
             return false, err
          end

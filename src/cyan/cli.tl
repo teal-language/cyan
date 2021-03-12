@@ -62,7 +62,7 @@ do
    end
    args = res as Args
 end
-local cmd <const> = command.get(args.command)
+local cmd <const> = assert(command.get(args.command))
 command.running = cmd
 
 if args.quiet then

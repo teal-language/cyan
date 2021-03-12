@@ -1,6 +1,9 @@
 
 local command <const> = require("cyan.command")
 local sandbox <const> = require("cyan.sandbox")
+local util <const> = require("cyan.util")
+
+local set <const> = util.tab.set
 
 local record Script
    run_on: {string}
@@ -26,6 +29,14 @@ function script.is_valid(x: any): Script, string
    if not maybe.exec or type(maybe.exec) ~= "function" then
       return nil, "script 'exec' field is required and must be a function"
    end
+   if not maybe.run_on or type(maybe.run_on) ~= "table" then
+      return nil, "script 'run_on' field is required and must be a {string}"
+   end
+   for _, v in ipairs(maybe.run_on as {any}) do
+      if not v is string then
+         return nil, "script 'run_on' field must be a {string}"
+      end
+   end
 
    if maybe.reads_from then
       if type(maybe.reads_from) ~= "table" then
@@ -38,22 +49,12 @@ function script.is_valid(x: any): Script, string
       end
    end
    if maybe.writes_to then
-      if type(maybe.reads_from) ~= "table" then
+      if type(maybe.writes_to) ~= "table" then
          return nil, "script 'writes_to' field must be a {string}"
       end
       for _, v in ipairs(maybe.writes_to as {any}) do
          if not v is string then
             return nil, "script 'writes_to' field must be a {string}"
-         end
-      end
-   end
-   if maybe.run_on then
-      if type(maybe.run_on) ~= "table" then
-         return nil, "script 'run_on' field must be a {string}"
-      end
-      for _, v in ipairs(maybe.run_on as {any}) do
-         if not v is string then
-            return nil, "script 'run_on' field must be a {string}"
          end
       end
    end
@@ -64,10 +65,8 @@ end
 local loaded <const> = {}
 
 function script.load(path: string): boolean, string
-   -- require"cyan.log".debug("loading script from ", path)
    local ok, res: boolean, any
    do
-      -- TODO: setup real env for these
       local box <const>, err = sandbox.from_file(path, _G)
       if not box then
          return nil, err
@@ -96,7 +95,34 @@ local function has_hook(s: {string}, name: string): boolean
    end
 end
 
-function script.emit_hook(name: string): boolean, string
+local function io_env(s: Script): function, function
+   local orig <const> = io
+   local writable <const> = set(s.writes_to or {})
+   local readable <const> = set(s.reads_from or {})
+   return function()
+      _G["io"] = {
+         open = function(name: string, mode: string): FILE, string
+            if mode:match("^%*?r") then
+               if readable[name] then
+                  return orig.open(name, mode)
+               else
+                  return nil, "Script has not specified " .. tostring(name) .. " as readable"
+               end
+            elseif mode:match("^%*?w") then
+               if writable[name] then
+                  return orig.open(name, mode)
+               else
+                  return nil, "Script has not specified " .. tostring(name) .. " as writable"
+               end
+            end
+         end
+      }
+   end, function()
+      _G["io"] = orig
+   end
+end
+
+function script.emit_hook(name: string, ...: any): boolean, string
    assert(name, "Cannot emit nil hook")
    assert(command.running, "Attempt to emit_hook with no running command")
    assert(
@@ -104,14 +130,16 @@ function script.emit_hook(name: string): boolean, string
       "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'"
    )
    name = command.running.name .. ":" .. name
-   -- require"cyan.log".debug("Emitting hook: ", name)
+   local args <const> = {...}
    for _, s in ipairs(loaded) do
       if has_hook(s.run_on, name) then
-         -- TODO: enforce io stuff
+         local setup <const>, restore <const> = io_env(s)
+         setup()
          local box <const> = sandbox.new(function()
-            s.exec(name)
+            s.exec(name, table.unpack(args))
          end)
          local ok <const>, err <const> = box:run()
+         restore()
          if not ok then
             return false, err
          end
