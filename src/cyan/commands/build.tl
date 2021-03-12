@@ -183,7 +183,7 @@ local function build(args: command.Command.Args): number
       end
    end
 
-   do
+   if #to_write > 0 then
       local ok <const>, err <const> = script.emit_hook("post")
       if not ok then
          log.err("Error in hook 'post':\n   ", err)

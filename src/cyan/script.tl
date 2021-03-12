@@ -64,7 +64,7 @@ end
 local loaded <const> = {}
 
 function script.load(path: string): boolean, string
-   require"cyan.log".debug("loading script from ", path)
+   -- require"cyan.log".debug("loading script from ", path)
    local ok, res: boolean, any
    do
       -- TODO: setup real env for these
@@ -104,7 +104,7 @@ function script.emit_hook(name: string): boolean, string
       "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'"
    )
    name = command.running.name .. ":" .. name
-   require"cyan.log".debug("Emitting hook: ", name)
+   -- require"cyan.log".debug("Emitting hook: ", name)
    for _, s in ipairs(loaded) do
       if has_hook(s.run_on, name) then
          -- TODO: enforce io stuff

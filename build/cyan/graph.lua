@@ -82,6 +82,9 @@ function Dag:nodes()
    setmetatable(nodes_by_deps, nil)
 
    local i = most_deps
+   if not nodes_by_deps[i] then
+      return function() end
+   end
    local iter = values(nodes_by_deps[i])
    return function()
       local n

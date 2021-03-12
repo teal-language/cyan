@@ -64,7 +64,7 @@ end
 local loaded = {}
 
 function script.load(path)
-   require("cyan.log").debug("loading script from ", path)
+
    local ok, res
    do
 
@@ -104,7 +104,7 @@ function script.emit_hook(name)
    "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'")
 
    name = command.running.name .. ":" .. name
-   require("cyan.log").debug("Emitting hook: ", name)
+
    for _, s in ipairs(loaded) do
       if has_hook(s.run_on, name) then
 

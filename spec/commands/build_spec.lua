@@ -136,5 +136,74 @@ describe("build command", function()
          exit_code = 0,
       })
    end)
+   it("should not error when there are no files to process", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = [[return { }]],
+         },
+         exit_code = 0,
+      })
+   end)
+   describe("script hooks", function()
+      it("should emit a build:pre hook before doing any actions", function()
+         util.run_mock_project(function() end, {
+            cmd = "build",
+            dir_structure = {
+               [util.configfile] = [[ return {
+                  scripts = { "foo.lua" },
+               } ]],
+               ["foo.lua"] = [[ return {
+                  run_on = { "build:pre" },
+                  exec = function() print("foo") end,
+               } ]],
+            },
+            output_match = "foo",
+            generated_files = { },
+            exit_code = 0,
+         })
+      end)
+      it("should emit a build:post hook after building", function()
+         util.run_mock_project(function() end, {
+            cmd = "build",
+            dir_structure = {
+               [util.configfile] = [[ return {
+                  scripts = { "foo.lua" },
+                  source_dir = "src",
+                  build_dir = "build",
+               } ]],
+               src = { ["foo.tl"] = "" },
+               build = {},
+               ["foo.lua"] = [[ return {
+                  run_on = { "build:post" },
+                  exec = function() print("after") end,
+               } ]],
+            },
+            cmd_output_match_lines = {
+               "Type checked.*foo",
+               "Wrote.*foo",
+               "after",
+            },
+            generated_files = { build = { "foo.lua" } },
+            exit_code = 0,
+         })
+      end)
+      it("should not emit a build:post hook when there is nothing to do", function()
+         util.run_mock_project(function() end, {
+            cmd = "build",
+            dir_structure = {
+               [util.configfile] = [[ return {
+                  scripts = { "foo.lua" },
+               } ]],
+               ["foo.lua"] = [[ return {
+                  run_on = { "build:post" },
+                  exec = function() print("after") end,
+               } ]],
+            },
+            cmd_output = "",
+            exit_code = 0,
+         })
+      end)
+   end)
 end)
 

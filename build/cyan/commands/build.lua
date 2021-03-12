@@ -183,7 +183,7 @@ common.load_cfg_env_report_errs(true, args)
       end
    end
 
-   do
+   if #to_write > 0 then
       local ok, err = script.emit_hook("post")
       if not ok then
          log.err("Error in hook 'post':\n   ", err)
