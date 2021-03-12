@@ -1,19 +1,12 @@
 
+local command <const> = require("cyan.command")
 local sandbox <const> = require("cyan.sandbox")
-local util <const> = require("cyan.util")
-
-local keys <const>, from <const>
-   = util.tab.keys, util.tab.from
 
 local record Script
-   enum Hook
-      "command"
-   end
-
-   run_on: {Hook}
+   run_on: {string}
    reads_from: {string}
    writes_to: {string}
-   exec: function
+   exec: function(string, ...: any)
 end
 
 local script <const> = {}
@@ -55,17 +48,12 @@ function script.is_valid(x: any): Script, string
       end
    end
    if maybe.run_on then
-      local valid <const>: {string:boolean} = {
-         ["command"] = true,
-      }
-      local errmsg <const> = "script 'run_on' field must be a {Script.Hook} ( one of " .. table.concat(from(keys(valid)), ", ") .. " )"
       if type(maybe.run_on) ~= "table" then
-         return nil, errmsg
+         return nil, "script 'run_on' field must be a {string}"
       end
       for _, v in ipairs(maybe.run_on as {any}) do
-         if v is string and not valid[v] then
-         else
-            return nil, errmsg
+         if not v is string then
+            return nil, "script 'run_on' field must be a {string}"
          end
       end
    end
@@ -73,22 +61,63 @@ function script.is_valid(x: any): Script, string
    return maybe as Script
 end
 
-function script.load(path: string): Script, string
+local loaded <const> = {}
+
+function script.load(path: string): boolean, string
+   require"cyan.log".debug("loading script from ", path)
    local ok, res: boolean, any
    do
-      local box <const>, err <const> = sandbox.from_file(path)
-      ok, res = box:run()
+      -- TODO: setup real env for these
+      local box <const>, err = sandbox.from_file(path, _G)
+      if not box then
+         return nil, err
+      end
+      ok, err = box:run()
       if not ok then
          return nil, err
       end
+      res = box:result()
    end
 
    local s <const>, err <const> = script.is_valid(res)
    if not s then
       return nil, err
    end
+   table.insert(loaded, s)
 
-   return s
+   return true
+end
+
+local function has_hook(s: {string}, name: string): boolean
+   for _, h in ipairs(s) do
+      if h == name then
+         return true
+      end
+   end
+end
+
+function script.emit_hook(name: string): boolean, string
+   assert(name, "Cannot emit nil hook")
+   assert(command.running, "Attempt to emit_hook with no running command")
+   assert(
+      has_hook(command.running.script_hooks, name),
+      "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'"
+   )
+   name = command.running.name .. ":" .. name
+   require"cyan.log".debug("Emitting hook: ", name)
+   for _, s in ipairs(loaded) do
+      if has_hook(s.run_on, name) then
+         -- TODO: enforce io stuff
+         local box <const> = sandbox.new(function()
+            s.exec(name)
+         end)
+         local ok <const>, err <const> = box:run()
+         if not ok then
+            return false, err
+         end
+      end
+   end
+   return true
 end
 
 return script

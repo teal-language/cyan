@@ -10,6 +10,7 @@ local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
+local script <const> = require("cyan.script")
 
 local ivalues <const> = util.tab.ivalues
 
@@ -62,6 +63,24 @@ local function build(args: command.Command.Args): number
    elseif not build_dir:is_directory() then
       log.err(string.format("Build dir %q is not a directory", build_dir:to_real_path()))
       return 1
+   end
+
+   if loaded_config.scripts then
+      for _, s in ipairs(loaded_config.scripts) do
+         local ok, err = script.load(s)
+         if not ok then
+            log.err("Error loading script '", s, "':\n   ", err)
+            return 1
+         end
+      end
+   end
+
+   do
+      local ok <const>, err <const> = script.emit_hook("pre")
+      if not ok then
+         log.err("Error in hook 'pre':\n   ", err)
+         return 1
+      end
    end
 
    local include <const> = loaded_config.include or {}
@@ -164,6 +183,14 @@ local function build(args: command.Command.Args): number
       end
    end
 
+   do
+      local ok <const>, err <const> = script.emit_hook("post")
+      if not ok then
+         log.err("Error in hook 'post':\n   ", err)
+         return 1
+      end
+   end
+
    return exit
 end
 
@@ -174,5 +201,6 @@ command.new{
    argparse = function(cmd: argparse.Command)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,
+   script_hooks = { "pre", "post" },
 }
 

@@ -1,15 +1,8 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
+local command = require("cyan.command")
 local sandbox = require("cyan.sandbox")
-local util = require("cyan.util")
-
-local keys, from =
-util.tab.keys, util.tab.from
 
 local Script = {}
-
-
-
-
 
 
 
@@ -55,17 +48,12 @@ function script.is_valid(x)
       end
    end
    if maybe.run_on then
-      local valid = {
-         ["command"] = true,
-      }
-      local errmsg = "script 'run_on' field must be a {Script.Hook} ( one of " .. table.concat(from(keys(valid)), ", ") .. " )"
       if type(maybe.run_on) ~= "table" then
-         return nil, errmsg
+         return nil, "script 'run_on' field must be a {string}"
       end
       for _, v in ipairs(maybe.run_on) do
-         if type(v) == "string" and not valid[v] then
-         else
-            return nil, errmsg
+         if not (type(v) == "string") then
+            return nil, "script 'run_on' field must be a {string}"
          end
       end
    end
@@ -73,22 +61,63 @@ function script.is_valid(x)
    return maybe
 end
 
+local loaded = {}
+
 function script.load(path)
+   require("cyan.log").debug("loading script from ", path)
    local ok, res
    do
-      local box, err = sandbox.from_file(path)
-      ok, res = box:run()
+
+      local box, err = sandbox.from_file(path, _G)
+      if not box then
+         return nil, err
+      end
+      ok, err = box:run()
       if not ok then
          return nil, err
       end
+      res = box:result()
    end
 
    local s, err = script.is_valid(res)
    if not s then
       return nil, err
    end
+   table.insert(loaded, s)
 
-   return s
+   return true
+end
+
+local function has_hook(s, name)
+   for _, h in ipairs(s) do
+      if h == name then
+         return true
+      end
+   end
+end
+
+function script.emit_hook(name)
+   assert(name, "Cannot emit nil hook")
+   assert(command.running, "Attempt to emit_hook with no running command")
+   assert(
+   has_hook(command.running.script_hooks, name),
+   "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'")
+
+   name = command.running.name .. ":" .. name
+   require("cyan.log").debug("Emitting hook: ", name)
+   for _, s in ipairs(loaded) do
+      if has_hook(s.run_on, name) then
+
+         local box = sandbox.new(function()
+            s.exec(name)
+         end)
+         local ok, err = box:run()
+         if not ok then
+            return false, err
+         end
+      end
+   end
+   return true
 end
 
 return script

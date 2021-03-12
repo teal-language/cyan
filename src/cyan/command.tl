@@ -5,6 +5,7 @@ local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
 local record command
+   running: Command
    record Command
       record Args
          command: string
@@ -33,12 +34,14 @@ local record command
       name: string
       description: string
       argparse: function(argparse.Command)
+      script_hooks: {string}
       exec: function(Args): number -- return value is the exit code
    end
 end
 local type Command = command.Command
 
 local commands <const>: {string:Command} = {}
+local hooks <const>: {string:boolean} = {}
 
 function command.new(cmd: Command)
    if not cmd.name then
@@ -49,6 +52,11 @@ function command.new(cmd: Command)
    end
 
    commands[cmd.name] = cmd
+   if cmd.script_hooks then
+      for _, h in ipairs(cmd.script_hooks) do
+         hooks[cmd.name .. ":" .. h] = true
+      end
+   end
 end
 
 function command.register_all(p: argparse.Parser)

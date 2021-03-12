@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
 local lfs = require("lfs")
 
@@ -10,6 +10,7 @@ local fs = require("cyan.fs")
 local graph = require("cyan.graph")
 local log = require("cyan.log")
 local util = require("cyan.util")
+local script = require("cyan.script")
 
 local ivalues = util.tab.ivalues
 
@@ -62,6 +63,24 @@ common.load_cfg_env_report_errs(true, args)
    elseif not build_dir:is_directory() then
       log.err(string.format("Build dir %q is not a directory", build_dir:to_real_path()))
       return 1
+   end
+
+   if loaded_config.scripts then
+      for _, s in ipairs(loaded_config.scripts) do
+         local ok, err = script.load(s)
+         if not ok then
+            log.err("Error loading script '", s, "':\n   ", err)
+            return 1
+         end
+      end
+   end
+
+   do
+      local ok, err = script.emit_hook("pre")
+      if not ok then
+         log.err("Error in hook 'pre':\n   ", err)
+         return 1
+      end
    end
 
    local include = loaded_config.include or {}
@@ -164,6 +183,14 @@ common.load_cfg_env_report_errs(true, args)
       end
    end
 
+   do
+      local ok, err = script.emit_hook("post")
+      if not ok then
+         log.err("Error in hook 'post':\n   ", err)
+         return 1
+      end
+   end
+
    return exit
 end
 
@@ -174,4 +201,5 @@ command.new({
    argparse = function(cmd)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,
+   script_hooks = { "pre", "post" },
 })

@@ -23,7 +23,7 @@ describe("script", function()
          }))
       end)
 
-      it("should return nil when `run_on` is not {Script.Hook}", function()
+      it("should return nil when `run_on` is not {string}", function()
          assert.is_nil((script.is_valid{
             exec = function() end,
             run_on = ""

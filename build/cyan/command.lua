@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs
 
 
 local tl = require("tl")
@@ -36,9 +36,12 @@ local command = {Command = {Args = {}, }, }
 
 
 
+
+
 local Command = command.Command
 
 local commands = {}
+local hooks = {}
 
 function command.new(cmd)
    if not cmd.name then
@@ -49,6 +52,11 @@ function command.new(cmd)
    end
 
    commands[cmd.name] = cmd
+   if cmd.script_hooks then
+      for _, h in ipairs(cmd.script_hooks) do
+         hooks[cmd.name .. ":" .. h] = true
+      end
+   end
 end
 
 function command.register_all(p)

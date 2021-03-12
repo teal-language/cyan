@@ -63,6 +63,7 @@ do
    args = res
 end
 local cmd = command.get(args.command)
+command.running = cmd
 
 if args.quiet then
    log.info = function() end
