@@ -19,8 +19,8 @@ local type Node = any -- tl.Node
 
 -- tl.Token also not exposed :((((((((
 local type Token = record
-   x: number
-   y: number
+   x: integer
+   y: integer
    tk: string
    kind: string
 end

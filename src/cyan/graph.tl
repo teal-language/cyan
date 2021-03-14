@@ -47,9 +47,9 @@ local function mark_for_compile(n: Node)
    end
 end
 
-local function make_dependent_counter(): function(Node): number
-   local cache <const>: {Node:number} = {}
-   local function count_dependents(n: Node): number
+local function make_dependent_counter(): function(Node): integer
+   local cache <const>: {Node:integer} = {}
+   local function count_dependents(n: Node): integer
       if cache[n] then return cache[n] end
       local deps = 0
       for v in keys(n.dependents) do
@@ -65,8 +65,8 @@ end
 function Dag:nodes(): function(): Node
    local count <const> = make_dependent_counter()
    local most_deps = 0
-   local nodes_by_deps <const>: {number:{Node}} = setmetatable({}, {
-      __index = function(self: {number:{Node}}, key: number): {Node}
+   local nodes_by_deps <const>: {integer:{Node}} = setmetatable({}, {
+      __index = function(self: {integer:{Node}}, key: integer): {Node}
          if key > most_deps then
             most_deps = key
          end
