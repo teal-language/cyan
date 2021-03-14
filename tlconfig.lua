@@ -6,4 +6,6 @@ return {
    warning_error = { "unused", "redeclaration" },
 
    gen_compat = "required",
+
+   scripts = { "scripts/gen_rockspec.lua" },
 }
