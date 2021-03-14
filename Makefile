@@ -4,7 +4,7 @@ LUA = $(SRC:src/%.tl=build/%.lua)
 
 TL = tl
 TLFLAGS = --quiet -I src
-BOOTSTRAPPER = bin/bootstrap
+BOOTSTRAPPER = bin/bootstrap --no-script
 
 build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@

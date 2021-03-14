@@ -323,6 +323,9 @@ function util.run_mock_project(finally, t, use_folder)
             )
          end
       end
+      if t.cmd_output_match_lines.n then
+         batch:add(assert.are.equal, t.cmd_output_match_lines.n, i)
+      end
    end
    if expected_dir_structure then
       batch:add(assert.are.same, expected_dir_structure, actual_dir_structure, "Actual directory structure is not as expected")
