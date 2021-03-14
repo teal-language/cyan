@@ -78,6 +78,8 @@ function script.load(path)
       local _, ext = fs.extension_split(p)
       if ext == ".tl" then
          local r = tl.process(path)
+
+
          if #r.syntax_errors > 0 then
             return nil, "Script has syntax errors"
          elseif #r.type_errors > 0 then
