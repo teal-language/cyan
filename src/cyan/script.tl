@@ -1,11 +1,15 @@
 
 local command <const> = require("cyan.command")
 local sandbox <const> = require("cyan.sandbox")
+local fs <const> = require("cyan.fs")
+local cs <const> = require("cyan.colorstring")
+local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
 local set <const> = util.tab.set
 
 local record Script
+   source: fs.Path
    run_on: {string}
    reads_from: {string}
    writes_to: {string}
@@ -82,6 +86,7 @@ function script.load(path: string): boolean, string
    if not s then
       return nil, err
    end
+   s.source = fs.path.new(path)
    table.insert(loaded, s)
 
    return true
@@ -122,7 +127,11 @@ local function io_env(s: Script): function, function
    end
 end
 
-function script.emit_hook(name: string, ...: any): boolean, string
+---@desc
+--- Emit a hook to run all loaded scripts that run on the given hook. Returns
+--- an iterator that will run the next script when called and returns the path to
+--- the script, whether the script succeeded, and an error message if it didn't
+function script.emitter(name: string, ...: any): function(): fs.Path, boolean, string
    assert(name, "Cannot emit nil hook")
    assert(command.running, "Attempt to emit_hook with no running command")
    assert(
@@ -131,18 +140,31 @@ function script.emit_hook(name: string, ...: any): boolean, string
    )
    name = command.running.name .. ":" .. name
    local args <const> = {...}
-   for _, s in ipairs(loaded) do
-      if has_hook(s.run_on, name) then
-         local setup <const>, restore <const> = io_env(s)
-         setup()
-         local box <const> = sandbox.new(function()
-            s.exec(name, table.unpack(args))
-         end)
-         local ok <const>, err <const> = box:run()
-         restore()
-         if not ok then
-            return false, err
+   return coroutine.wrap(function()
+      for _, s in ipairs(loaded) do
+         if has_hook(s.run_on, name) then
+            local setup <const>, restore <const> = io_env(s)
+            setup()
+            local box <const> = sandbox.new(function()
+               s.exec(name, table.unpack(args))
+            end)
+            local ok <const>, err <const> = box:run()
+            restore()
+            coroutine.yield(s.source, ok, err)
          end
+      end
+   end) as function(): fs.Path, boolean, string
+end
+
+---@desc
+--- Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error
+function script.emit_hook(name: string, ...: any): boolean, string
+   for s, ok, err in script.emitter(name, ...) do
+      if ok then
+         log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))
+      else
+         log.err("Error in script ", cs.highlight(cs.colors.file, s:to_real_path()))
+         return false, err
       end
    end
    return true

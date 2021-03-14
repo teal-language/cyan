@@ -1,11 +1,15 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 local command = require("cyan.command")
 local sandbox = require("cyan.sandbox")
+local fs = require("cyan.fs")
+local cs = require("cyan.colorstring")
+local log = require("cyan.log")
 local util = require("cyan.util")
 
 local set = util.tab.set
 
 local Script = {}
+
 
 
 
@@ -82,6 +86,7 @@ function script.load(path)
    if not s then
       return nil, err
    end
+   s.source = fs.path.new(path)
    table.insert(loaded, s)
 
    return true
@@ -122,7 +127,11 @@ local function io_env(s)
    end
 end
 
-function script.emit_hook(name, ...)
+
+
+
+
+function script.emitter(name, ...)
    assert(name, "Cannot emit nil hook")
    assert(command.running, "Attempt to emit_hook with no running command")
    assert(
@@ -131,18 +140,31 @@ function script.emit_hook(name, ...)
 
    name = command.running.name .. ":" .. name
    local args = { ... }
-   for _, s in ipairs(loaded) do
-      if has_hook(s.run_on, name) then
-         local setup, restore = io_env(s)
-         setup()
-         local box = sandbox.new(function()
-            s.exec(name, _tl_table_unpack(args))
-         end)
-         local ok, err = box:run()
-         restore()
-         if not ok then
-            return false, err
+   return coroutine.wrap(function()
+      for _, s in ipairs(loaded) do
+         if has_hook(s.run_on, name) then
+            local setup, restore = io_env(s)
+            setup()
+            local box = sandbox.new(function()
+               s.exec(name, _tl_table_unpack(args))
+            end)
+            local ok, err = box:run()
+            restore()
+            coroutine.yield(s.source, ok, err)
          end
+      end
+   end)
+end
+
+
+
+function script.emit_hook(name, ...)
+   for s, ok, err in script.emitter(name, ...) do
+      if ok then
+         log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))
+      else
+         log.err("Error in script ", cs.highlight(cs.colors.file, s:to_real_path()))
+         return false, err
       end
    end
    return true

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
 local lfs = require("lfs")
 
@@ -23,15 +23,6 @@ local function exists_and_is_dir(prefix, p)
       return false
    end
    return true
-end
-
-local function emit_hook(name, ...)
-   local ok, err = script.emit_hook(name, ...)
-   if not ok then
-      log.err("Error in hook 'build:", name, "':\n   ", err)
-      coroutine.yield(1)
-   end
-   return ok
 end
 
 local function build(args)
@@ -84,7 +75,9 @@ common.load_cfg_env_report_errs(true, args)
       end
    end
 
-   emit_hook("pre")
+   if not script.emit_hook("pre") then
+      return 1
+   end
 
    local include = loaded_config.include or {}
    local exclude = loaded_config.exclude or {}
@@ -187,7 +180,9 @@ common.load_cfg_env_report_errs(true, args)
    end
 
    if #to_write > 0 then
-      emit_hook("post")
+      if not script.emit_hook("post") then
+         return 1
+      end
    end
 
    return exit
@@ -196,7 +191,7 @@ end
 command.new({
    name = "build",
    description = [[Build a project based on tlconfig.lua.]],
-   exec = coroutine.wrap(build),
+   exec = build,
    argparse = function(cmd)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,

@@ -25,15 +25,6 @@ local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
    return true
 end
 
-local function emit_hook(name: string, ...: any): boolean
-   local ok <const>, err <const> = script.emit_hook(name, ...)
-   if not ok then
-      log.err("Error in hook 'build:", name, "':\n   ", err)
-      coroutine.yield(1)
-   end
-   return ok
-end
-
 local function build(args: command.Command.Args): number
    local starting_dir <const> = fs.current_dir()
    local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
@@ -84,7 +75,9 @@ local function build(args: command.Command.Args): number
       end
    end
 
-   emit_hook("pre")
+   if not script.emit_hook("pre") then
+      return 1
+   end
 
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude or {}
@@ -187,7 +180,9 @@ local function build(args: command.Command.Args): number
    end
 
    if #to_write > 0 then
-      emit_hook("post")
+      if not script.emit_hook("post") then
+         return 1
+      end
    end
 
    return exit
@@ -196,7 +191,7 @@ end
 command.new{
    name = "build",
    description = [[Build a project based on tlconfig.lua.]],
-   exec = coroutine.wrap(build) as function(command.Command.Args): (number),
+   exec = build,
    argparse = function(cmd: argparse.Command)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,
