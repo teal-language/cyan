@@ -1,4 +1,6 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local tl = require("tl")
+
 local command = require("cyan.command")
 local sandbox = require("cyan.sandbox")
 local fs = require("cyan.fs")
@@ -70,8 +72,21 @@ local loaded = {}
 
 function script.load(path)
    local ok, res
+   local p = fs.path.new(path)
    do
-      local box, err = sandbox.from_file(path, _G)
+      local box, err
+      local _, ext = fs.extension_split(p)
+      if ext == ".tl" then
+         local r = tl.process(path)
+         if #r.syntax_errors > 0 then
+            return nil, "Script has syntax errors"
+         elseif #r.type_errors > 0 then
+            return nil, "Script has type errors"
+         end
+         box, err = sandbox.from_string(tl.pretty_print_ast(r.ast), path, _G)
+      else
+         box, err = sandbox.from_file(path, _G)
+      end
       if not box then
          return nil, err
       end
@@ -86,7 +101,7 @@ function script.load(path)
    if not s then
       return nil, err
    end
-   s.source = fs.path.new(path)
+   s.source = p
    table.insert(loaded, s)
 
    return true

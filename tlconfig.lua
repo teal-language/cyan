@@ -7,5 +7,8 @@ return {
 
    gen_compat = "required",
 
-   scripts = { "scripts/gen_rockspec.lua" },
+   scripts = {
+      "scripts/gen_rockspec.lua",
+      "scripts/docgen.tl",
+   },
 }

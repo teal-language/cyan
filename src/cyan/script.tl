@@ -1,4 +1,6 @@
 
+local tl <const> = require("tl")
+
 local command <const> = require("cyan.command")
 local sandbox <const> = require("cyan.sandbox")
 local fs <const> = require("cyan.fs")
@@ -70,8 +72,21 @@ local loaded <const> = {}
 
 function script.load(path: string): boolean, string
    local ok, res: boolean, any
+   local p <const> = fs.path.new(path)
    do
-      local box <const>, err = sandbox.from_file(path, _G)
+      local box, err: sandbox.Sandbox, string
+      local _, ext <const> = fs.extension_split(p)
+      if ext == ".tl" then
+         local r = tl.process(path)
+         if #r.syntax_errors > 0 then
+            return nil, "Script has syntax errors"
+         elseif #r.type_errors > 0 then
+            return nil, "Script has type errors"
+         end
+         box, err = sandbox.from_string(tl.pretty_print_ast(r.ast), path, _G)
+      else
+         box, err = sandbox.from_file(path, _G)
+      end
       if not box then
          return nil, err
       end
@@ -86,7 +101,7 @@ function script.load(path: string): boolean, string
    if not s then
       return nil, err
    end
-   s.source = fs.path.new(path)
+   s.source = p
    table.insert(loaded, s)
 
    return true

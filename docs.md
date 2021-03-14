@@ -65,6 +65,7 @@ local record Config
    preload_modules: {string}
    include_dir: {string}
    module_name: string
+   scripts: {string}
 
    gen_compat: tl.CompatMode
    gen_target: tl.TargetMode
@@ -191,6 +192,15 @@ Inserts a file and its dependencies into a graph
 
 Ignores absolute paths and non `.tl` files
 
+## `cyan.script`
+---
+
+#### `script.emit_hook(name: string, ...: any): boolean, string`
+Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error
+
+#### `script.emitter(name: string, ...: any): function(): fs.Path, boolean, string`
+Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't
+
 ## `cyan.tlcommon`
 ---
 
@@ -286,7 +296,7 @@ Iterate over the integer indexed values of a map
 Iterate over the keys of a map
 
 #### `tab.map(t: {K:V}, fn: function(V): T): {K:T}`
-Create a Set from a list
+Create a new map from `t` by passing each value through `fn`
 
 #### `tab.map_ipairs(t: {T}, fn: function(T): K): function(): number, K`
 iterate over a list like ipairs does, but filter the values through `fn`

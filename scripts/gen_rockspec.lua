@@ -35,8 +35,11 @@ build = {
 }
 ]]
 
+local cs = require("cyan.colorstring")
 local fs = require("cyan.fs")
+local log = require("cyan.log")
 local util = require("cyan.util")
+
 local map = util.tab.map
 
 local function gen_rockspec()
@@ -70,6 +73,7 @@ local function gen_rockspec()
    local fh = io.open(specfile, "w")
    fh:write(template:format(convert(modules, 2), convert(install, 3)))
    fh:close()
+   log.info("Wrote rockspec at ", cs.highlight(cs.colors.file, specfile))
 end
 
 return {
