@@ -145,6 +145,29 @@ describe("build command", function()
          exit_code = 0,
       })
    end)
+   it("should not warn from out of project files", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = [[return {
+               source_dir = "src",
+               build_dir = "build",
+               warning_error = { "unused" }
+            }]],
+            ["foo.tl"] = [[ local x: number; return {} ]],
+            src = {
+               ["bar.tl"] = [[ require"foo" ]],
+            },
+            build = {},
+         },
+         generated_files = {
+            build = {
+               "bar.lua",
+            },
+         },
+         exit_code = 0,
+      })
+   end)
    describe("script hooks", function()
       it("should emit a build:pre hook before doing any actions", function()
          util.run_mock_project(function() end, {

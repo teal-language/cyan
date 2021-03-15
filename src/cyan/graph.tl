@@ -137,10 +137,14 @@ end
 --- Inserts a file and its dependencies into a graph
 ---
 --- Ignores absolute paths and non `.tl` files
-function Dag:insert_file(fstr: string | fs.Path)
+---
+--- If in_dir is provided, dependencies of the given file will not be added to
+--- the graph unless they are inside of the given dir
+function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)
    local f <const> = fstr is fs.Path
       and fstr
       or fs.path.new(fstr as string)
+
    assert(f, "No path given")
    if f:is_absolute() then
       -- If a path is absolute, assume it is out of the project
@@ -163,12 +167,17 @@ function Dag:insert_file(fstr: string | fs.Path)
    local n <const>: Node = make_node(f)
    self._nodes_by_filename[real_path] = n
 
+   local dir <const> = fs.path.ensure(in_dir)
+
    for mod_name in ivalues(res.reqs) do
       -- TODO: should we search for .d.tl files?
       local search_result <const> = common.search_module(mod_name, true)
       if search_result then
          n.modules[mod_name] = search_result
-         self:insert_file(search_result)
+
+         if not dir or dir and search_result:is_in(dir) then
+            self:insert_file(search_result)
+         end
       end
    end
 
@@ -183,10 +192,7 @@ function Dag:insert_file(fstr: string | fs.Path)
 end
 
 function Dag:find(fstr: string | fs.Path): Node
-   local f <const> = fstr is fs.Path
-      and fstr
-      or fs.path.new(fstr as string)
-
+   local f <const> = fs.path.ensure(fstr)
    return self._nodes_by_filename[f:to_real_path()]
 end
 
@@ -196,7 +202,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
-         d:insert_file(dir .. p)
+         d:insert_file(dir .. p, dir)
       end
    end
 

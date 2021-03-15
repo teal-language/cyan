@@ -64,6 +64,16 @@ function path.new(s, use_os_sep)
    return setmetatable(new, PathMt)
 end
 
+
+
+function path.ensure(s)
+   if type(s) == "string" then
+      return path.new(s)
+   else
+      return s
+   end
+end
+
 local function string_is_absolute_path(p)
    if path.separator == "/" then
       return p:sub(1, 1) == "/"
@@ -422,6 +432,23 @@ function Path:relative_to(other)
       table.insert(ret, a[i])
    end
    return table.concat(ret, path.separator)
+end
+
+
+
+
+
+function Path:is_in(dirname)
+   if not dirname then return false end
+   local dir = type(dirname) == "table" and dirname or path.new(dirname)
+   if #self > #dir then return false end
+   for i = 1, #self do
+      if self[i] ~= dir[i] then
+         return false
+      end
+   end
+
+   return true
 end
 
 return path

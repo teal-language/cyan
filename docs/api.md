@@ -59,7 +59,6 @@ Merge the relevant entries of the provided command arguments into the provided c
 local record Config
    build_dir: string
    source_dir: string
-   files: {string}
    include: {string}
    exclude: {string}
    preload_modules: {string}
@@ -109,6 +108,11 @@ Get whether the "mode" attribute of the given path is set to "directory"
 #### `Path:is_file(): boolean`
 Get whether the "mode" attribute of the given path is set to "file"
 
+#### `Path:is_in(dirname: string | Path): boolean`
+returns true if the path is inside the given directory
+
+This does not do any filesystem operations and only determines the result via the paths.
+
 #### `Path:match(patt: string): boolean`
 See if the given path matches the pattern
 
@@ -151,6 +155,9 @@ Convert a `Path` to a string describing a real path
 #### `Path:tostring(): string`
 Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
 
+#### `path.ensure(s: string | Path): Path`
+Ensures `s` is a Path
+
 #### `path.new(s: string, use_os_sep: boolean): Path`
 The `Path` constructor
 
@@ -187,10 +194,12 @@ Recursively iterate over the files in a directory, following the provided `inclu
 ## `cyan.graph`
 ---
 
-#### `Dag:insert_file(fstr: string | fs.Path)`
+#### `Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)`
 Inserts a file and its dependencies into a graph
 
 Ignores absolute paths and non `.tl` files
+
+If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir
 
 ## `cyan.script`
 ---

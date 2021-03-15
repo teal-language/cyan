@@ -1,6 +1,7 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
 local lfs = require("lfs")
+local tl = require("tl")
 
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
@@ -23,6 +24,24 @@ local function exists_and_is_dir(prefix, p)
       return false
    end
    return true
+end
+
+
+local function report_dep_errors(env)
+   local ok = true
+   for name in ivalues(env.loaded_order) do
+      local res = env.loaded[name]
+      if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
+         if (res.syntax_errors and #res.syntax_errors > 0) then
+            common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
+         end
+         if #res.type_errors > 0 then
+            common.report_errors(log.err, res.type_errors, res.filename, "(Out of project) type error")
+         end
+         ok = false
+      end
+   end
+   return ok
 end
 
 local function build(args)
@@ -149,7 +168,6 @@ common.load_cfg_env_report_errs(true, args)
    end
 
    if exit ~= 0 then
-      common.report_env_results(env, loaded_config)
       return exit
    end
 
@@ -158,12 +176,8 @@ common.load_cfg_env_report_errs(true, args)
    end
 
    if exit ~= 0 then
-      common.report_env_results(env, loaded_config)
+      report_dep_errors(env)
       return exit
-   end
-
-   if not common.report_env_results(env, loaded_config) then
-      return 1
    end
 
    for node_ast in ivalues(to_write) do
@@ -183,6 +197,10 @@ common.load_cfg_env_report_errs(true, args)
       if not script.emit_hook("post") then
          return 1
       end
+   end
+
+   if not report_dep_errors(env) then
+      log.warn("There were errors in out of project files. Your project may not work as expected.")
    end
 
    return exit

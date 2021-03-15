@@ -64,6 +64,16 @@ function path.new(s: string, use_os_sep: boolean): Path
    return setmetatable(new, PathMt)
 end
 
+---@desc
+--- Ensures `s` is a Path
+function path.ensure(s: string | Path): Path
+   if s is string then
+      return path.new(s)
+   else
+      return s
+   end
+end
+
 local function string_is_absolute_path(p: string): boolean
    if path.separator == "/" then
       return p:sub(1, 1) == "/"
@@ -422,6 +432,23 @@ function Path:relative_to(other: Path): string
       table.insert(ret, a[i])
    end
    return table.concat(ret, path.separator)
+end
+
+---@desc
+--- returns true if the path is inside the given directory
+---
+--- This does not do any filesystem operations and only determines the result via the paths.
+function Path:is_in(dirname: string | Path): boolean
+   if not dirname then return false end
+   local dir <const> = dirname is Path and dirname or path.new(dirname as string)
+   if #self > #dir then return false end
+   for i = 1, #self do
+      if self[i] ~= dir[i] then
+         return false
+      end
+   end
+
+   return true
 end
 
 return path

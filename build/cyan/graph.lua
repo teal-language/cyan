@@ -137,10 +137,14 @@ end
 
 
 
-function Dag:insert_file(fstr)
+
+
+
+function Dag:insert_file(fstr, in_dir)
    local f = type(fstr) == "table" and
    fstr or
    fs.path.new(fstr)
+
    assert(f, "No path given")
    if f:is_absolute() then
 
@@ -163,12 +167,17 @@ function Dag:insert_file(fstr)
    local n = make_node(f)
    self._nodes_by_filename[real_path] = n
 
+   local dir = fs.path.ensure(in_dir)
+
    for mod_name in ivalues(res.reqs) do
 
       local search_result = common.search_module(mod_name, true)
       if search_result then
          n.modules[mod_name] = search_result
-         self:insert_file(search_result)
+
+         if not dir or dir and search_result:is_in(dir) then
+            self:insert_file(search_result)
+         end
       end
    end
 
@@ -183,10 +192,7 @@ function Dag:insert_file(fstr)
 end
 
 function Dag:find(fstr)
-   local f = type(fstr) == "table" and
-   fstr or
-   fs.path.new(fstr)
-
+   local f = fs.path.ensure(fstr)
    return self._nodes_by_filename[f:to_real_path()]
 end
 
@@ -196,7 +202,7 @@ function graph.scan_dir(dir, include, exclude)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
-         d:insert_file(dir .. p)
+         d:insert_file(dir .. p, dir)
       end
    end
 
