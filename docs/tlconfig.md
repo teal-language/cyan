@@ -3,7 +3,7 @@
 This file describes the layout of your project by returning a table with the following fields:
 
 | Name               | CLI Flag             | Type               | Description |
-| --- | --- | --- | --- | --- |
+| ------------------ | -------------------- | ------------------ | ----------- |
 | `build_dir`        |                      | `string`           | Where to put generated files |
 | `disable_warnings` | `--wdisable`         | `{tl.WarningKind}` | Disable the provided warnings |
 | `exclude`          |                      | `{string}`         | A list of [patterns](#Patterns) describing what files to exclude |
