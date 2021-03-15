@@ -14,7 +14,6 @@ local keys <const>, sort <const>, from <const> = util.tab.keys, util.tab.sort, u
 local record Config
    build_dir: string
    source_dir: string
-   files: {string}
    include: {string}
    exclude: {string}
    preload_modules: {string}
@@ -67,7 +66,6 @@ function config.is_config(c: any): Config, {string}, {string}
 
       include = "{string}",
       exclude = "{string}",
-      files = "{string}",
 
       include_dir = "{string}",
       preload_modules = "{string}",

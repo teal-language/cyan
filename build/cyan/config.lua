@@ -31,7 +31,6 @@ local Config = {}
 
 
 
-
 local config = {
    Config = Config,
 
@@ -67,7 +66,6 @@ function config.is_config(c)
 
       include = "{string}",
       exclude = "{string}",
-      files = "{string}",
 
       include_dir = "{string}",
       preload_modules = "{string}",

@@ -12,12 +12,12 @@ A build system for the Teal language
  - `build`: build a project based on `tlconfig.lua`
  - `init`: initialize a Teal project
 
-# API
+## API
 
 The output of all the commands is much nicer for humans than it is for computers. If you'd like the output of commands, or to be able to load a config file in your own tooling, we provide a small api.
 
-Documentation Coming Eventually™
+Auto-generated documentation can be found [here](docs/api.md).
 
-# tlconfig.lua
+## tlconfig.lua
 
-Documentation Coming Eventually™
+For a quick start, just run `cyan init` to get a barebones `tlconfig.lua`. For a more in depth explanation of the config options, documentation can be found [here](docs/tlconfig.md).
