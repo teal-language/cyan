@@ -34,9 +34,11 @@ local path <const> = {
 -- gets the path components, doesn't set the metatable
 local function parse_string_path(s: string, use_os_sep: boolean): {string}
    local sep <const> = use_os_sep and path.separator or "/"
-   s = s:gsub(sep .. "+$", "")
-   if #s == 0 then
+   s = s:gsub(sep .. "+", sep)
+   if s == "" then
       return {}
+   elseif s:sub(-1) == sep then
+      s = s:sub(1, -2)
    end
 
    local new: {string} = {}
@@ -440,9 +442,17 @@ end
 --- This does not do any filesystem operations and only determines the result via the paths.
 function Path:is_in(dirname: string | Path): boolean
    if not dirname then return false end
-   local dir <const> = dirname is Path and dirname or path.new(dirname as string)
-   if #self > #dir then return false end
-   for i = 1, #self do
+   local dir <const> = path.ensure(dirname)
+   if xor(self:is_absolute(), dir:is_absolute()) then
+      error("attempt to mix absolute and non absolute paths")
+   end
+   if #dir == 0 then
+      return true
+   end
+   if #self < #dir then
+      return false
+   end
+   for i = 1, #dir do
       if self[i] ~= dir[i] then
          return false
       end

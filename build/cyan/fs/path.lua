@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -34,9 +34,11 @@ local path = {
 
 local function parse_string_path(s, use_os_sep)
    local sep = use_os_sep and path.separator or "/"
-   s = s:gsub(sep .. "+$", "")
-   if #s == 0 then
+   s = s:gsub(sep .. "+", sep)
+   if s == "" then
       return {}
+   elseif s:sub(-1) == sep then
+      s = s:sub(1, -2)
    end
 
    local new = {}
@@ -440,9 +442,17 @@ end
 
 function Path:is_in(dirname)
    if not dirname then return false end
-   local dir = type(dirname) == "table" and dirname or path.new(dirname)
-   if #self > #dir then return false end
-   for i = 1, #self do
+   local dir = path.ensure(dirname)
+   if xor(self:is_absolute(), dir:is_absolute()) then
+      error("attempt to mix absolute and non absolute paths")
+   end
+   if #dir == 0 then
+      return true
+   end
+   if #self < #dir then
+      return false
+   end
+   for i = 1, #dir do
       if self[i] ~= dir[i] then
          return false
       end
