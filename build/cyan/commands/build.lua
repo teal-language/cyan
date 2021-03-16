@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
 local lfs = require("lfs")
 local tl = require("tl")
@@ -27,18 +27,20 @@ local function exists_and_is_dir(prefix, p)
 end
 
 
-local function report_dep_errors(env)
+local function report_dep_errors(env, source_dir)
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
-      if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
-         if (res.syntax_errors and #res.syntax_errors > 0) then
-            common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
+      if not fs.path.new(res.filename):is_in(source_dir) then
+         if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
+            if (res.syntax_errors and #res.syntax_errors > 0) then
+               common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
+            end
+            if #res.type_errors > 0 then
+               common.report_errors(log.err, res.type_errors, res.filename, "(Out of project) type error")
+            end
+            ok = false
          end
-         if #res.type_errors > 0 then
-            common.report_errors(log.err, res.type_errors, res.filename, "(Out of project) type error")
-         end
-         ok = false
       end
    end
    return ok
@@ -146,7 +148,7 @@ common.load_cfg_env_report_errs(true, args)
          env = env,
       })
 
-      if common.result_has_errors(result, loaded_config) then
+      if not common.report_result(result, loaded_config) then
          exit = 1
          return
       end
@@ -176,7 +178,7 @@ common.load_cfg_env_report_errs(true, args)
    end
 
    if exit ~= 0 then
-      report_dep_errors(env)
+      report_dep_errors(env, source_dir)
       return exit
    end
 
@@ -199,7 +201,7 @@ common.load_cfg_env_report_errs(true, args)
       end
    end
 
-   if not report_dep_errors(env) then
+   if not report_dep_errors(env, source_dir) then
       log.warn("There were errors in out of project files. Your project may not work as expected.")
    end
 

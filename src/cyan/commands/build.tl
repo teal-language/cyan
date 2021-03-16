@@ -27,18 +27,20 @@ local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
 end
 
 -- in the event that an out of project dependency has a type error, we should report it
-local function report_dep_errors(env: tl.Env): boolean
+local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res <const> = env.loaded[name]
-      if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
-         if (res.syntax_errors and #res.syntax_errors > 0) then
-            common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
+      if not fs.path.new(res.filename):is_in(source_dir) then
+         if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
+            if (res.syntax_errors and #res.syntax_errors > 0) then
+               common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
+            end
+            if #res.type_errors > 0 then
+               common.report_errors(log.err, res.type_errors, res.filename, "(Out of project) type error")
+            end
+            ok = false
          end
-         if #res.type_errors > 0 then
-            common.report_errors(log.err, res.type_errors, res.filename, "(Out of project) type error")
-         end
-         ok = false
       end
    end
    return ok
@@ -146,7 +148,7 @@ local function build(args: command.Command.Args): number
          env = env,
       })
 
-      if common.result_has_errors(result, loaded_config) then
+      if not common.report_result(result, loaded_config) then
          exit = 1
          return
       end
@@ -176,7 +178,7 @@ local function build(args: command.Command.Args): number
    end
 
    if exit ~= 0 then
-      report_dep_errors(env)
+      report_dep_errors(env, source_dir)
       return exit
    end
 
@@ -199,7 +201,7 @@ local function build(args: command.Command.Args): number
       end
    end
 
-   if not report_dep_errors(env) then
+   if not report_dep_errors(env, source_dir) then
       log.warn("There were errors in out of project files. Your project may not work as expected.")
    end
 
