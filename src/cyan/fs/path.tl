@@ -439,21 +439,28 @@ end
 ---@desc
 --- returns true if the path is inside the given directory
 ---
---- This does not do any filesystem operations and only determines the result via the paths.
+--- If relative and absolute paths are mixed, the relative path is assumed to
+--- be in the current working directory (as determined by `lfs.currentdir()`)
 function Path:is_in(dirname: string | Path): boolean
    if not dirname then return false end
    local dir <const> = path.ensure(dirname)
+
+   local a, b = self, dir
    if xor(self:is_absolute(), dir:is_absolute()) then
-      error("attempt to mix absolute and non absolute paths")
+      if self:is_absolute() then
+         b = lfs.currentdir() .. b
+      else
+         a = lfs.currentdir() .. a
+      end
    end
-   if #dir == 0 then
+   if #b == 0 then
       return true
    end
-   if #self < #dir then
+   if #a < #b then
       return false
    end
-   for i = 1, #dir do
-      if self[i] ~= dir[i] then
+   for i = 1, #b do
+      if a[i] ~= b[i] then
          return false
       end
    end

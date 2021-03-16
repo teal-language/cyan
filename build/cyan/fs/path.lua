@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -440,20 +440,27 @@ end
 
 
 
+
 function Path:is_in(dirname)
    if not dirname then return false end
    local dir = path.ensure(dirname)
+
+   local a, b = self, dir
    if xor(self:is_absolute(), dir:is_absolute()) then
-      error("attempt to mix absolute and non absolute paths")
+      if self:is_absolute() then
+         b = lfs.currentdir() .. b
+      else
+         a = lfs.currentdir() .. a
+      end
    end
-   if #dir == 0 then
+   if #b == 0 then
       return true
    end
-   if #self < #dir then
+   if #a < #b then
       return false
    end
-   for i = 1, #dir do
-      if self[i] ~= dir[i] then
+   for i = 1, #b do
+      if a[i] ~= b[i] then
          return false
       end
    end
