@@ -64,7 +64,7 @@ describe("check command", function()
             ["baz.tl"] = [[return 10]],
          },
       }), function()
-         local out = util.run_command("cd foo && " .. util.tl_cmd("check", "bar.tl") .. " 2>&1")
+         local out = util.run_command("cd foo && " .. util.cyan_cmd("check", "bar.tl") .. " 2>&1")
          assert.match("Type checked", out)
       end)
    end)

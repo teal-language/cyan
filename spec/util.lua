@@ -1,12 +1,11 @@
 
 local util = {}
 
-local tl = require("tl")
-local assert = require("luassert")
+assert = require("luassert")
 local lfs = require("lfs")
 
 local current_dir = assert(lfs.currentdir(), "unable to get current dir")
-local tl_executable = current_dir .. "/bin/cyan"
+local cyan_executable = current_dir .. "/bin/cyan"
 
 local t_unpack = unpack or table.unpack
 
@@ -46,51 +45,6 @@ function util.do_in(dir, func, ...)
       error(res[1], 2)
    end
    return t_unpack(res)
-end
-
-function util.mock_io(finally, filemap)
-   assert(type(finally) == "function")
-   assert(type(filemap) == "table")
-
-   local io_open = io.open
-   on_finally(finally, function() io.open = io_open end)
-   io.open = function (filename, mode)
-      local ps = {}
-      for p in filename:gmatch("[^/]+") do
-         table.insert(ps, p)
-      end
-
-      -- try to find suffixes in filemap, from shortest to longest
-      local basename
-      for i = #ps, 1, -1 do
-         basename = table.concat(ps, "/", i)
-         if filemap[basename] then
-            break
-         end
-      end
-
-      if filemap[basename] then
-         -- Return a stub file handle
-         return {
-            read = function (_, format)
-               if format == "*a" then
-                  return filemap[basename]   -- Return fake file content
-               else
-                  error("Not implemented!")  -- Implement other modes if needed
-               end
-            end,
-            close = function () end,
-         }
-      else
-         return io_open(filename, mode)
-      end
-   end
-end
-
-local function unindent(code)
-   assert(type(code) == "string")
-
-   return code:gsub("[ \t]+", " "):gsub("\n[ \t]+", "\n"):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
 local function indent(str)
@@ -155,11 +109,12 @@ end
 util.lua_interpreter = arg[first_arg]
 
 table.insert(cmd_prefix, util.lua_interpreter) -- Lua interpreter used by Busted
-table.insert(cmd_prefix, tl_executable)
+table.insert(cmd_prefix, cyan_executable)
 cmd_prefix = table.concat(cmd_prefix, " ")
-function util.tl_cmd(name, ...)
+
+function util.cyan_cmd(name, ...)
    assert(name, "no command provided")
-   assert(valid_commands[name], "not a valid command: tl " .. tostring(name))
+   assert(valid_commands[name], "not a valid command: cyan " .. tostring(name))
 
    local pre_command_args = {}
    local first = ...
@@ -182,11 +137,12 @@ function util.tl_cmd(name, ...)
 end
 
 math.randomseed(os.time())
-lfs.mkdir("/tmp/teal_tmp")
+local tmp_dir = "/tmp/cyan_tmp"
+lfs.mkdir(tmp_dir)
 local function tmpname()
    local name
    -- This may be overly cautious, but whatever
-   repeat name = ("/tmp/teal_tmp/tl_%08x_%04x%04x"):format(os.time(), math.random(0, 2^16 - 1), math.random(0, 2^16 - 1))
+   repeat name = (tmp_dir .. "/%08x_%04x%04x"):format(os.time(), math.random(0, 2^16 - 1), math.random(0, 2^16 - 1))
    until not lfs.attributes(name)
    return name
 end
@@ -270,8 +226,8 @@ end
 function util.run_mock_project(finally, t, use_folder)
    assert(type(finally) == "function")
    assert(type(t) == "table")
-   assert(type(t.cmd) == "string", "tl <cmd> not given")
-   assert(valid_commands[t.cmd], "Invalid command tl " .. tostring(t.cmd))
+   assert(type(t.cmd) == "string", "cyan <cmd> not given")
+   assert(valid_commands[t.cmd], "Invalid command cyan " .. tostring(t.cmd))
    assert(type(t.exit_code) == "number", "missing exit_code")
 
    local actual_dir_name = use_folder or util.write_tmp_dir(finally, t.dir_structure)
@@ -284,7 +240,7 @@ function util.run_mock_project(finally, t, use_folder)
 
    local pd, actual_output, actual_dir_structure
    util.do_in(actual_dir_name, function()
-      local cmd = util.tl_cmd(t.cmd, t.pre_args or {}, t_unpack(t.args or {})) .. "2>&1"
+      local cmd = util.cyan_cmd(t.cmd, t.pre_args or {}, t_unpack(t.args or {})) .. "2>&1"
       pd = assert(io.popen(cmd, "r"))
       actual_output = pd:read("*a")
       if expected_dir_structure then
@@ -341,20 +297,6 @@ function util.read_file(name)
    local output = fd:read("*a")
    fd:close()
    return output
-end
-
-function util.assert_popen_close(want1, want2, want3, ret1, ret2, ret3)
-   assert(want1 == nil or type(want1) == "boolean")
-   assert(type(want2) == "string")
-   assert(type(want3) == "number")
-
-   if _VERSION == "Lua 5.3" then
-      Batch:new("popen close")
-         :add(assert.same, want1, ret1)
-         :add(assert.same, want2, ret2)
-         :add(assert.same, want3, ret3)
-         :assert()
-   end
 end
 
 function util.run_command(cmd)
