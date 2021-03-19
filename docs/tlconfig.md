@@ -99,21 +99,16 @@ Scripts let you run arbitrary Lua/Teal code in the middle of commands. This is i
 ```
 record
    run_on: {string}
-   reads_from: {string}
-   writes_to: {string}
    exec: function(string, ...: any)
 end
 ```
-
-`reads_from`, `writes_to`, and `exec` are fairly self-explanatory.
- - `reads_from` allows you to call `io.open` on the given paths with `"r"`
- - `writes_to` allows you to call `io.open` on the given paths with `"w"`
- - `exec` is the body of the script, or what will get executed.
+`exec` is the body of the script, or what will get executed.
 
 `run_on` is an array of what _hooks_ the script will be run on. A hook is a string of the form:
 `"command_name:step"`. Currently the only hooks that exist are
  - `"build:pre"`: before scanning your source directory
  - `"build:post"`: after compiling source files, does not run when no work is done
+ - `"build:file_updated"`: emitted when a source file is newer than it's compilation target, passes a `cyan.fs.Path` object that describes the path to the source file to the hook
 
 The first argument of `exec` is the hook that was emitted by the command, along with any arbitrary data that the command chooses to call the hook with.
 

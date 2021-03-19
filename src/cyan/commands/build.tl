@@ -116,16 +116,31 @@ local function build(args: command.Command.Args): number
    end
 
    local function source_is_newer(src: fs.Path): boolean
-      if args.update_all then return true end
-      local target <const> = get_output_name(src)
-      local in_t <const>, out_t <const> = src:mod_time(), target:mod_time()
-      if not out_t then
-         return true
+      local newer: boolean
+      if args.update_all then
+         newer = true
+      else
+         local target <const> = get_output_name(src)
+         local in_t <const>, out_t <const> = src:mod_time(), target:mod_time() or -1
+         newer = in_t > out_t
       end
-      return in_t > out_t
+      if newer then
+         if not script.emit_hook("file_updated", src:copy()) then
+            exit = 1
+            coroutine.yield()
+         end
+      end
+      return newer
    end
 
-   dag:mark_each(source_is_newer)
+   local res = coroutine.wrap(function(): boolean
+      dag:mark_each(source_is_newer)
+      return true
+   end)()
+
+   if not res then
+      return exit
+   end
 
    local function display_filename(f: fs.Path): cs.ColorString
       return cs.highlight(cs.colors.file, f:relative_to(starting_dir))
@@ -215,6 +230,6 @@ command.new{
    argparse = function(cmd: argparse.Command)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,
-   script_hooks = { "pre", "post" },
+   script_hooks = { "pre", "post", "file_updated" },
 }
 

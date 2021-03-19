@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
 local lfs = require("lfs")
 local tl = require("tl")
@@ -116,16 +116,31 @@ common.load_cfg_env_report_errs(true, args)
    end
 
    local function source_is_newer(src)
-      if args.update_all then return true end
-      local target = get_output_name(src)
-      local in_t, out_t = src:mod_time(), target:mod_time()
-      if not out_t then
-         return true
+      local newer
+      if args.update_all then
+         newer = true
+      else
+         local target = get_output_name(src)
+         local in_t, out_t = src:mod_time(), target:mod_time() or -1
+         newer = in_t > out_t
       end
-      return in_t > out_t
+      if newer then
+         if not script.emit_hook("file_updated", src:copy()) then
+            exit = 1
+            coroutine.yield()
+         end
+      end
+      return newer
    end
 
-   dag:mark_each(source_is_newer)
+   local res = coroutine.wrap(function()
+      dag:mark_each(source_is_newer)
+      return true
+   end)()
+
+   if not res then
+      return exit
+   end
 
    local function display_filename(f)
       return cs.highlight(cs.colors.file, f:relative_to(starting_dir))
@@ -215,5 +230,5 @@ command.new({
    argparse = function(cmd)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
    end,
-   script_hooks = { "pre", "post" },
+   script_hooks = { "pre", "post", "file_updated" },
 })

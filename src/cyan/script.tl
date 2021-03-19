@@ -122,7 +122,7 @@ function script.emit_hook(name: string, ...: any): boolean, string
       if ok then
          log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))
       else
-         log.err("Error in script ", cs.highlight(cs.colors.file, s:to_real_path()))
+         log.err("Error in script ", cs.highlight(cs.colors.file, s:to_real_path()), ":\n   ", err)
          return false, err
       end
    end
