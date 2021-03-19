@@ -111,7 +111,7 @@ Get whether the "mode" attribute of the given path is set to "file"
 #### `Path:is_in(dirname: string | Path): boolean`
 returns true if the path is inside the given directory
 
-This does not do any filesystem operations and only determines the result via the paths.
+If relative and absolute paths are mixed, the relative path is assumed to be in the current working directory (as determined by `lfs.currentdir()`)
 
 #### `Path:match(patt: string): boolean`
 See if the given path matches the pattern

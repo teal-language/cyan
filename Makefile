@@ -9,13 +9,17 @@ BOOTSTRAPPER = bin/bootstrap --no-script
 build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@
 
-default: $(LUA)
+default: build/cyan/fs build/cyan/commands $(LUA)
+
+build/cyan/fs:
+	mkdir -p $@
+build/cyan/commands:
+	mkdir -p $@
 
 all: clean default
 
 clean:
 	rm -rf build tmp
-	mkdir -p build/cyan/fs build/cyan/commands
 
 bootstrap: default
 	@echo "Initial build"

@@ -74,7 +74,6 @@ local function gen_rockspec()
 end
 
 return {
-   writes_to = { specfile },
    run_on = { "build:post" },
    exec = gen_rockspec,
 }

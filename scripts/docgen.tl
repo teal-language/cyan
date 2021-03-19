@@ -10,13 +10,13 @@ local docfile <const> = fs.path.new("docs/api.md")
 local function exec()
    local has_ltreesitter <const>, ts <const> = pcall(require, "ltreesitter")
    if not has_ltreesitter then
-      log.err("docgen requires the ltreesitter module")
+      log.warn("docgen requires the ltreesitter module")
       return
    end
 
    local has_teal_parser, teal_parser <const> = pcall(ts.require, "teal")
    if not has_teal_parser then
-      log.err("docgen requires tree-sitter-teal, which ltreesitter could not find")
+      log.warn("docgen requires tree-sitter-teal, which ltreesitter could not find")
       return
    end
 
@@ -152,6 +152,5 @@ end
 
 return {
    run_on = { "build:post" },
-   writes_to = { docfile:to_real_path() },
    exec = exec,
 }

@@ -6,15 +6,10 @@ local sandbox <const> = require("cyan.sandbox")
 local fs <const> = require("cyan.fs")
 local cs <const> = require("cyan.colorstring")
 local log <const> = require("cyan.log")
-local util <const> = require("cyan.util")
-
-local set <const> = util.tab.set
 
 local record Script
    source: fs.Path
    run_on: {string}
-   reads_from: {string}
-   writes_to: {string}
    exec: function(string, ...: any)
 end
 
@@ -28,8 +23,6 @@ function script.is_valid(x: any): Script, string
    local maybe <const> = {
       run_on = (x as table).run_on,
       exec = (x as table).exec,
-      reads_from = (x as table).reads_from,
-      writes_to = (x as table).writes_to,
    }
 
    if not maybe.exec or type(maybe.exec) ~= "function" then
@@ -41,27 +34,6 @@ function script.is_valid(x: any): Script, string
    for _, v in ipairs(maybe.run_on as {any}) do
       if not v is string then
          return nil, "script 'run_on' field must be a {string}"
-      end
-   end
-
-   if maybe.reads_from then
-      if type(maybe.reads_from) ~= "table" then
-         return nil, "script 'reads_from' field must be a {string}"
-      end
-      for _, v in ipairs(maybe.reads_from as {any}) do
-         if not v is string then
-            return nil, "script 'reads_from' field must be a {string}"
-         end
-      end
-   end
-   if maybe.writes_to then
-      if type(maybe.writes_to) ~= "table" then
-         return nil, "script 'writes_to' field must be a {string}"
-      end
-      for _, v in ipairs(maybe.writes_to as {any}) do
-         if not v is string then
-            return nil, "script 'writes_to' field must be a {string}"
-         end
       end
    end
 
@@ -117,33 +89,6 @@ local function has_hook(s: {string}, name: string): boolean
    end
 end
 
-local function io_env(s: Script): function, function
-   local orig <const> = io
-   local writable <const> = set(s.writes_to or {})
-   local readable <const> = set(s.reads_from or {})
-   return function()
-      _G["io"] = {
-         open = function(name: string, mode: string): FILE, string
-            if mode:match("^%*?r") then
-               if readable[name] then
-                  return orig.open(name, mode)
-               else
-                  return nil, "Script has not specified " .. tostring(name) .. " as readable"
-               end
-            elseif mode:match("^%*?w") then
-               if writable[name] then
-                  return orig.open(name, mode)
-               else
-                  return nil, "Script has not specified " .. tostring(name) .. " as writable"
-               end
-            end
-         end
-      }
-   end, function()
-      _G["io"] = orig
-   end
-end
-
 ---@desc
 --- Emit a hook to run all loaded scripts that run on the given hook. Returns
 --- an iterator that will run the next script when called and returns the path to
@@ -160,13 +105,10 @@ function script.emitter(name: string, ...: any): function(): fs.Path, boolean, s
    return coroutine.wrap(function()
       for _, s in ipairs(loaded) do
          if has_hook(s.run_on, name) then
-            local setup <const>, restore <const> = io_env(s)
-            setup()
             local box <const> = sandbox.new(function()
                s.exec(name, table.unpack(args))
             end)
             local ok <const>, err <const> = box:run()
-            restore()
             coroutine.yield(s.source, ok, err)
          end
       end
