@@ -1,6 +1,10 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
+local tl = require("tl")
 local command = require("cyan.command")
 local log = require("cyan.log")
+local util = require("cyan.util")
+local keys, from, sort =
+util.tab.keys, util.tab.from, util.tab.sort
 
 local parser = argparse("cyan", "The Teal build system")
 
@@ -12,12 +16,15 @@ parser:option("-I --include-dir", "Prepend this directory to the module search p
 argname("<directory>"):
 count("*")
 
+local warnings = sort(from(keys(tl.warning_kinds)))
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings"):
 argname("<warning>"):
+choices(warnings):
 count("*")
 
 parser:option("--werror", "Promote the given kind of warning to an error. Use '--werror all' to promote all warnings to errors"):
 argname("<warning>"):
+choices(warnings):
 count("*")
 
 parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions."):

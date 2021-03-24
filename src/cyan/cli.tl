@@ -1,6 +1,10 @@
 local argparse <const> = require("argparse")
+local tl <const> = require("tl")
 local command <const> = require("cyan.command")
 local log <const> = require("cyan.log")
+local util <const> = require("cyan.util")
+local keys <const>, from <const>, sort <const>
+   = util.tab.keys, util.tab.from, util.tab.sort
 
 local parser <const> = argparse("cyan", "The Teal build system")
 
@@ -12,12 +16,15 @@ parser:option("-I --include-dir", "Prepend this directory to the module search p
       :argname("<directory>")
       :count("*")
 
+local warnings <const> = sort(from(keys(tl.warning_kinds)))
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings")
       :argname("<warning>")
+      :choices(warnings)
       :count("*")
 
 parser:option("--werror", "Promote the given kind of warning to an error. Use '--werror all' to promote all warnings to errors")
       :argname("<warning>")
+      :choices(warnings)
       :count("*")
 
 parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions.")
