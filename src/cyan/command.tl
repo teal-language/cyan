@@ -1,48 +1,54 @@
 
--- The common interface for commands to implement
+---@brief
+--- The common interface for commands to implement
 
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
-local record command
-   running: Command
-   record Command
-      record Args
-         command: string
-         preload: {string}
-         include_dir: {string}
-         wdisable: {string}
-         werror: {string}
-         gen_compat: tl.CompatMode
-         gen_target: tl.TargetMode
-         quiet: boolean
-         preload_modules: {string}
+local record Command
+   record Args
+      command: string
+      preload: {string}
+      include_dir: {string}
+      wdisable: {string}
+      werror: {string}
+      gen_compat: tl.CompatMode
+      gen_target: tl.TargetMode
+      quiet: boolean
+      preload_modules: {string}
 
-         -- These should be in some sort of subtype/interface made by the commands
-         files: {string}
-         output: string
-         script: {string}
+      -- These should be in some sort of subtype/interface made by the commands
+      files: {string}
+      output: string
+      script: {string}
 
-         update_all: boolean
+      update_all: boolean
 
-         directory: string
-         source_dir: string
-         build_dir: string
-         force: boolean
-      end
-
-      name: string
-      description: string
-      argparse: function(argparse.Command)
-      script_hooks: {string}
-      exec: function(Args): number -- return value is the exit code
+      directory: string
+      source_dir: string
+      build_dir: string
+      force: boolean
    end
+
+   name: string
+   description: string
+   argparse: function(argparse.Command)
+   script_hooks: {string}
+   exec: function(Args): integer -- return value is the exit code
 end
-local type Command = command.Command
+local command <const> = {
+   running: Command = nil,
+   Command = Command,
+}
 
 local commands <const>: {string:Command} = {}
 local hooks <const>: {string:boolean} = {}
 
+---@desc
+--- Create a new command
+---
+--- This is stored in an internal cache and will do nothing unless
+--- `command.register_all` is called afterwards
 function command.new(cmd: Command)
    if not cmd.name then
       error("Attempt to create a command without a 'name: string' field", 2)
@@ -59,6 +65,8 @@ function command.new(cmd: Command)
    end
 end
 
+---@desc
+--- Install all commands created with `command.new` into the given parser
 function command.register_all(p: argparse.Parser)
    for name, cmd in pairs(commands) do
       local c <const> = p:command(name, cmd.description)
@@ -68,6 +76,10 @@ function command.register_all(p: argparse.Parser)
    end
 end
 
+---@desc
+--- Get a command that was created with `command.new`
+---
+--- Works whether or not `command.register_all` was called
 function command.get(name: string): Command
    return commands[name]
 end

@@ -44,14 +44,17 @@ parser:command_target("command")
 
 command.new{
    name = "help",
-   exec = function(): number
+   description = [[Show this message and exit]],
+   exec = function(): integer
       log.info(parser:get_help())
       return 0
    end,
 }
 
 parser:flag("-h --help")
-      :action(function() os.exit(command.get("help").exec()) end)
+      :action(function()
+         os.exit(command.get("help").exec())
+      end)
 
 require("cyan.commands.initialize")
 require("cyan.commands.check-gen")
@@ -80,7 +83,7 @@ if args.quiet then
    log.warn = function() end
 end
 
-local exit: number = 1
+local exit: integer = 1
 do
    local ok <const>, res <const> = xpcall(function()
       exit = cmd.exec(args)

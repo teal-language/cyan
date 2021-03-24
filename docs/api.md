@@ -40,6 +40,22 @@ The main object that this library consumes and produces. It basically implements
 
 Colors are described as arrays of numbers that directly correspond to ANSI escape sequences
 
+## `cyan.command`
+---
+
+#### `command.get(name: string): Command`
+Get a command that was created with `command.new`
+
+Works whether or not `command.register_all` was called
+
+#### `command.new(cmd: Command)`
+Create a new command
+
+This is stored in an internal cache and will do nothing unless `command.register_all` is called afterwards
+
+#### `command.register_all(p: argparse.Parser)`
+Install all commands created with `command.new` into the given parser
+
 ## `cyan.config`
 ---
 

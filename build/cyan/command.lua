@@ -1,10 +1,11 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs
 
 
+
 local tl = require("tl")
 local argparse = require("argparse")
 
-local command = {Command = {Args = {}, }, }
+local Command = {Args = {}, }
 
 
 
@@ -35,13 +36,18 @@ local command = {Command = {Args = {}, }, }
 
 
 
-
-
-
-local Command = command.Command
+local command = {
+   running = nil,
+   Command = Command,
+}
 
 local commands = {}
 local hooks = {}
+
+
+
+
+
 
 function command.new(cmd)
    if not cmd.name then
@@ -59,6 +65,8 @@ function command.new(cmd)
    end
 end
 
+
+
 function command.register_all(p)
    for name, cmd in pairs(commands) do
       local c = p:command(name, cmd.description)
@@ -67,6 +75,10 @@ function command.register_all(p)
       end
    end
 end
+
+
+
+
 
 function command.get(name)
    return commands[name]

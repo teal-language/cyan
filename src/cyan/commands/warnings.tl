@@ -17,7 +17,7 @@ local pad_left <const> = util.str.pad_left
 local values <const>, set <const>, keys <const>, from <const>, sort <const>
    = util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort
 
-local function exec(args: command.Command.Args): number
+local function exec(args: command.Command.Args): integer
    local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    local c <const> = common.load_config_report_errs(config_path:to_real_path(), args)
 

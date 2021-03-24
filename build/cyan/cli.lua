@@ -44,6 +44,7 @@ parser:command_target("command")
 
 command.new({
    name = "help",
+   description = [[Show this message and exit]],
    exec = function()
       log.info(parser:get_help())
       return 0
@@ -51,7 +52,9 @@ command.new({
 })
 
 parser:flag("-h --help"):
-action(function() os.exit(command.get("help").exec()) end)
+action(function()
+   os.exit(command.get("help").exec())
+end)
 
 require("cyan.commands.initialize")
 require("cyan.commands.check-gen")
