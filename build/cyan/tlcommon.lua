@@ -190,9 +190,16 @@ end
 
 function common.report_result(r, c)
    local warning_error = set(c.warning_error or {})
+   local disabled_warnings = set(c.disable_warnings or {})
+
    local werrors, warnings = filter(r.warnings or {}, function(w)
       return warning_error[w.tag]
    end)
+
+   warnings = filter(warnings, function(w)
+      return not disabled_warnings[w.tag]
+   end)
+
    local function report(logfn, arr, category)
       if arr and #arr > 0 then
          common.report_errors(logfn, arr, r.filename, category)

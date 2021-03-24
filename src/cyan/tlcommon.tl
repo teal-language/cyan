@@ -190,9 +190,16 @@ end
 --- Returns if there were any warnings or unknowns. May return `true` even if some warnings were reported
 function common.report_result(r: tl.Result, c: config.Config): boolean
    local warning_error <const> = set(c.warning_error or {})
-   local werrors <const>, warnings <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
+   local disabled_warnings <const> = set(c.disable_warnings or {})
+
+   local werrors <const>, warnings = filter(r.warnings or {}, function(w: tl.Error): boolean
       return warning_error[w.tag]
    end)
+
+   warnings = filter(warnings, function(w: tl.Error): boolean
+      return not disabled_warnings[w.tag]
+   end)
+
    local function report(logfn: function(...: any), arr: {tl.Error}, category: string): boolean
       if arr and #arr > 0 then
          common.report_errors(logfn, arr, r.filename, category)

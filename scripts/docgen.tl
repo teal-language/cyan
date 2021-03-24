@@ -14,9 +14,9 @@ local function exec()
       return
    end
 
-   local has_teal_parser, teal_parser <const> = pcall(ts.require, "teal")
+   local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "teal")
    if not has_teal_parser then
-      log.warn("docgen requires tree-sitter-teal, which ltreesitter could not find")
+      log.warn("docgen requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
       return
    end
 
