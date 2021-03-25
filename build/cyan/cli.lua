@@ -51,7 +51,7 @@ command.new({
    end,
 })
 
-parser:flag("-h --help"):
+parser:flag("-h --help", "Show the help message and exit"):
 action(function()
    os.exit(command.get("help").exec())
 end)

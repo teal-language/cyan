@@ -117,7 +117,7 @@ local function exec()
          elseif d.kind == "brief" then
             brief = table.concat(d.content, "\n\n") .. "\n\n"
          else
-            log.err("Unhandled node kind: ", node_kind)
+            log.warn("Unhandled node kind: ", node_kind)
          end
       end
 
