@@ -43,6 +43,8 @@ Colors are described as arrays of numbers that directly correspond to ANSI escap
 ## `cyan.command`
 ---
 
+The common interface for commands to implement
+
 #### `command.get(name: string): Command`
 Get a command that was created with `command.new`
 

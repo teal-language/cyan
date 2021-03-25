@@ -7,6 +7,7 @@ local keys <const>, from <const>, sort <const>
    = util.tab.keys, util.tab.from, util.tab.sort
 
 local parser <const> = argparse("cyan", "The Teal build system")
+parser:add_help(false)
 
 parser:option("-l --preload", "Execute the equivalent of require('modulename') before processing Teal files.")
       :argname("<modulename>")
@@ -51,7 +52,7 @@ command.new{
    end,
 }
 
-parser:flag("-h --help", "Show the help message and exit")
+parser:flag("-h --help", "Show this help message and exit")
       :action(function()
          os.exit(command.get("help").exec())
       end)
