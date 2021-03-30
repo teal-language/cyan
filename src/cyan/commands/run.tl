@@ -11,7 +11,7 @@ local function add_to_argparser(cmd: argparse.Command)
       :args("+")
 end
 
-local function run(args: command.Command.Args): integer
+local function run(args: command.Args): integer
    local _, cfg <const>, env <const> = common.load_cfg_env_report_errs(false, args)
 
    local arg_list <const> = args["script"] as {string}

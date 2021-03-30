@@ -5,31 +5,32 @@
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
+local record Args
+   command: string
+   include_dir: {string}
+   wdisable: {string}
+   werror: {string}
+   gen_compat: tl.CompatMode
+   gen_target: tl.TargetMode
+   quiet: boolean
+   global_env_def: string
+
+   -- TODO: These should be in some sort of subtype/interface made by the commands
+   files: {string}
+   output: string
+   script: {string}
+
+   update_all: boolean
+
+   directory: string
+   source_dir: string
+   build_dir: string
+   force: boolean
+end
+
+---@desc
+--- The interface
 local record Command
-   record Args
-      command: string
-      preload: {string}
-      include_dir: {string}
-      wdisable: {string}
-      werror: {string}
-      gen_compat: tl.CompatMode
-      gen_target: tl.TargetMode
-      quiet: boolean
-      preload_modules: {string}
-
-      -- These should be in some sort of subtype/interface made by the commands
-      files: {string}
-      output: string
-      script: {string}
-
-      update_all: boolean
-
-      directory: string
-      source_dir: string
-      build_dir: string
-      force: boolean
-   end
-
    name: string
    description: string
    argparse: function(argparse.Command)
@@ -39,6 +40,7 @@ end
 local command <const> = {
    running: Command = nil,
    Command = Command,
+   Args = Args,
 }
 
 local commands <const>: {string:Command} = {}

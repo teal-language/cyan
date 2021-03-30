@@ -68,7 +68,7 @@ function config.is_config(c)
       exclude = "{string}",
 
       include_dir = "{string}",
-      preload_modules = "{string}",
+      global_env_def = "string",
       scripts = "{string}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -158,10 +158,11 @@ end
 function config.merge_with_args(cfg, args)
    args = args or {}
 
+   cfg.global_env_def = args.global_env_def or cfg.global_env_def
+
    cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
    cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
    cfg.warning_error = merge_list(cfg.warning_error, args.werror)
-   cfg.preload_modules = merge_list(cfg.preload_modules, args.preload)
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target

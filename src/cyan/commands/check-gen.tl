@@ -15,8 +15,8 @@ local util <const> = require("cyan.util")
 
 local map_ipairs <const> = util.tab.map_ipairs
 
-local function command_exec(should_compile: boolean): function(command.Command.Args): integer
-   return function(args: command.Command.Args): integer
+local function command_exec(should_compile: boolean): function(command.Args): integer
+   return function(args: command.Args): integer
       local starting_dir <const> = fs.current_dir()
       local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
       local root_dir: fs.Path

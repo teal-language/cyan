@@ -65,7 +65,7 @@ require("cyan.commands.warnings")
 
 command.register_all(parser)
 
-local type Args = command.Command.Args
+local type Args = command.Args
 local args: Args
 do
    local ok <const>, res <const> = parser:pparse()

@@ -172,6 +172,8 @@ function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file:
    )
 end
 
+---@desc
+--- Returns whether or not the result has errors. Doesn't print/log anything
 function common.result_has_errors(r: tl.Result, c: config.Config): boolean
    local warning_error <const> = set(c.warning_error or {})
    local werrors <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
@@ -229,8 +231,8 @@ end
 
 ---@desc
 --- Initialize a strict Teal environment
-function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, preload: {string}): tl.Env, string
-   return tl.init_env(false, gen_compat, gen_target, preload)
+function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string
+   return tl.init_env(false, gen_compat, gen_target, {env_def})
 end
 
 local pretty_print_ast <const> = tl.pretty_print_ast as function(Node): string
@@ -240,7 +242,7 @@ end
 
 ---@desc
 --- Load a config through `cyan.load_with_args` and report the errors, returning nil if there were any errors
-function common.load_config_report_errs(path: string, args: command.Command.Args): config.Config
+function common.load_config_report_errs(path: string, args: command.Args): config.Config
    -- reports errors in the actual config, not if the config wasn't found
    local c <const>, errs <const>, warnings <const> = config.load_with_args(args)
    if #warnings > 0 then
@@ -334,7 +336,7 @@ function common.init_env_from_cfg(cfg: config.Config): tl.Env, string
       common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
-   local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.preload_modules)
+   local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.global_env_def)
    if not env then
       return nil, err
    end
@@ -344,7 +346,7 @@ end
 
 ---@desc
 --- Load the config file and initialize a Teal environment using it
-function common.load_cfg_env_report_errs(require_config: boolean, args: command.Command.Args): boolean, config.Config, tl.Env
+function common.load_cfg_env_report_errs(require_config: boolean, args: command.Args): boolean, config.Config, tl.Env
    local cfg = common.load_config_report_errs(config.filename)
    if not cfg then
       if require_config then

@@ -10,7 +10,7 @@ local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 
-local function exec(args: command.Command.Args): integer
+local function exec(args: command.Args): integer
    if not args.force then
       local found_config <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
       if found_config and found_config:exists() then
@@ -76,7 +76,6 @@ local function exec(args: command.Command.Args): integer
       end
       ins(1, "},\n", name)
    end
-   add_str_array("preload_modules", args.preload)
    add_str_array("include_dir", args.include_dir)
    add_str_array("disable_warnings", args.wdisable)
    add_str_array("warning_error", args.werror)

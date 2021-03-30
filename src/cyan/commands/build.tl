@@ -46,7 +46,7 @@ local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
    return ok
 end
 
-local function build(args: command.Command.Args): integer
+local function build(args: command.Args): integer
    local starting_dir <const> = fs.current_dir()
    local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
    if not config_path then

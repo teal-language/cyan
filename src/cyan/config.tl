@@ -16,7 +16,7 @@ local record Config
    source_dir: string
    include: {string}
    exclude: {string}
-   preload_modules: {string}
+   global_env_def: string
    include_dir: {string}
    module_name: string
    scripts: {string}
@@ -68,7 +68,7 @@ function config.is_config(c: any): Config, {string}, {string}
       exclude = "{string}",
 
       include_dir = "{string}",
-      preload_modules = "{string}",
+      global_env_def = "string",
       scripts = "{string}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -155,19 +155,20 @@ end
 
 ---@desc
 --- Merge the relevant entries of the provided command arguments into the provided config table
-function config.merge_with_args(cfg: Config, args: command.Command.Args)
+function config.merge_with_args(cfg: Config, args: command.Args)
    args = args or {}
+
+   cfg.global_env_def = args.global_env_def or cfg.global_env_def
 
    cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
    cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
    cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
-   cfg.preload_modules = merge_list(cfg.preload_modules, args.preload)
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target
 end
 
-function config.load_with_args(args: command.Command.Args): Config, {string}, {string}
+function config.load_with_args(args: command.Args): Config, {string}, {string}
    local cfg <const>, err <const>, warnings <const> = config.load()
    if not cfg then
       return nil, err, {}

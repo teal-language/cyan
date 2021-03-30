@@ -5,7 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local tl = require("tl")
 local argparse = require("argparse")
 
-local Command = {Args = {}, }
+local Args = {}
 
 
 
@@ -30,6 +30,7 @@ local Command = {Args = {}, }
 
 
 
+local Command = {}
 
 
 
@@ -39,6 +40,7 @@ local Command = {Args = {}, }
 local command = {
    running = nil,
    Command = Command,
+   Args = Args,
 }
 
 local commands = {}

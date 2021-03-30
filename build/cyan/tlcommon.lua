@@ -172,6 +172,8 @@ function common.report_errors(logfn, errs, file, category)
 
 end
 
+
+
 function common.result_has_errors(r, c)
    local warning_error = set(c.warning_error or {})
    local werrors = filter(r.warnings or {}, function(w)
@@ -229,8 +231,8 @@ end
 
 
 
-function common.init_teal_env(gen_compat, gen_target, preload)
-   return tl.init_env(false, gen_compat, gen_target, preload)
+function common.init_teal_env(gen_compat, gen_target, env_def)
+   return tl.init_env(false, gen_compat, gen_target, { env_def })
 end
 
 local pretty_print_ast = tl.pretty_print_ast
@@ -334,7 +336,7 @@ function common.init_env_from_cfg(cfg)
       common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
-   local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.preload_modules)
+   local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.global_env_def)
    if not env then
       return nil, err
    end

@@ -76,7 +76,6 @@ local function exec(args)
       end
       ins(1, "},\n", name)
    end
-   add_str_array("preload_modules", args.preload)
    add_str_array("include_dir", args.include_dir)
    add_str_array("disable_warnings", args.wdisable)
    add_str_array("warning_error", args.werror)
