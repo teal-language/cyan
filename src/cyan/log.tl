@@ -17,8 +17,8 @@ do
    }
    if ok then
       inspect = function(x: any): string
-         if type(x) == "string" then
-            return x as string
+         if x is string then
+            return x
          else
             return actual_inspect(x, inspect_opts)
          end
@@ -32,17 +32,17 @@ local longest_prefix = 10
 
 local function logfn(
    stream: FILE,
-   prefix: string,
-   cont: string,
+   prefix: string | cs.ColorString,
+   cont: string | cs.ColorString,
    inspector: function(any): string
 ): function(...: any)
    inspector = inspector or tostring
-   local prefix_len <const> = #prefix
+   local prefix_len <const> = #(prefix as string)
    longest_prefix = prefix_len > longest_prefix
       and prefix_len
       or longest_prefix
-   prefix = prefix and prefix .. " " or ""
-   cont = cont and cont .. " " or "... "
+   prefix = prefix and (prefix as string) .. " " or ""
+   cont = cont and (cont as string) .. " " or "... "
    return function(...: any)
       stream:write(tostring(str.pad_left(prefix, longest_prefix)))
       for i = 1, select("#", ...) do
@@ -62,24 +62,24 @@ end
 local log <const> = {
    debug = logfn(
       io.stderr,
-      cs.highlight(cs.colors.debug, "DEBUG") as string,
-      cs.highlight(cs.colors.error, "...") as string,
+      cs.highlight(cs.colors.debug, "DEBUG"),
+      cs.highlight(cs.colors.error, "..."),
       inspect
    ),
    err = logfn(
       io.stderr,
-      cs.highlight(cs.colors.error, "Error") as string,
-      cs.highlight(cs.colors.error, "...") as string
+      cs.highlight(cs.colors.error, "Error"),
+      cs.highlight(cs.colors.error, "...")
    ),
    warn = logfn(
       io.stderr,
-      cs.highlight(cs.colors.warn, "Warn") as string,
-      cs.highlight(cs.colors.warn, "...") as string
+      cs.highlight(cs.colors.warn, "Warn"),
+      cs.highlight(cs.colors.warn, "...")
    ),
    info = logfn(
       io.stdout,
-      cs.highlight(cs.colors.teal, "Info") as string,
-      cs.highlight(cs.colors.teal, "...") as string
+      cs.highlight(cs.colors.teal, "Info"),
+      cs.highlight(cs.colors.teal, "...")
    ),
 }
 

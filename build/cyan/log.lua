@@ -37,12 +37,12 @@ local function logfn(
    inspector)
 
    inspector = inspector or tostring
-   local prefix_len = #prefix
+   local prefix_len = #(prefix)
    longest_prefix = prefix_len > longest_prefix and
    prefix_len or
    longest_prefix
-   prefix = prefix and prefix .. " " or ""
-   cont = cont and cont .. " " or "... "
+   prefix = prefix and (prefix) .. " " or ""
+   cont = cont and (cont) .. " " or "... "
    return function(...)
       stream:write(tostring(str.pad_left(prefix, longest_prefix)))
       for i = 1, select("#", ...) do

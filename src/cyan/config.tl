@@ -28,7 +28,7 @@ local record Config
 
    -- externals field to allow for external tools to take entries in the config
    -- without our type checking complaining
-   externals: {any:any}
+   externals: {string:any}
 end
 
 local config <const> = {

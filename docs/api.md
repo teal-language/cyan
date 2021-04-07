@@ -94,7 +94,7 @@ gen_compat: tl.CompatMode
 gen_target: tl.TargetMode
 disable_warnings: {tl.WarningKind}
 warning_error: {tl.WarningKind}
-externals: {any:any}
+externals: {string:any}
 ```
 The config data
 
