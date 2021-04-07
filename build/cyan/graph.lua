@@ -1,4 +1,9 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local table = _tl_compat and _tl_compat.table or table
+
+
+
+
+
 local common = require("cyan.tlcommon")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
@@ -26,8 +31,9 @@ local function make_node(input)
    }
 end
 
-local Dag = {}
 
+
+local Dag = {}
 
 
 
@@ -60,6 +66,10 @@ local function make_dependent_counter()
    end
    return count_dependents
 end
+
+
+
+
 
 
 function Dag:nodes()
@@ -103,6 +113,9 @@ function Dag:nodes()
 end
 
 
+
+
+
 function Dag:mark_each(predicate)
    for n in self:nodes() do
       if predicate(n.input) then
@@ -110,6 +123,8 @@ function Dag:mark_each(predicate)
       end
    end
 end
+
+
 
 function Dag:marked_nodes(m)
    local iter = self:nodes()
@@ -126,6 +141,8 @@ local graph = {
    Node = Node,
    Dag = Dag,
 }
+
+
 
 function graph.empty()
    return setmetatable({
@@ -191,10 +208,15 @@ function Dag:insert_file(fstr, in_dir)
    end
 end
 
+
+
 function Dag:find(fstr)
    local f = fs.path.ensure(fstr)
    return self._nodes_by_filename[f:to_real_path()]
 end
+
+
+
 
 function graph.scan_dir(dir, include, exclude)
    local d = graph.empty()

@@ -1,4 +1,9 @@
 
+---@brief
+--- A utility for building directed acyclic graphs of Teal source files
+---
+--- This is the main driver behind the `build` command
+
 local common <const> = require("cyan.tlcommon")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
@@ -26,8 +31,9 @@ local function make_node(input: fs.Path): Node
    }
 end
 
+---@desc
+--- The graph object
 local record Dag
-   -- This could probably be 'public'
    _nodes_by_filename: {string:Node}
 end
 
@@ -61,7 +67,11 @@ local function make_dependent_counter(): function(Node): integer
    return count_dependents
 end
 
--- Iterate over nodes in order of dependents
+---@desc
+--- Iterate over nodes in order of dependents
+---
+--- If two nodes have the same number of dependent nodes, the order of
+--- iteration between those two nodes is not guaranteed
 function Dag:nodes(): function(): Node
    local count <const> = make_dependent_counter()
    local most_deps = 0
@@ -102,7 +112,10 @@ function Dag:nodes(): function(): Node
    end
 end
 
-
+---@desc
+--- For each node in the graph, if `predicate` returns true for that input
+--- path, the node is marked for compilation, and that node's children are marked
+--- for type checking
 function Dag:mark_each(predicate: function(fs.Path): boolean)
    for n in self:nodes() do
       if predicate(n.input) then
@@ -111,6 +124,8 @@ function Dag:mark_each(predicate: function(fs.Path): boolean)
    end
 end
 
+---@desc
+--- Iterate over every node with the given mark `m`. Iterates in order of most dependents to least
 function Dag:marked_nodes(m: Node.Mark): function(): Node
    local iter = self:nodes()
    return function(): Node
@@ -127,6 +142,8 @@ local graph <const> = {
    Dag = Dag,
 }
 
+---@desc
+--- Initializes an empty graph
 function graph.empty(): Dag
    return setmetatable({
       _nodes_by_filename = {},
@@ -191,11 +208,16 @@ function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)
    end
 end
 
+---@desc
+--- Find a node in the graph with the given path name
 function Dag:find(fstr: string | fs.Path): Node
    local f <const> = fs.path.ensure(fstr)
    return self._nodes_by_filename[f:to_real_path()]
 end
 
+---@desc
+--- Recursively scan a directory (using `fs.scan_dir`) and build up a graph,
+--- respecting the given `include` and `exclude` patterns
 function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
    local d <const> = graph.empty()
 

@@ -224,12 +224,44 @@ Recursively iterate over the files in a directory, following the provided `inclu
 ## `cyan.graph`
 ---
 
+A utility for building directed acyclic graphs of Teal source files
+
+This is the main driver behind the `build` command
+
+#### `Dag:find(fstr: string | fs.Path): Node`
+Find a node in the graph with the given path name
+
 #### `Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)`
 Inserts a file and its dependencies into a graph
 
 Ignores absolute paths and non `.tl` files
 
 If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir
+
+#### `Dag:mark_each(predicate: function(fs.Path): boolean)`
+For each node in the graph, if `predicate` returns true for that input path, the node is marked for compilation, and that node's children are marked for type checking
+
+#### `Dag:marked_nodes(m: Node.Mark): function(): Node`
+Iterate over every node with the given mark `m`. Iterates in order of most dependents to least
+
+#### `Dag:nodes(): function(): Node`
+Iterate over nodes in order of dependents
+
+If two nodes have the same number of dependent nodes, the order of iteration between those two nodes is not guaranteed
+
+#### `graph.empty(): Dag`
+Initializes an empty graph
+
+#### `graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag`
+Recursively scan a directory (using `fs.scan_dir`) and build up a graph, respecting the given `include` and `exclude` patterns
+
+#### `record Dag`
+```
+local record Dag
+   _nodes_by_filename: {string:Node}
+end
+```
+The graph object
 
 ## `cyan.script`
 ---
