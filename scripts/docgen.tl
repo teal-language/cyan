@@ -69,16 +69,51 @@ emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string
 end
 
 emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
-   local key = n:child_by_field_name("key")
-   if not key then
-      key = n:child_by_field_name("string_key")
+   local fields <const> = {}
+   local meta <const> = {}
+   local body <const> = n:child_by_field_name("record_body")
+   if not body then
+      error("record_body is nil for " .. tostring(n))
+   end
+
+   for c in body:named_children() do
+      if c:type() == "record_entry" then
+         local key = c:child_by_field_name("key")
+         local is_string = false
+         if not key then
+            key = c:child_by_field_name("string_key")
+            is_string = true
+         end
+
+         if key:source():sub(1, 1) ~= "_" then
+            local t = c:child_by_field_name("type")
+            table.insert(
+               fields,
+               (is_string and "[%s]" or "%s"):format(key:source())
+                  .. ": " .. t:source()
+            )
+         end
+      elseif c:type() == "metamethod" then
+         table.insert(
+            meta,
+            c:source()
+         )
+      elseif c:type() == "record_array_type" then
+         table.insert(
+            fields,
+            1,
+            "{" .. c:child(0):source() .. "}"
+         )
+      end
    end
    table.insert(
       out,
       "#### `record "
          .. n:child_by_field_name("name"):source()
          .. "`\n```\n"
-         .. n:source()
+         .. table.concat(meta, "\n")
+         .. "\n"
+         .. table.concat(fields, "\n")
          .. "\n```\n"
          .. table.concat(prefix, "\n\n")
          .. "\n\n"
