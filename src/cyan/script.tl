@@ -129,4 +129,12 @@ function script.emit_hook(name: string, ...: any): boolean, string
    return true
 end
 
+---@desc
+--- Make everything in this library a no-op
+function script.disable()
+   script.emit_hook = function(): boolean, string return true end
+   script.emitter = function(): function(): fs.Path, boolean, string end
+   script.load = function(): boolean, string return true end
+end
+
 return script

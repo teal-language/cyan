@@ -251,6 +251,9 @@ The graph object
 ## `cyan.script`
 ---
 
+#### `script.disable()`
+Make everything in this library a no-op
+
 #### `script.emit_hook(name: string, ...: any): boolean, string`
 Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error
 

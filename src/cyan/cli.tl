@@ -39,7 +39,9 @@ parser:option("--gen-target", "Minimum targeted Lua version for generated code."
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
 
 parser:flag("--no-script", "Do not run any scripts.")
-      :action(function() require("cyan.script").emit_hook = function(): boolean, string return true end end)
+      :action(function()
+         require("cyan.script").disable()
+      end)
 
 parser:command_target("command")
 

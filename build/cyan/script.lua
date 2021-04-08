@@ -129,4 +129,12 @@ function script.emit_hook(name, ...)
    return true
 end
 
+
+
+function script.disable()
+   script.emit_hook = function() return true end
+   script.emitter = function() end
+   script.load = function() return true end
+end
+
 return script

@@ -39,7 +39,9 @@ choices({ "5.1", "5.3" })
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
 
 parser:flag("--no-script", "Do not run any scripts."):
-action(function() require("cyan.script").emit_hook = function() return true end end)
+action(function()
+   require("cyan.script").disable()
+end)
 
 parser:command_target("command")
 
