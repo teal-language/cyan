@@ -22,7 +22,7 @@ end
 
 
 function fs.current_dir()
-   return path.new(lfs.currentdir())
+   return path.new(lfs.currentdir(), true)
 end
 
 
@@ -86,7 +86,7 @@ function fs.scan_dir(dir, include, exclude)
       local d = to_path(_d)
       for p in fs.dir(d) do
 
-         local full = d:to_real_path() ~= "." and d .. p or
+         local full = #d > 0 and d .. p or
          p
          local to_match = full:copy()
          to_match:remove_leading(dir)

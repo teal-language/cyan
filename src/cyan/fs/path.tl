@@ -102,6 +102,7 @@ end
 ---
 --- On windows, checks for paths like "C:\...", elsewhere looks for "/..."
 function Path:is_absolute(): boolean
+   if #self < 1 then return false end
    if path.separator == "/" then
       return self[1] == ""
    elseif path.separator == "\\" then
@@ -405,9 +406,9 @@ function Path:relative_to(other: Path): string
    local a, b: Path, Path = self:copy(), other:copy()
    if xor(a:is_absolute(), b:is_absolute()) then
       if not a:is_absolute() then
-         a = path.new(lfs.currentdir()) .. a
+         a = path.new(lfs.currentdir(), true) .. a
       else
-         b = path.new(lfs.currentdir()) .. b
+         b = path.new(lfs.currentdir(), true) .. b
       end
    end
    local a_len <const> = #a

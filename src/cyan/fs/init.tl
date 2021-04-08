@@ -22,7 +22,7 @@ end
 ---@desc
 --- Get the current directory as an `fs.Path`
 function fs.current_dir(): Path
-   return path.new(lfs.currentdir())
+   return path.new(lfs.currentdir(), true)
 end
 
 ---@desc
@@ -86,7 +86,7 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
       local d <const> = to_path(_d)
       for p in fs.dir(d) do
          -- dont bother putting "./foo", just do "foo"
-         local full <const> = d:to_real_path() ~= "." and d .. p
+         local full <const> = #d > 0 and d .. p
             or p
          local to_match <const> = full:copy()
          to_match:remove_leading(dir)
