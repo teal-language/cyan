@@ -11,7 +11,7 @@ if not has_ltreesitter then
    return {
       run_on = { "build:post" },
       exec = function()
-         log.warn("docgen requires the ltreesitter module")
+         log.warn("docgen requires the ltreesitter module, which lua was unable to find\n", ts as string)
       end,
    }
 end
