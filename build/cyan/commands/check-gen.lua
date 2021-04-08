@@ -36,7 +36,7 @@ local function command_exec(should_compile)
 
       local function get_output_filename(path)
          if args["output"] then
-            local p = fs.path.new(args["output"])
+            local p = fs.path.new(args["output"], true)
             if not p:is_absolute() then
                p:prepend(starting_dir)
             end
@@ -100,7 +100,7 @@ local function command_exec(should_compile)
       end
 
       local function fix_path(f)
-         local p = fs.path.new(f)
+         local p = fs.path.new(f, true)
          if config_path then
             if not p:is_absolute() then
                p:prepend(starting_dir)

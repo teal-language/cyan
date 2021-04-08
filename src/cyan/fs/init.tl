@@ -13,9 +13,9 @@ local fs <const> = {
    Path = Path,
 }
 
-local function to_path(s: string | Path): Path
+local function to_path(s: string | Path, use_os_sep: boolean): Path
    return s is string
-      and assert(path.new(s))
+      and assert(path.new(s, use_os_sep))
       or s
 end
 
@@ -143,7 +143,7 @@ end
 ---@brief
 --- Search for a file in the parent directories of the given path
 function fs.search_parent_dirs(spath: string | Path, fname: string): Path
-   local p <const> = to_path(spath)
+   local p <const> = to_path(spath, true)
 
    local in_spath <const> = p .. fname
    if in_spath:exists() then

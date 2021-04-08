@@ -33,7 +33,14 @@ local path = {
 
 
 local function parse_string_path(s, use_os_sep)
-   local sep = use_os_sep and path.separator or "/"
+
+
+
+
+
+   local sep = use_os_sep and path.separator == "\\" and
+   "[\\/]" or
+   "/"
    s = s:gsub(sep .. "+", sep)
    if s == "" then
       return {}
@@ -109,6 +116,8 @@ function Path:is_absolute()
       return self[1]:match("^%a:$")
    end
 end
+
+
 
 
 
@@ -237,7 +246,7 @@ end
 function Path:remove_leading(p)
    local leading = type(p) == "string" and path.new(p) or p
    if xor(leading:is_absolute(), self:is_absolute()) then
-      error("Attempt to mix absolute and non-absolute path", 2)
+      error(("Attempt to mix absolute and non-absolute path: (%s) and (%s)"):format(self:tostring(), leading:tostring()), 2)
    end
    local ptr = 1
    for chunk in chunks(leading) do
@@ -265,6 +274,10 @@ PathMt.__concat = function(a, b)
 
    return setmetatable(new, PathMt)
 end
+
+
+
+
 
 function Path.eq(a, b, use_os_sep)
    if a == nil then

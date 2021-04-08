@@ -33,7 +33,14 @@ local path <const> = {
 -- Basically the constructor for a 'raw' Path,
 -- gets the path components, doesn't set the metatable
 local function parse_string_path(s: string, use_os_sep: boolean): {string}
-   local sep <const> = use_os_sep and path.separator or "/"
+   -- TODO: I can see this breaking in the future with escaped characters
+   --       like foo/bar\/baz should map to { "foo", "bar/baz" } since the \/ is escaped
+
+   -- TODO: windows allows both \ and / as path separators
+   --       test if this works on machines other than mine
+   local sep <const> = use_os_sep and path.separator == "\\"
+      and "[\\/]"
+      or "/"
    s = s:gsub(sep .. "+", sep)
    if s == "" then
       return {}
@@ -112,6 +119,8 @@ end
 
 ---@desc
 --- Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
+---
+--- Used for the __tostring metamethod
 function Path:tostring(): string
    local start <const> = self[1] == "." and 2 or 1
    return table.concat(self, "/", start)
@@ -237,7 +246,7 @@ end
 function Path:remove_leading(p: string | Path)
    local leading <const> = p is string and path.new(p) or p as Path
    if xor(leading:is_absolute(), self:is_absolute()) then
-      error("Attempt to mix absolute and non-absolute path", 2)
+      error(("Attempt to mix absolute and non-absolute path: (%s) and (%s)"):format(self:tostring(), leading:tostring()), 2)
    end
    local ptr = 1
    for chunk in chunks(leading) do
@@ -266,6 +275,10 @@ PathMt.__concat = function(a: Path | string, b: Path | string): Path
    return setmetatable(new, PathMt)
 end
 
+---@desc
+--- Check if two paths are equal
+---
+--- This function is used for the __eq metamethod with use_os_sep as false
 function Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean
    if a == nil then
       return false

@@ -13,9 +13,9 @@ local fs = {
    Path = Path,
 }
 
-local function to_path(s)
+local function to_path(s, use_os_sep)
    return type(s) == "string" and
-   assert(path.new(s)) or
+   assert(path.new(s, use_os_sep)) or
    s
 end
 
@@ -143,7 +143,7 @@ end
 
 
 function fs.search_parent_dirs(spath, fname)
-   local p = to_path(spath)
+   local p = to_path(spath, true)
 
    local in_spath = p .. fname
    if in_spath:exists() then

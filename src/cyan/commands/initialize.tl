@@ -19,9 +19,9 @@ local function exec(args: command.Args): integer
       end
    end
 
-   local directory <const> = fs.path.new(args.directory or "./")
-   local source <const> = fs.path.new(args.source_dir or "src")
-   local build <const> = fs.path.new(args.build_dir or "build")
+   local directory <const> = fs.path.new(args.directory or "./", true)
+   local source <const> = fs.path.new(args.source_dir or "src", true)
+   local build <const> = fs.path.new(args.build_dir or "build", true)
 
    if source:is_absolute() then
       log.err("Source directory should not be absolute (", cs.highlight(cs.colors.file, source:to_real_path()), ")")

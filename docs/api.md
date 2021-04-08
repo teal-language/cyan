@@ -103,6 +103,11 @@ The config data
 
 Object oriented path management
 
+#### `Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean`
+Check if two paths are equal
+
+This function is used for the __eq metamethod with use_os_sep as false
+
 #### `Path:ancestors(): function(): Path`
 Iterate over the leading folders in a path
 
@@ -174,6 +179,8 @@ Convert a `Path` to a string describing a real path
 
 #### `Path:tostring(): string`
 Convert a path to a string. Always uses '/' as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use `Path:to_real_path()`
+
+Used for the __tostring metamethod
 
 #### `path.ensure(s: string | Path): Path`
 Ensures `s` is a Path
