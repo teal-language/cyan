@@ -110,7 +110,7 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
       out,
       "#### `record "
          .. n:child_by_field_name("name"):source()
-         .. "`\n```\n"
+         .. "`\n```lua\n"
          .. table.concat(meta, "\n")
          .. "\n"
          .. table.concat(fields, "\n")

@@ -25,7 +25,7 @@ The ansi escape for an arbitrary RGB background color
 The ansi escape for an arbitrary RGB foreground color
 
 #### `record ColorString`
-```
+```lua
 metamethod __len: function(ColorString): number
 metamethod __concat: function(ColorString | string, ColorString | string): ColorString
 content: {string | {number}}
@@ -55,7 +55,7 @@ This is stored in an internal cache and will do nothing unless `command.register
 Install all commands created with `command.new` into the given parser
 
 #### `record Command`
-```
+```lua
 
 name: string
 description: string
@@ -80,7 +80,7 @@ Try to load `tlconfig.lua` in the current directory
 Merge the relevant entries of the provided command arguments into the provided config table
 
 #### `record Config`
-```
+```lua
 
 build_dir: string
 source_dir: string
@@ -147,7 +147,7 @@ Path separators in patterns are always represented with '/'.
 
 `**/` represent any number of directories
 
-#### `Path:match_any(patts: {string}): number, string`
+#### `Path:match_any(patts: {string}): integer, string`
 See if the given path matches any of the given patterns
 
 #### `Path:mk_parent_dirs(): boolean, string`
@@ -156,7 +156,7 @@ Attempt to create the leading directories of a given path
 #### `Path:mkdir(): boolean, string`
 Attempt to create a directory at the given path, creating the parent directories if needed. Can be seen as an equivalent to `mkdir -p`
 
-#### `Path:mod_time(): number`
+#### `Path:mod_time(): integer`
 Get the "modification" attribute of a file
 
 #### `Path:prepend(other: string | Path)`
@@ -191,7 +191,7 @@ The `Path` constructor
 By default uses '/' as a path separator
 
 #### `record Path`
-```
+```lua
 metamethod __concat: function(Path | string, Path | string): Path
 metamethod __eq: function(Path | string, Path | string): boolean
 {string}
@@ -249,11 +249,28 @@ Initializes an empty graph
 Recursively scan a directory (using `fs.scan_dir`) and build up a graph, respecting the given `include` and `exclude` patterns
 
 #### `record Dag`
-```
+```lua
 
 
 ```
 The graph object
+
+## `cyan.log`
+---
+
+Console logging utils, not to be confused with log files
+
+Each logging function has the same signature of `function(...: any)`, and by default the following are provided: `info` (stdout): General info, should be seen as the default, silenced by --quiet `warn` (stderr): Used to display warnings, silenced by --quiet `err` (stderr): Used to display errors `debug` (stderr): Used for debugging, uses the inspect module (if it is found) to print its arguments
+
+You may notice that these are nicely padded and after the first line the prefix is replaced by a '...' Another function is provided, `create_logger`, ``` create_logger( stream: FILE, prefix: string | ColorString, cont: string | ColorString, inspector: function(any): string ): function(...: any) ``` to automatically generate formatted output. `cont` defaults to `"..."` and `inspector` defaults to `tostring`. Prefixes will be padded to 10 characters wide, so your logging may look off from the default if your prefix is longer.
+
+#### `create_logger(
+   stream: FILE,
+   prefix: string | cs.ColorString,
+   cont: string | cs.ColorString,
+   inspector: function(any): string
+): function(...: any)`
+Creates a logging function as described above
 
 ## `cyan.script`
 ---
@@ -319,7 +336,7 @@ A wrapper around `tl.search_module` but, returns an `fs.Path` and will cache res
 Just type checks an ast
 
 #### `record ParseResult`
-```
+```lua
 
 tks: {Token}
 ast: Node

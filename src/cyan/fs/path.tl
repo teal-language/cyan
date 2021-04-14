@@ -205,8 +205,8 @@ end
 
 ---@desc
 --- Get the "modification" attribute of a file
-function Path:mod_time(): number
-   return lfs.attributes(self:to_real_path(), "modification") as number
+function Path:mod_time(): integer
+   return lfs.attributes(self:to_real_path(), "modification") as integer
 end
 
 ---@desc
@@ -400,7 +400,7 @@ end
 
 ---@desc
 --- See if the given path matches any of the given patterns
-function Path:match_any(patts: {string}): number, string
+function Path:match_any(patts: {string}): integer, string
    for i, patt in ipairs(patts) do
       if match(self, get_patt(patt)) then
          return i, patt
