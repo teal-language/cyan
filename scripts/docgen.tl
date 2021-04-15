@@ -4,7 +4,14 @@ local run_on = { "build:post" }
 
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
+local ansi <const> = require("cyan.ansi")
 local cs <const> = require("cyan.colorstring")
+
+local info = log.create_logger(
+   io.stdout,
+   cs.highlight({ansi.color.bright.cyan}, "Docgen"),
+   cs.highlight({ansi.color.bright.cyan}, "...")
+)
 
 local has_ltreesitter <const>, ts <const> = pcall(require, "ltreesitter")
 if not has_ltreesitter then
@@ -206,7 +213,7 @@ local function exec()
       local mod <const> = p:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
       local docs <const> = gen_docs(file, mod)
       if docs then
-         log.info("Generated docs for ", cs.highlight(cs.colors.file, p:tostring()))
+         info("Processed ", cs.highlight(cs.colors.file, p:tostring()))
          table.insert(output, docs)
       end
    end
@@ -218,7 +225,7 @@ local function exec()
    )
    fh:write(table.concat(output))
    fh:close()
-   log.info("Wrote ", cs.highlight(cs.colors.file, docfile:to_real_path()))
+   info("Wrote ", cs.highlight(cs.colors.file, docfile:to_real_path()))
 end
 
 return {

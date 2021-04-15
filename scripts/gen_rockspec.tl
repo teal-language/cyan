@@ -35,9 +35,16 @@ build = {
 }
 ]]
 
+local ansi <const> = require("cyan.ansi")
 local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
+
+local info = log.create_logger(
+   io.stdout,
+   cs.highlight({ansi.color.dark.cyan}, "Rockspec"),
+   cs.highlight({ansi.color.dark.cyan}, "...")
+)
 
 local function gen_rockspec()
    local modules <const> = {}
@@ -70,7 +77,7 @@ local function gen_rockspec()
    local fh = io.open(specfile, "w")
    fh:write(template:format(convert(modules, 2), convert(install, 3)))
    fh:close()
-   log.info("Wrote rockspec at ", cs.highlight(cs.colors.file, specfile))
+   info("Wrote ", cs.highlight(cs.colors.file, specfile))
 end
 
 return {
