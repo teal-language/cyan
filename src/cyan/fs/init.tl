@@ -50,20 +50,20 @@ local read_cache <const>: {string:string} = setmetatable({}, { __mode = "k" }) -
 ---
 --- Additionally caches results so multiple locations can read the same file for minimal cost.
 --- There is currently no way to clear out this cache.
-function fs.read(path: string): string, string
-   if not read_cache[path] then
-      local fh <const>, err <const> = io.open(path, "r")
+function fs.read(p: string): string, string
+   if not read_cache[p] then
+      local fh <const>, err <const> = io.open(p, "r")
       if not fh then
          return nil, err
       end
-      read_cache[path] = fh:read("*a")
+      read_cache[p] = fh:read("*a")
       fh:close()
    end
-   return read_cache[path]
+   return read_cache[p]
 end
 
-function fs.get_line(path: string, n: number): string, string
-   local content <const>, err <const> = fs.read(path)
+function fs.get_line(p: string, n: number): string, string
+   local content <const>, err <const> = fs.read(p)
    if err then
       return nil, err
    end

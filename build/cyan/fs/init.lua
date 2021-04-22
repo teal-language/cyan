@@ -50,20 +50,20 @@ local read_cache = setmetatable({}, { __mode = "k" })
 
 
 
-function fs.read(path)
-   if not read_cache[path] then
-      local fh, err = io.open(path, "r")
+function fs.read(p)
+   if not read_cache[p] then
+      local fh, err = io.open(p, "r")
       if not fh then
          return nil, err
       end
-      read_cache[path] = fh:read("*a")
+      read_cache[p] = fh:read("*a")
       fh:close()
    end
-   return read_cache[path]
+   return read_cache[p]
 end
 
-function fs.get_line(path, n)
-   local content, err = fs.read(path)
+function fs.get_line(p, n)
+   local content, err = fs.read(p)
    if err then
       return nil, err
    end

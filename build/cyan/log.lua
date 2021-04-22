@@ -72,9 +72,9 @@ local function create_logger(
       for i = 1, select("#", ...) do
          local val = inspector((select(i, ...)))
          local lns = tab.from(str.split(val, "\n", true))
-         for i, ln in ipairs(lns) do
+         for j, ln in ipairs(lns) do
             stream:write(ln)
-            if i < #lns then
+            if j < #lns then
                stream:write("\n", prefix_len > 0 and tostring(str.pad_left(cont, max_prefix_len)) or "")
             end
          end
