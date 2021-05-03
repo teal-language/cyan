@@ -1,10 +1,17 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall; local argparse = require("argparse")
 local tl = require("tl")
+
+local cs = require("cyan.colorstring")
 local command = require("cyan.command")
+local common = require("cyan.tlcommon")
+local config = require("cyan.config")
+local fs = require("cyan.fs")
 local log = require("cyan.log")
+local script = require("cyan.script")
 local util = require("cyan.util")
-local keys, from, sort =
-util.tab.keys, util.tab.from, util.tab.sort
+
+local keys, from, sort, ivalues =
+util.tab.keys, util.tab.from, util.tab.sort, util.tab.ivalues
 
 local parser = argparse("cyan", "The Teal build system")
 parser:add_help(false)
@@ -39,9 +46,7 @@ choices({ "5.1", "5.3" })
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
 
 parser:flag("--no-script", "Do not run any scripts."):
-action(function()
-   require("cyan.script").disable()
-end)
+action(script.disable)
 
 parser:command_target("command")
 
@@ -87,13 +92,46 @@ if args.quiet then
 end
 
 local exit = 1
-do
-   local ok, res = xpcall(function()
-      exit = cmd.exec(args)
-   end, debug.traceback)
-   if not ok then
-      log.err("Error executing command\n   ", res)
-      os.exit(2)
+local starting_dir = fs.cwd()
+local config_path = config.find()
+if config_path then
+   local config_dir = config_path:copy()
+   table.remove(config_dir)
+
+   fs.chdir(config_dir)
+end
+
+local loaded_config, config_errors, config_warnings =
+config.load()
+
+if common.report_config_errors(config_errors, config_warnings) then
+   os.exit(1)
+end
+
+if loaded_config then
+   command.merge_args_into_config(loaded_config, args)
+
+   if loaded_config.scripts then
+      for fname, hooks in pairs(loaded_config.scripts) do
+         for hook in ivalues(hooks) do
+            if hook:find(command.running.name .. ":", 1, true) then
+               local ok, err = script.load(fname, hooks)
+               if not ok then
+                  log.err("loading script ", cs.highlight(cs.colors.file, fname), "\n", err)
+                  os.exit(1)
+               end
+               break
+            end
+         end
+      end
    end
+end
+
+local ok, res = xpcall(function()
+   exit = cmd.exec(args, loaded_config, starting_dir)
+end, debug.traceback)
+if not ok then
+   log.err("Error executing command\n   ", res)
+   os.exit(2)
 end
 os.exit(exit)

@@ -2,6 +2,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local tl = require("tl")
 local argparse = require("argparse")
 local log = require("cyan.log")
+
+local config = require("cyan.config")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local sandbox = require("cyan.sandbox")
@@ -11,8 +13,12 @@ local function add_to_argparser(cmd)
    args("+")
 end
 
-local function run(args)
-   local _, cfg, env = common.load_cfg_env_report_errs(false, args)
+local function run(args, loaded_config)
+   local env, env_err = common.init_env_from_config(loaded_config)
+   if not env then
+      log.err("Could not initialize Teal environment:\n", env_err)
+      return 1
+   end
 
    local arg_list = args["script"]
 
@@ -46,7 +52,7 @@ local function run(args)
       n = n + 1
    end
 
-   local chunk, load_err = common.type_check_and_load_file(arg_list[1], env, cfg)
+   local chunk, load_err = common.type_check_and_load_file(arg_list[1], env, loaded_config)
    if not chunk then
       log.err("Error loading file", load_err and "\n   " .. load_err or "")
       return 1

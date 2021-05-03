@@ -3,15 +3,19 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local tl = require("tl")
+
+local fs = require("cyan.fs")
 local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
-local command = require("cyan.command")
 
-local keys, sort, from = util.tab.keys, util.tab.sort, util.tab.from
+local keys, sort, from, values =
+util.tab.keys, util.tab.sort, util.tab.from, util.tab.values
 
 
 
 local Config = {}
+
+
 
 
 
@@ -37,19 +41,47 @@ local config = {
    filename = "tlconfig.lua",
 }
 
+
+
+
+
+
+local function get_types_in_array(val, typefn)
+   typefn = typefn or type
+   local set = {}
+   for _, v in ipairs(val) do
+      set[typefn(v)] = true
+   end
+   return sort(from(keys(set)))
+end
+
 local function get_array_type(val, default)
    if type(val) ~= "table" then
       return type(val)
    end
-   local set = {}
-   for _, v in ipairs(val) do
-      set[type(v)] = true
-   end
-   local ts = sort(from(keys(set)))
+   local ts = get_types_in_array(val)
    if #ts == 0 then
       ts[1] = default
    end
    return "{" .. table.concat(ts, "|") .. "}"
+end
+
+local function get_map_type(val, default_key, default_value)
+   if type(val) ~= "table" then
+      return type(val)
+   end
+
+   local key_types = get_types_in_array(from(keys(val)))
+   if #key_types == 0 then
+      key_types[1] = default_key
+   end
+
+
+   local val_types = get_types_in_array(from(values(val)), get_array_type)
+   if #val_types == 0 then
+      val_types[1] = default_value
+   end
+   return "{" .. table.concat(key_types, "|") .. ":" .. table.concat(val_types, "|") .. "}"
 end
 
 
@@ -69,7 +101,7 @@ function config.is_config(c)
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string}",
+      scripts = "{string:{string}}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true },
@@ -95,7 +127,10 @@ function config.is_config(c)
                table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sort(from(keys(valid))), ", "))
             end
          else
-            local vtype = get_array_type(v, valid:match("^{(.*)}$"))
+            local vtype = valid:find(":") and
+            get_map_type(v, valid:match("^{(.*):(.*)}$")) or
+            get_array_type(v, valid:match("^{(.*)}$"))
+
             if vtype ~= valid then
                table.insert(errs, string.format("Expected %s to be a %s, got %s", k, valid, vtype))
             end
@@ -127,6 +162,12 @@ end
 
 
 
+function config.find()
+   return fs.search_parent_dirs(fs.cwd(), config.filename)
+end
+
+
+
 function config.load()
    local b, ferr = sandbox.from_file(config.filename, _G)
    if not b then
@@ -142,39 +183,6 @@ function config.load()
    end
 
    return config.is_config(maybe_config)
-end
-
-local function merge_list(a, b)
-   a = a or {}
-   b = b or {}
-   for _, v in ipairs(b) do
-      table.insert(a, v)
-   end
-   return a
-end
-
-
-
-function config.merge_with_args(cfg, args)
-   args = args or {}
-
-   cfg.global_env_def = args.global_env_def or cfg.global_env_def
-
-   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
-   cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
-   cfg.warning_error = merge_list(cfg.warning_error, args.werror)
-
-   cfg.gen_compat = args.gen_compat or cfg.gen_compat
-   cfg.gen_target = args.gen_target or cfg.gen_target
-end
-
-function config.load_with_args(args)
-   local cfg, err, warnings = config.load()
-   if not cfg then
-      return nil, err, {}
-   end
-   config.merge_with_args(cfg, args)
-   return cfg, nil, warnings
 end
 
 return config

@@ -3,7 +3,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local argparse = require("argparse")
-local lfs = require("lfs")
 
 local config = require("cyan.config")
 local common = require("cyan.tlcommon")
@@ -16,19 +15,7 @@ local util = require("cyan.util")
 local map_ipairs = util.tab.map_ipairs
 
 local function command_exec(should_compile)
-   return function(args)
-      local starting_dir = fs.current_dir()
-      local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-      local root_dir
-      if config_path then
-         root_dir = config_path:copy()
-         table.remove(root_dir)
-         if not lfs.chdir(root_dir:to_real_path()) then
-            log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
-            return 1
-         end
-      end
-
+   return function(args, loaded_config, starting_dir)
       if args["output"] and #args.files ~= 1 then
          log.err("--output can only map 1 input to 1 output")
          return 1
@@ -52,10 +39,14 @@ local function command_exec(should_compile)
          return new
       end
 
-      local _, loaded_config, env = common.load_cfg_env_report_errs(false, args)
+      local env, env_err = common.init_env_from_config(loaded_config)
+      if not env then
+         log.err("Could not initialize Teal environment:\n", env_err)
+      end
 
       local exit = 0
 
+      local current_dir = fs.cwd()
       local to_write = {}
       local function process_file(path)
          local disp_file = cs.new(cs.colors.file, path:relative_to(starting_dir), { 0 })
@@ -101,11 +92,9 @@ local function command_exec(should_compile)
 
       local function fix_path(f)
          local p = fs.path.new(f, true)
-         if config_path then
-            if not p:is_absolute() then
-               p:prepend(starting_dir)
-               p:remove_leading(root_dir)
-            end
+         if not p:is_absolute() then
+            p:prepend(starting_dir)
+            p:remove_leading(current_dir)
          end
          return p
       end

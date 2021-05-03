@@ -1,6 +1,5 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 local argparse = require("argparse")
-local lfs = require("lfs")
 local tl = require("tl")
 
 local command = require("cyan.command")
@@ -10,8 +9,8 @@ local cs = require("cyan.colorstring")
 local fs = require("cyan.fs")
 local graph = require("cyan.graph")
 local log = require("cyan.log")
-local util = require("cyan.util")
 local script = require("cyan.script")
+local util = require("cyan.util")
 
 local ivalues = util.tab.ivalues
 
@@ -46,25 +45,9 @@ local function report_dep_errors(env, source_dir)
    return ok
 end
 
-local function build(args)
-   local starting_dir = fs.current_dir()
-   local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-   if not config_path then
+local function build(args, loaded_config, starting_dir)
+   if not loaded_config then
       log.err(config.filename, " not found")
-      return 1
-   end
-
-   local root_dir = config_path:copy()
-   table.remove(root_dir)
-   if not lfs.chdir(root_dir:to_real_path()) then
-      log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
-      return 1
-   end
-
-   local cfg_ok, loaded_config, env =
-common.load_cfg_env_report_errs(true, args)
-
-   if not cfg_ok then
       return 1
    end
 
@@ -86,14 +69,9 @@ common.load_cfg_env_report_errs(true, args)
       return 1
    end
 
-   if loaded_config.scripts then
-      for _, s in ipairs(loaded_config.scripts) do
-         local ok, err = script.load(s)
-         if not ok then
-            log.err("Error loading script '", s, "':\n   ", err)
-            return 1
-         end
-      end
+   local env, env_err = common.init_env_from_config(loaded_config)
+   if not env then
+      log.err("Could not initialize Teal environment:\n", env_err)
    end
 
    if not script.emit_hook("pre") then

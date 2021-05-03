@@ -3,7 +3,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local command = require("cyan.command")
 local config = require("cyan.config")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
@@ -175,6 +174,7 @@ end
 
 
 function common.result_has_errors(r, c)
+   c = c or {}
    local warning_error = set(c.warning_error or {})
    local werrors = filter(r.warnings or {}, function(w)
       return warning_error[w.tag]
@@ -191,6 +191,7 @@ end
 
 
 function common.report_result(r, c)
+   c = c or {}
    local warning_error = set(c.warning_error or {})
    local disabled_warnings = set(c.disable_warnings or {})
 
@@ -221,6 +222,7 @@ end
 
 
 function common.report_env_results(env, cfg)
+   cfg = cfg or {}
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
@@ -242,20 +244,15 @@ end
 
 
 
-function common.load_config_report_errs(path, args)
-
-   local c, errs, warnings = config.load_with_args(args)
-   if #warnings > 0 then
-      log.warn("in ", tostring(path), "\n", table.concat(warnings, "\n"))
-      return nil
+function common.report_config_errors(errs, warnings)
+   if warnings and #warnings > 0 then
+      log.warn("in config:\n", table.concat(warnings, "\n"))
    end
-   if not c then
-      if not errs[1]:match("No such file or directory$") then
-         log.err("Error loading config from ", tostring(path), "\n", table.concat(errs, "\n"))
-      end
-      return nil
+   if errs and not errs[1]:match("No such file or directory$") then
+      log.err("Error loading config:\n", table.concat(errs, "\n"))
+      return true
    end
-   return c
+   return false
 end
 
 function common.type_check_and_load_file(path, env, c)
@@ -327,7 +324,8 @@ end
 
 
 
-function common.init_env_from_cfg(cfg)
+function common.init_env_from_config(cfg)
+   cfg = cfg or {}
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
    end
@@ -342,28 +340,6 @@ function common.init_env_from_cfg(cfg)
    end
 
    return env
-end
-
-
-
-function common.load_cfg_env_report_errs(require_config, args)
-   local cfg = common.load_config_report_errs(config.filename)
-   if not cfg then
-      if require_config then
-         return false
-      else
-         cfg = {}
-      end
-   end
-
-   config.merge_with_args(cfg, args)
-
-   local env, err = common.init_env_from_cfg(cfg)
-   if err then
-      log.err(err)
-      return false
-   end
-   return true, cfg, env
 end
 
 return common

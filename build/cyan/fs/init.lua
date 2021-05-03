@@ -21,8 +21,14 @@ end
 
 
 
-function fs.current_dir()
+function fs.cwd()
    return path.new(lfs.currentdir(), true)
+end
+
+
+
+function fs.chdir(p)
+   return lfs.chdir(to_path(p):to_real_path())
 end
 
 
@@ -142,8 +148,11 @@ end
 
 
 
-function fs.search_parent_dirs(spath, fname)
-   local p = to_path(spath, true)
+
+
+
+function fs.search_parent_dirs(start_path, fname)
+   local p = to_path(start_path, true)
 
    local in_spath = p .. fname
    if in_spath:exists() then
