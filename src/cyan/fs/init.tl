@@ -20,9 +20,15 @@ local function to_path(s: string | Path, use_os_sep: boolean): Path
 end
 
 ---@desc
---- Get the current directory as an `fs.Path`
-function fs.current_dir(): Path
+--- Get the current working directory as an `fs.Path`
+function fs.cwd(): Path
    return path.new(lfs.currentdir(), true)
+end
+
+---@desc
+--- Change the current directory to `p`
+function fs.chdir(p: string | Path): boolean, string
+   return lfs.chdir(to_path(p):to_real_path())
 end
 
 ---@desc
