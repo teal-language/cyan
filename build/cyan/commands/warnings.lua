@@ -4,27 +4,17 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local ansi = require("cyan.ansi")
 local config = require("cyan.config")
-local common = require("cyan.tlcommon")
 local command = require("cyan.command")
 local log = require("cyan.log")
 local cs = require("cyan.colorstring")
-local fs = require("cyan.fs")
 local util = require("cyan.util")
 local tl = require("tl")
-local lfs = require("lfs")
 
 local pad_left = util.str.pad_left
 local values, set, keys, from, sort =
 util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort
 
-local function exec(args)
-   local config_path = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-   local c = common.load_config_report_errs(config_path:to_real_path(), args)
-
-   if not c then
-      return 1
-   end
-
+local function exec(_, c)
    local disable = set(c.disable_warnings or {})
    local err = set(c.warning_error or {})
    local longest_len = 0

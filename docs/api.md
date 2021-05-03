@@ -46,6 +46,9 @@ Get a command that was created with `command.new`
 
 Works whether or not `command.register_all` was called
 
+#### `command.merge_args_into_config(cfg: config.Config, args: Args)`
+Merge the relevant entries of the provided command arguments into the provided config table
+
 #### `command.new(cmd: Command)`
 Create a new command
 
@@ -61,7 +64,7 @@ name: string
 description: string
 argparse: function(argparse.Command)
 script_hooks: {string}
-exec: function(Args): integer
+exec: CommandFn
 ```
 The interface
 
@@ -70,18 +73,19 @@ The interface
 
 Config loading API
 
+#### `config.find(): fs.Path`
+Find `config.filename` in the current or parent directories
+
 #### `config.is_config(c: any): Config, {string}, {string}`
 Check if `c` conforms to the `Config` type and return any errors and warnings generated from checking
 
 #### `config.load(): Config, {string}, {string}`
 Try to load `tlconfig.lua` in the current directory
 
-#### `config.merge_with_args(cfg: Config, args: command.Args)`
-Merge the relevant entries of the provided command arguments into the provided config table
-
 #### `record Config`
 ```lua
 
+loaded_from: fs.Path
 build_dir: string
 source_dir: string
 include: {string}
@@ -89,7 +93,7 @@ exclude: {string}
 global_env_def: string
 include_dir: {string}
 module_name: string
-scripts: {string}
+scripts: {string:{string}}
 gen_compat: tl.CompatMode
 gen_target: tl.TargetMode
 disable_warnings: {tl.WarningKind}
@@ -201,10 +205,15 @@ The main path object. Basically just an array of strings with some methods and m
 ## `cyan.fs`
 ---
 
-Search for a file in the parent directories of the given path
+Search for a file in the parent directories of the given path. Returns the path of the file found.
 
-#### `fs.current_dir(): Path`
-Get the current directory as an `fs.Path`
+e.g. if `file.txt` is in `/foo/bar` `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == "/foo/bar/file.txt"`
+
+#### `fs.chdir(p: string | Path): boolean, string`
+Change the current directory to `p`
+
+#### `fs.cwd(): Path`
+Get the current working directory as an `fs.Path`
 
 #### `fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path`
 Iterate over the given directory, returning `fs.Path` objects
@@ -275,8 +284,10 @@ Creates a logging function as described above
 ## `cyan.script`
 ---
 
+The script loading api
+
 #### `script.disable()`
-Make everything in this library a no-op
+Make everything in this library a no-op, there is currently no way to re-enable this
 
 #### `script.emit_hook(name: string, ...: any): boolean, string`
 Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error
@@ -284,24 +295,23 @@ Iterates through each loaded script and runs any with the given hook, logging ea
 #### `script.emitter(name: string, ...: any): function(): fs.Path, boolean, string`
 Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't
 
+#### `script.load(path: string, flags: {string}): boolean, string`
+Loads a file as a lua/teal script and caches it with the given flags to be run when `script.emit_hook` is called
+
+This is called by the cli driver to load the scripts found in the config file with the relevant hooks
+
 ## `cyan.tlcommon`
 ---
 
 Common things needed by most commands in addition to wrappers around the tl api, since it isn't super stable
 
-#### `common.init_env_from_cfg(cfg: config.Config): tl.Env, string`
+#### `common.init_env_from_config(cfg: config.Config): tl.Env, string`
 Initialize a strict Teal environment, using the relevant entries of the config to modify that environment
 
 may return `nil` and an error message if something could not be applied to the environment
 
 #### `common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string`
 Initialize a strict Teal environment
-
-#### `common.load_cfg_env_report_errs(require_config: boolean, args: command.Args): boolean, config.Config, tl.Env`
-Load the config file and initialize a Teal environment using it
-
-#### `common.load_config_report_errs(path: string, args: command.Args): config.Config`
-Load a config through `cyan.load_with_args` and report the errors, returning nil if there were any errors
 
 #### `common.make_error_header(file: string, num_errors: number, category: string): string`
 Creates a nicely colored header to log errors
@@ -312,6 +322,9 @@ For example `make_error_header("foo.tl", 10, "foo error")` would produce somethi
 Prepend the given string to package.path and package.cpath.
 
 Correctly adds ?.lua and ?/init.lua to the path
+
+#### `common.report_config_errors(errs: {string}, warnings: {string}): boolean`
+use `log.warn` and `log.err` to report errors and warnings from `config.load`
 
 #### `common.report_env_results(env: tl.Env, cfg: config.Config): boolean`
 Report all errors from a tl.Env
@@ -385,6 +398,9 @@ Create a new map from `t` by passing each value through `fn`
 
 #### `tab.map_ipairs(t: {T}, fn: function(T): K): function(): number, K`
 iterate over a list like ipairs does, but filter the values through `fn`
+
+#### `tab.merge_list(a: {T}, b: {T}): {T}`
+Create a new list by shallow copying the contents of `a` and `b`
 
 #### `tab.set(lst: {T}): {T:boolean}`
 Create a Set from a list

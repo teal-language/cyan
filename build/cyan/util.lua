@@ -100,6 +100,18 @@ end
 
 
 
+function tab.merge_list(a, b)
+   a = a or {}
+   b = b or {}
+   for _, v in ipairs(b) do
+      table.insert(a, v)
+   end
+   return a
+end
+
+
+
+
 
 
 function str.split_find(s, del, no_patt)
