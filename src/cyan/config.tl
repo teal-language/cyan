@@ -126,6 +126,12 @@ function config.is_config(c: any): Config, {string}, {string}
 end
 
 ---@desc
+--- Find `config.filename` in the current or parent directories
+function config.find(): fs.Path
+   return fs.search_parent_dirs(fs.cwd(), config.filename)
+end
+
+---@desc
 --- Try to load `tlconfig.lua` in the current directory
 function config.load(): Config, {string}, {string}
    local b, ferr = sandbox.from_file(config.filename, _G)
