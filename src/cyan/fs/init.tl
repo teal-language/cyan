@@ -147,9 +147,12 @@ function fs.path_concat(a: string, b: string): string
 end
 
 ---@brief
---- Search for a file in the parent directories of the given path
-function fs.search_parent_dirs(spath: string | Path, fname: string): Path
-   local p <const> = to_path(spath, true)
+--- Search for a file in the parent directories of the given path. Returns the path of the file found.
+---
+--- e.g. if `file.txt` is in `/foo/bar`
+--- `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == "/foo/bar/file.txt"`
+function fs.search_parent_dirs(start_path: string | Path, fname: string): Path
+   local p <const> = to_path(start_path, true)
 
    local in_spath <const> = p .. fname
    if in_spath:exists() then
