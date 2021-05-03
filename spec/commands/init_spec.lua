@@ -124,7 +124,7 @@ describe("init", function()
          cmd = "init",
          args = {},
          dir_structure = {
-            ["tlconfig.lua"] = [[]],
+            ["tlconfig.lua"] = [[return {}]],
          },
          generated_files = {},
          cmd_output_match_lines = {
@@ -139,7 +139,7 @@ describe("init", function()
          cmd = "init",
          args = { "--force" },
          dir_structure = {
-            ["tlconfig.lua"] = [[]],
+            ["tlconfig.lua"] = [[return {}]],
          },
          generated_files = {
             src = {},
