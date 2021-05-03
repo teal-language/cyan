@@ -29,12 +29,13 @@ local function exec_wrapper(box: sandbox.Sandbox): function(string, ...: any): i
          return nil, err
       end
       local res <const> = box:result()
-      if res ~= nil and
-         type(res) ~= "number"
-         or res as number ~= math.floor(res as number)
+      if res ~= nil
+         and type(res) ~= "number"
+         or res is number and res ~= math.floor(res)
       then
          return nil, "Script did not return an integer"
       end
+      return 0
    end
 end
 
@@ -104,9 +105,11 @@ function script.emitter(name: string, ...: any): function(): fs.Path, boolean, s
    return coroutine.wrap(function()
       for loaded_script in ivalues(loaded) do
          if loaded_script.run_on[name] then
+            local res <const>, err <const> = loaded_script.exec(name, table.unpack(args, 1, args.n))
             coroutine.yield(
                loaded_script.source:copy(),
-               loaded_script.exec(name, table.unpack(args, 1, args.n))
+               res == 0,
+               err
             )
          end
       end

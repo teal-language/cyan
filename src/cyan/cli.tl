@@ -1,6 +1,7 @@
 local argparse <const> = require("argparse")
 local tl <const> = require("tl")
 
+local cs <const> = require("cyan.colorstring")
 local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
 local config <const> = require("cyan.config")
@@ -9,8 +10,8 @@ local log <const> = require("cyan.log")
 local script <const> = require("cyan.script")
 local util <const> = require("cyan.util")
 
-local keys <const>, from <const>, sort <const>
-   = util.tab.keys, util.tab.from, util.tab.sort
+local keys <const>, from <const>, sort <const>, ivalues <const>
+   = util.tab.keys, util.tab.from, util.tab.sort, util.tab.ivalues
 
 local parser <const> = argparse("cyan", "The Teal build system")
 parser:add_help(false)
@@ -105,6 +106,21 @@ end
 
 if loaded_config then
    command.merge_args_into_config(loaded_config, args)
+
+   if loaded_config.scripts then
+      for fname, hooks in pairs(loaded_config.scripts) do
+         for hook in ivalues(hooks) do
+            if hook:find(command.running.name .. ":", 1, true) then
+               local ok <const>, err <const> = script.load(fname, hooks)
+               if not ok then
+                  log.err("loading script ", cs.highlight(cs.colors.file, fname), "\n", err)
+                  os.exit(1)
+               end
+               break
+            end
+         end
+      end
+   end
 end
 
 local ok <const>, res <const> = xpcall(function()
