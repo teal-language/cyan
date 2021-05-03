@@ -95,8 +95,12 @@ local exit: integer = 1
 local starting_dir <const> = fs.cwd()
 local config_path <const> = config.find()
 if config_path then
-   fs.chdir(config_path)
+   local config_dir <const> = config_path:copy()
+   table.remove(config_dir)
+
+   fs.chdir(config_dir)
 end
+
 local loaded_config <const>, config_errors <const>, config_warnings <const>
    = config.load()
 
