@@ -1,8 +1,14 @@
 local argparse <const> = require("argparse")
 local tl <const> = require("tl")
+
 local command <const> = require("cyan.command")
+local common <const> = require("cyan.tlcommon")
+local config <const> = require("cyan.config")
+local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
+local script <const> = require("cyan.script")
 local util <const> = require("cyan.util")
+
 local keys <const>, from <const>, sort <const>
    = util.tab.keys, util.tab.from, util.tab.sort
 
@@ -39,9 +45,7 @@ parser:option("--gen-target", "Minimum targeted Lua version for generated code."
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
 
 parser:flag("--no-script", "Do not run any scripts.")
-      :action(function()
-         require("cyan.script").disable()
-      end)
+      :action(script.disable)
 
 parser:command_target("command")
 
@@ -87,14 +91,27 @@ if args.quiet then
 end
 
 local exit: integer = 1
-do
-   local ok <const>, res <const> = xpcall(function()
-      exit = cmd.exec(args)
-   end, debug.traceback as function()) as (boolean, string)
-   if not ok then
-      log.err("Error executing command\n   ", res)
-      os.exit(2)
-   end
+local starting_dir <const> = fs.cwd()
+local config_path <const> = config.find()
+if config_path then
+   fs.chdir(config_path)
+end
+local loaded_config <const>, config_errors <const>, config_warnings <const>
+   = config.load()
+
+if common.report_config_errors(config_errors, config_warnings) then
+   os.exit(1)
+end
+
+if loaded_config then
+   command.merge_args_into_config(loaded_config, args)
+end
+
+local ok <const>, res <const> = xpcall(function()
+   exit = cmd.exec(args, loaded_config, starting_dir)
+end, debug.traceback as function()) as (boolean, string)
+if not ok then
+   log.err("Error executing command\n   ", res)
+   os.exit(2)
 end
 os.exit(exit)
-

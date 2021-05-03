@@ -1,6 +1,5 @@
 
 local argparse <const> = require("argparse")
-local lfs <const> = require("lfs")
 local tl <const> = require("tl")
 
 local command <const> = require("cyan.command")
@@ -10,8 +9,8 @@ local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
 local log <const> = require("cyan.log")
-local util <const> = require("cyan.util")
 local script <const> = require("cyan.script")
+local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
 
@@ -46,25 +45,9 @@ local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
    return ok
 end
 
-local function build(args: command.Args): integer
-   local starting_dir <const> = fs.cwd()
-   local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-   if not config_path then
+local function build(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
+   if not loaded_config then
       log.err(config.filename, " not found")
-      return 1
-   end
-
-   local root_dir <const> = config_path:copy()
-   table.remove(root_dir)
-   if not lfs.chdir(root_dir:to_real_path()) then
-      log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
-      return 1
-   end
-
-   local cfg_ok <const>, loaded_config <const>, env <const>
-      = common.load_cfg_env_report_errs(true, args)
-
-   if not cfg_ok then
       return 1
    end
 
@@ -86,14 +69,9 @@ local function build(args: command.Args): integer
       return 1
    end
 
-   if loaded_config.scripts then
-      for _, s in ipairs(loaded_config.scripts) do
-         local ok, err = script.load(s)
-         if not ok then
-            log.err("Error loading script '", s, "':\n   ", err)
-            return 1
-         end
-      end
+   local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
+   if not env then
+      log.err("Could not initialize Teal environment:\n", env_err)
    end
 
    if not script.emit_hook("pre") then

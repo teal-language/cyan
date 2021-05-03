@@ -2,6 +2,8 @@
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 local log <const> = require("cyan.log")
+
+local config <const> = require("cyan.config")
 local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
 local sandbox <const> = require("cyan.sandbox")
@@ -11,8 +13,12 @@ local function add_to_argparser(cmd: argparse.Command)
       :args("+")
 end
 
-local function run(args: command.Args): integer
-   local _, cfg <const>, env <const> = common.load_cfg_env_report_errs(false, args)
+local function run(args: command.Args, loaded_config: config.Config): integer
+   local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
+   if not env then
+      log.err("Could not initialize Teal environment:\n", env_err)
+      return 1
+   end
 
    local arg_list <const> = args["script"] as {string}
    -- collect all non-arguments including negative arg values
@@ -46,7 +52,7 @@ local function run(args: command.Args): integer
       n = n + 1
    end
 
-   local chunk <const>, load_err <const> = common.type_check_and_load_file(arg_list[1], env, cfg)
+   local chunk <const>, load_err <const> = common.type_check_and_load_file(arg_list[1], env, loaded_config)
    if not chunk then
       log.err("Error loading file", load_err and "\n   " .. load_err or "")
       return 1

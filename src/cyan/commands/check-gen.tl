@@ -3,7 +3,6 @@
 -- so to avoid writing the same file twice, just implement them both here
 
 local argparse <const> = require("argparse")
-local lfs <const> = require("lfs")
 
 local config <const> = require("cyan.config")
 local common <const> = require("cyan.tlcommon")
@@ -15,20 +14,8 @@ local util <const> = require("cyan.util")
 
 local map_ipairs <const> = util.tab.map_ipairs
 
-local function command_exec(should_compile: boolean): function(command.Args): integer
-   return function(args: command.Args): integer
-      local starting_dir <const> = fs.cwd()
-      local config_path <const> = fs.search_parent_dirs(starting_dir, config.filename)
-      local root_dir: fs.Path
-      if config_path then
-         root_dir = config_path:copy()
-         table.remove(root_dir)
-         if not lfs.chdir(root_dir:to_real_path()) then
-            log.err("Unable to chdir into root directory ", cs.highlight(cs.colors.file, root_dir:to_real_path()))
-            return 1
-         end
-      end
-
+local function command_exec(should_compile: boolean): command.CommandFn
+   return function(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
       if args["output"] and #args.files ~= 1 then
          log.err("--output can only map 1 input to 1 output")
          return 1
@@ -52,10 +39,14 @@ local function command_exec(should_compile: boolean): function(command.Args): in
          return new
       end
 
-      local _, loaded_config <const>, env <const> = common.load_cfg_env_report_errs(false, args)
+      local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
+      if not env then
+         log.err("Could not initialize Teal environment:\n", env_err)
+      end
 
       local exit = 0
 
+      local current_dir <const> = fs.cwd()
       local to_write <const> = {}
       local function process_file(path: fs.Path)
          local disp_file <const> = cs.new(cs.colors.file, path:relative_to(starting_dir), {0})
@@ -101,11 +92,9 @@ local function command_exec(should_compile: boolean): function(command.Args): in
 
       local function fix_path(f: string): fs.Path
          local p <const> = fs.path.new(f, true)
-         if config_path then
-            if not p:is_absolute() then
-               p:prepend(starting_dir)
-               p:remove_leading(root_dir)
-            end
+         if not p:is_absolute() then
+            p:prepend(starting_dir)
+            p:remove_leading(current_dir)
          end
          return p
       end

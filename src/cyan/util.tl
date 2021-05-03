@@ -99,6 +99,18 @@ function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
 end
 
 ---@desc
+--- Create a new list by shallow copying the contents of `a` and `b`
+function tab.merge_list<T>(a: {T}, b: {T}): {T}
+   a = a or {}
+   b = b or {}
+   for _, v in ipairs(b) do
+      table.insert(a, v)
+   end
+   return a
+end
+
+
+---@desc
 --- Split a string by `del`, returning the indexes of the match
 ---
 --- Will error if the delimiter matches the empty string

@@ -3,15 +3,19 @@
 --- Config loading API
 
 local tl <const> = require("tl")
+
+local fs <const> = require("cyan.fs")
 local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
-local command <const> = require("cyan.command")
 
-local keys <const>, sort <const>, from <const> = util.tab.keys, util.tab.sort, util.tab.from
+local keys <const>, sort <const>, from <const>, values <const>
+   = util.tab.keys, util.tab.sort, util.tab.from, util.tab.values
 
 ---@desc
 --- The config data
 local record Config
+   loaded_from: fs.Path
+
    build_dir: string
    source_dir: string
    include: {string}
@@ -19,7 +23,7 @@ local record Config
    global_env_def: string
    include_dir: {string}
    module_name: string
-   scripts: {string}
+   scripts: {string:{string}}
 
    gen_compat: tl.CompatMode
    gen_target: tl.TargetMode
@@ -37,19 +41,47 @@ local config <const> = {
    filename = "tlconfig.lua",
 }
 
+-- TODO: Get Teal itself to do this typechecking for us
+--
+--       Ideally, we could somehow use teal to tell us the types inferred in the config file
+--       For now, we just try to make a biased `type` function that reports nicer table types
+
+local function get_types_in_array(val: {any}, typefn: function(any): string): {string}
+   typefn = type or typefn
+   local set <const> = {}
+   for _, v in ipairs(val) do
+      set[typefn(v)] = true
+   end
+   return sort(from(keys(set)))
+end
+
 local function get_array_type(val: any, default: string): string
    if type(val) ~= "table" then
       return type(val)
    end
-   local set = {}
-   for _, v in ipairs(val as {any}) do
-      set[type(v)] = true
-   end
-   local ts = sort(from(keys(set)))
+   local ts <const> = get_types_in_array(val as {any})
    if #ts == 0 then
       ts[1] = default
    end
    return "{" .. table.concat(ts, "|") .. "}"
+end
+
+local function get_map_type(val: any, default_key: string, default_value: string): string
+   if type(val) ~= "table" then
+      return type(val)
+   end
+
+   local key_types <const> = get_types_in_array(from(keys(val as {any:any})))
+   if #key_types == 0 then
+      key_types[1] = default_key
+   end
+
+   -- bias values towards array types, since we probably won't use nested maps
+   local val_types <const> = get_types_in_array(from(values(val as {any:any})), get_array_type as function(any): string)
+   if #val_types == 0 then
+      val_types[1] = default_value
+   end
+   return "{" .. table.concat(key_types, "|") .. ":" .. table.concat(val_types, "|") .. "}"
 end
 
 ---@desc
@@ -69,7 +101,7 @@ function config.is_config(c: any): Config, {string}, {string}
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string}",
+      scripts = "{string:{string}}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true },
@@ -95,7 +127,10 @@ function config.is_config(c: any): Config, {string}, {string}
                table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sort(from(keys(valid))), ", "))
             end
          else
-            local vtype <const> = get_array_type(v, valid:match("^{(.*)}$"))
+            local vtype <const> = valid:find(":")
+               and get_map_type(v, valid:match("^{(.*):(.*)}$"))
+               or get_array_type(v, valid:match("^{(.*)}$"))
+
             if vtype ~= valid then
                table.insert(errs, string.format("Expected %s to be a %s, got %s", k, valid, vtype))
             end
@@ -150,38 +185,4 @@ function config.load(): Config, {string}, {string}
    return config.is_config(maybe_config)
 end
 
-local function merge_list<T>(a: {T}, b: {T}): {T}
-   a = a or {}
-   b = b or {}
-   for _, v in ipairs(b) do
-      table.insert(a, v)
-   end
-   return a
-end
-
----@desc
---- Merge the relevant entries of the provided command arguments into the provided config table
-function config.merge_with_args(cfg: Config, args: command.Args)
-   args = args or {}
-
-   cfg.global_env_def = args.global_env_def or cfg.global_env_def
-
-   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
-   cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
-   cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
-
-   cfg.gen_compat = args.gen_compat or cfg.gen_compat
-   cfg.gen_target = args.gen_target or cfg.gen_target
-end
-
-function config.load_with_args(args: command.Args): Config, {string}, {string}
-   local cfg <const>, err <const>, warnings <const> = config.load()
-   if not cfg then
-      return nil, err, {}
-   end
-   config.merge_with_args(cfg, args)
-   return cfg, nil, warnings
-end
-
 return config
-

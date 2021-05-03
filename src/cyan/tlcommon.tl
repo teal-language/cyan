@@ -3,7 +3,6 @@
 --- Common things needed by most commands in addition to
 --- wrappers around the tl api, since it isn't super stable
 
-local command <const> = require("cyan.command")
 local config <const> = require("cyan.config")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
@@ -175,6 +174,7 @@ end
 ---@desc
 --- Returns whether or not the result has errors. Doesn't print/log anything
 function common.result_has_errors(r: tl.Result, c: config.Config): boolean
+   c = c or {}
    local warning_error <const> = set(c.warning_error or {})
    local werrors <const> = filter(r.warnings or {}, function(w: tl.Error): boolean
       return warning_error[w.tag]
@@ -191,6 +191,7 @@ end
 ---
 --- Returns if there were any warnings or unknowns. May return `true` even if some warnings were reported
 function common.report_result(r: tl.Result, c: config.Config): boolean
+   c = c or {}
    local warning_error <const> = set(c.warning_error or {})
    local disabled_warnings <const> = set(c.disable_warnings or {})
 
@@ -221,6 +222,7 @@ end
 ---
 --- Returns false when errors were reported
 function common.report_env_results(env: tl.Env, cfg: config.Config): boolean
+   cfg = cfg or {}
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
@@ -241,21 +243,16 @@ function common.compile_ast(ast: Node): string
 end
 
 ---@desc
---- Load a config through `cyan.load_with_args` and report the errors, returning nil if there were any errors
-function common.load_config_report_errs(path: string, args: command.Args): config.Config
-   -- reports errors in the actual config, not if the config wasn't found
-   local c <const>, errs <const>, warnings <const> = config.load_with_args(args)
-   if #warnings > 0 then
-      log.warn("in ", tostring(path), "\n", table.concat(warnings, "\n"))
-      return nil
+--- use `log.warn` and `log.err` to report errors and warnings from `config.load`
+function common.report_config_errors(errs: {string}, warnings: {string}): boolean
+   if warnings and #warnings > 0 then
+      log.warn("in config:\n", table.concat(warnings, "\n"))
    end
-   if not c then
-      if not errs[1]:match("No such file or directory$") then
-         log.err("Error loading config from ", tostring(path), "\n", table.concat(errs, "\n"))
-      end
-      return nil
+   if errs and not errs[1]:match("No such file or directory$") then
+      log.err("Error loading config:\n", table.concat(errs, "\n"))
+      return true
    end
-   return c
+   return false
 end
 
 function common.type_check_and_load_file(path: string, env: tl.Env, c: config.Config): function, string
@@ -327,7 +324,8 @@ end
 --- Initialize a strict Teal environment, using the relevant entries of the config to modify that environment
 ---
 --- may return `nil` and an error message if something could not be applied to the environment
-function common.init_env_from_cfg(cfg: config.Config): tl.Env, string
+function common.init_env_from_config(cfg: config.Config): tl.Env, string
+   cfg = cfg or {}
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
    end
@@ -344,27 +342,4 @@ function common.init_env_from_cfg(cfg: config.Config): tl.Env, string
    return env
 end
 
----@desc
---- Load the config file and initialize a Teal environment using it
-function common.load_cfg_env_report_errs(require_config: boolean, args: command.Args): boolean, config.Config, tl.Env
-   local cfg = common.load_config_report_errs(config.filename)
-   if not cfg then
-      if require_config then
-         return false
-      else
-         cfg = {}
-      end
-   end
-
-   config.merge_with_args(cfg, args)
-
-   local env, err = common.init_env_from_cfg(cfg)
-   if err then
-      log.err(err)
-      return false
-   end
-   return true, cfg, env
-end
-
 return common
-
