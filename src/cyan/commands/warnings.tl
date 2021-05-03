@@ -4,27 +4,17 @@
 
 local ansi <const> = require("cyan.ansi")
 local config <const> = require("cyan.config")
-local common <const> = require("cyan.tlcommon")
 local command <const> = require("cyan.command")
 local log <const> = require("cyan.log")
 local cs <const> = require("cyan.colorstring")
-local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
 local tl <const> = require("tl")
-local lfs <const> = require("lfs")
 
 local pad_left <const> = util.str.pad_left
 local values <const>, set <const>, keys <const>, from <const>, sort <const>
    = util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort
 
-local function exec(args: command.Args): integer
-   local config_path <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-   local c <const> = common.load_config_report_errs(config_path:to_real_path(), args)
-
-   if not c then
-      return 1
-   end
-
+local function exec(_: command.Args, c: config.Config): integer
    local disable <const> = set(c.disable_warnings or {})
    local err <const> = set(c.warning_error or {})
    local longest_len = 0

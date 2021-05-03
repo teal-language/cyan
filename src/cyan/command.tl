@@ -5,6 +5,12 @@
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
+local config <const> = require("cyan.config")
+local fs <const> = require("cyan.fs")
+local util <const> = require("cyan.util")
+
+local merge_list <const> = util.tab.merge_list
+
 local record Args
    command: string
    include_dir: {string}
@@ -28,6 +34,8 @@ local record Args
    force: boolean
 end
 
+local type CommandFn = function(Args, config.Config, fs.Path): integer
+
 ---@desc
 --- The interface
 local record Command
@@ -35,11 +43,12 @@ local record Command
    description: string
    argparse: function(argparse.Command)
    script_hooks: {string}
-   exec: function(Args): integer -- return value is the exit code
+   exec: CommandFn
 end
 local command <const> = {
    running: Command = nil,
    Command = Command,
+   CommandFn = CommandFn,
    Args = Args,
 }
 
@@ -84,6 +93,21 @@ end
 --- Works whether or not `command.register_all` was called
 function command.get(name: string): Command
    return commands[name]
+end
+
+---@desc
+--- Merge the relevant entries of the provided command arguments into the provided config table
+function command.merge_args_into_config(cfg: config.Config, args: Args)
+   args = args or {}
+
+   cfg.global_env_def = args.global_env_def or cfg.global_env_def
+
+   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
+   cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
+   cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
+
+   cfg.gen_compat = args.gen_compat or cfg.gen_compat
+   cfg.gen_target = args.gen_target or cfg.gen_target
 end
 
 return command
