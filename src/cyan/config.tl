@@ -47,7 +47,7 @@ local config <const> = {
 --       For now, we just try to make a biased `type` function that reports nicer table types
 
 local function get_types_in_array(val: {any}, typefn: function(any): string): {string}
-   typefn = type or typefn
+   typefn = typefn or type
    local set <const> = {}
    for _, v in ipairs(val) do
       set[typefn(v)] = true
