@@ -174,12 +174,11 @@ describe("build command", function()
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
-                  scripts = { "foo.lua" },
+                  scripts = {
+                     ["foo.lua"] = { "build:post" }
+                  },
                } ]],
-               ["foo.lua"] = [[ return {
-                  run_on = { "build:pre" },
-                  exec = function() print("foo") end,
-               } ]],
+               ["foo.lua"] = [[print"foo"]],
             },
             output_match = "foo",
             generated_files = { },
@@ -191,16 +190,15 @@ describe("build command", function()
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
-                  scripts = { "foo.lua" },
+                  scripts = {
+                     ["foo.lua"] = { "build:post" }
+                  },
                   source_dir = "src",
                   build_dir = "build",
                } ]],
                src = { ["foo.tl"] = "" },
                build = {},
-               ["foo.lua"] = [[ return {
-                  run_on = { "build:post" },
-                  exec = function() print("after") end,
-               } ]],
+               ["foo.lua"] = [[print"after"]],
             },
             cmd_output_match_lines = {
                "Type checked.*foo",
@@ -216,12 +214,11 @@ describe("build command", function()
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
-                  scripts = { "foo.lua" },
+                  scripts = {
+                     ["foo.lua"] = { "build:post" }
+                  },
                } ]],
-               ["foo.lua"] = [[ return {
-                  run_on = { "build:post" },
-                  exec = function() print("after") end,
-               } ]],
+               ["foo.lua"] = [[print"after"]],
             },
             cmd_output = "",
             exit_code = 0,
