@@ -10,6 +10,7 @@ local cyan_executable = current_dir .. "/bin/cyan"
 local t_unpack = unpack or table.unpack
 
 util.configfile = require("cyan.config").filename
+util.path_sep = package.config:sub(1, 1)
 
 --------------------------------------------------------------------------------
 -- 'finally' queue - each Busted test can trigger only one 'finally' callback.
@@ -96,6 +97,7 @@ local valid_commands = {
    run = true,
    build = true,
    init = true,
+   warnings = true,
 }
 local cmd_prefix = { string.format("LUA_PATH=%q", package.path) }
 for i = 1, 4 do

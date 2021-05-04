@@ -2,18 +2,29 @@ local util = require("spec.util")
 local script = require("cyan.script")
 
 describe("script", function()
-   pending("is_valid", function()
-      it("should return nil when `exec` is nil", function()
-         assert.is_nil((script.is_valid{}))
+   describe("load", function()
+      it("should load a script from a given path", function()
+         local dirname = util.write_tmp_dir(finally, {
+            ["foo.lua"] = [[print("foo")]],
+         })
+         local ok, err = script.load(dirname .. util.path_sep .. "foo.lua", {})
+         assert.truthy(ok)
+         assert.is_nil(err)
       end)
-      it("should return nil when `exec` is not a function", function()
-         assert.is_nil((script.is_valid{ exec = "hi" }))
+      it("should return nil, err if a script couldn't be loaded", function()
+         local ok, err = script.load("foo.lua", {})
+         assert.falsy(ok)
+         assert.is.string(err)
       end)
-      it("should return nil when `run_on` is not {string}", function()
-         assert.is_nil((script.is_valid{
-            exec = function() end,
-            run_on = ""
-         }))
+      it("should report when a .tl script has type errors", function()
+         local scriptname = "foo.tl"
+         local dirname = util.write_tmp_dir(finally, {
+            [scriptname] = [[local x: integer = 1.2]],
+         })
+         local ok, err = script.load(dirname .. util.path_sep .. scriptname, {})
+         assert.falsy(ok)
+         assert.is.string(err)
+         assert.match("type errors", err)
       end)
    end)
 end)
