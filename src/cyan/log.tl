@@ -4,21 +4,25 @@
 ---
 --- Each logging function has the same signature of `function(...: any)`, and
 --- by default the following are provided:
----     `info` (stdout): General info, should be seen as the default, silenced by --quiet
----     `warn` (stderr): Used to display warnings, silenced by --quiet
----      `err` (stderr): Used to display errors
----    `debug` (stderr): Used for debugging, uses the inspect module (if it is found) to print its arguments
+---
+---@@table Name     | Stream | Description
+---        `info`   | stdout | General info, should be seen as the default, silenced by --quiet
+---        `warn`   | stderr | Used to display warnings, silenced by --quiet
+---        `err`    | stderr | Used to display errors
+---        `debug`  | stderr | Used for debugging, uses the inspect module (if it is found) to print its arguments
+---@@end
 ---
 --- You may notice that these are nicely padded and after the first line the prefix is replaced by a '...'
 --- Another function is provided, `create_logger`,
---- ```
----    create_logger(
----       stream: FILE,
----       prefix: string | ColorString,
----       cont: string | ColorString,
----       inspector: function(any): string
----    ): function(...: any)
---- ```
+---
+--- <pre>
+--- create_logger: function(<br>
+---    stream: FILE,<br>
+---    prefix: string | ColorString,<br>
+---    cont: string | ColorString,<br>
+---    inspector: function(any): string<br>
+--- ): function(...: any)<br>
+--- </pre>
 --- to automatically generate formatted output. `cont` defaults to `"..."` and
 --- `inspector` defaults to `tostring`. Prefixes will be padded to 10 characters
 --- wide, so your logging may look off from the default if your prefix is longer.
