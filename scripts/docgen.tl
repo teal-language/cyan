@@ -1,6 +1,4 @@
 
--- TODO: markdown looks a little odd, should probably generate html at somepoint
-
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
 local ansi <const> = require("cyan.ansi")
@@ -24,24 +22,53 @@ if not has_teal_parser then
    return
 end
 
-local docfile <const> = fs.path.new("docs/api.md")
+local docfile <const> = fs.path.new("docs/api.html")
 local type Emitter = function(prefix: {string}, object: ts.Node, output: {string})
 
 local function assertf(val: any, fmt: string, ...: any)
    assert(val, fmt:format(...))
 end
 
+local type TagTree = {string | TagTree}
+local function html(tags: TagTree): string
+   local flattened <const>: {string} = {}
+   for _, v in ipairs(tags) do
+      if v is string then
+         table.insert(flattened, v)
+      else
+         table.insert(flattened, html(v))
+      end
+   end
+   return table.concat(flattened)
+end
+local function tag_wrapper(name: string): function(string | TagTree): TagTree
+   return function(content: string | TagTree): TagTree
+      if content is string then
+         content = { content }
+      end
+      table.insert(content as TagTree, 1, "<" .. name .. ">\n")
+      table.insert(content as TagTree, "</" .. name .. ">\n")
+      return content as TagTree
+   end
+end
+local h1 <const> = tag_wrapper "h1"
+local h2 <const> = tag_wrapper "h2"
+-- local h3 <const> = tag_wrapper "h3"
+local pre <const> = tag_wrapper "pre"
+local p <const> = tag_wrapper "p"
+local br <const> = "<br>"
+
 local emit: {string:Emitter} = setmetatable({}, {
    __newindex = function(self: {string:Emitter}, name: string, emitter: Emitter)
       -- wrap all functions in these asserts
-      rawset(self, name, function(pre: {string}, n: ts.Node, out: {string})
-         assertf(pre, "nil prefix for emitter %q", name)
+      rawset(self, name, function(prefix: {string}, n: ts.Node, out: {string})
+         assertf(prefix, "nil prefix for emitter %q", name)
          assertf(n, "nil node for emitter %q", name)
          assertf(out, "nil output for emitter %q", name)
 
          assertf(n:type() == name, "Wrong node type (%q) for emitter %q", n:type(), name)
 
-         emitter(pre, n, out)
+         emitter(prefix, n, out)
       end)
    end,
    __index = function(_: {string:Emitter}, name: string)
@@ -49,20 +76,23 @@ local emit: {string:Emitter} = setmetatable({}, {
    end,
 })
 
+local function escape(str: string): string
+   return (str:gsub("\n\n", "<br>")
+              :gsub("`(.-)`", "<code>%1</code>"))
+end
+
 emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string})
    local sig <const> = n:child_by_field_name("signature")
    local ret <const> = sig:child_by_field_name("return_type")
 
    table.insert(
       out,
-      "#### `"
-         .. n:child_by_field_name("name"):source()
-         .. sig:child_by_field_name("arguments"):source()
-         .. (ret and ": " .. ret:source() or "")
-         .. "`"
-         .. "\n"
-         .. table.concat(prefix, "\n\n")
-         .. "\n\n"
+      html {
+         h2 { n:child_by_field_name("name"):source(),
+              sig:child_by_field_name("arguments"):source(),
+              (ret and ": " .. ret:source() or "") },
+         p (escape(table.concat(prefix)))
+      }
    )
 end
 
@@ -106,15 +136,14 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    end
    table.insert(
       out,
-      "#### `record "
-         .. n:child_by_field_name("name"):source()
-         .. "`\n```lua\n"
-         .. table.concat(meta, "\n")
-         .. "\n"
-         .. table.concat(fields, "\n")
-         .. "\n```\n"
-         .. table.concat(prefix, "\n\n")
-         .. "\n\n"
+      html {
+         pre  { "record ", n:child_by_field_name("name"):source(), br, "   ",
+                 table.concat(meta, br .. "   "), br, "   ",
+                 table.concat(fields, br .. "   "), br,
+                "end" },
+         br,
+         p (escape(table.concat(prefix)))
+      }
    )
 end
 
@@ -144,6 +173,7 @@ local function gen_docs(filename: string, module_name: string): string
       local caps <const> = match.captures as {ts.Node}
       local n <const> = caps[match.capture_count as integer]
       local s = n:type()
+      local n_leading_spaces: integer
       if s ~= "comment" then
          -- obj will match comments as the query will produce EVERY match
          -- resulting in the same nodes being matched over and over
@@ -153,17 +183,56 @@ local function gen_docs(filename: string, module_name: string): string
          local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
          local lines <const> = {}
          local content: {string} = {}
-         for _, v in ipairs(caps) do
+         local current_state: string
+         for i, v in ipairs(caps) do
             local src <const> = v:source()
             if not src:match("^%-%-%-") then
                break
             end
-            local line <const> = src:match("^%-%-%-%s*(.*)%s*$")
-            if line == "" then
-               table.insert(lines, table.concat(content, " "))
-               content = {}
+            local sub <const>, rest <const> = src:match("^%-%-%-@@(%w+)(.*)%s*$")
+            if sub then
+               if sub == "end" then
+                  if current_state == "table" then
+                     table.insert(lines, "</table>")
+                  end
+                  table.insert(lines, br:rep(2))
+                  current_state = nil
+               elseif current_state then
+                  error("Attempt to use @@" .. sub .. " inside of @@" .. current_state)
+               else
+                  current_state = sub
+                  if current_state == "table" then
+                     table.insert(lines, "<table>")
+                     local row <const> = { "<tr>" }
+                     for col in rest:gmatch("[^|]+") do
+                        table.insert(row, "<th>" .. col .. "</th>")
+                     end
+                     table.insert(row, "</tr>")
+                     table.insert(lines, table.concat(row))
+                  end
+               end
             else
-               table.insert(content, line)
+               local leadingws, line = src:match("^%-%-%-(%s*)(.*)%s*$")
+               if i == 1 then
+                  n_leading_spaces = #leadingws
+               else
+                  line = leadingws:sub(n_leading_spaces, -1) .. line
+               end
+               if current_state == "table" then
+                  local row = { "<tr>" }
+                  for col in line:gmatch("[^|]+") do
+                     table.insert(row, "<td>" .. col .. "</td>")
+                  end
+                  table.insert(row, "</tr>")
+                  table.insert(lines, table.concat(row))
+               else
+                  if line == "" then
+                     table.insert(lines, table.concat(content, " "))
+                     content = {}
+                  else
+                     table.insert(content, line)
+                  end
+               end
             end
          end
          table.insert(lines, table.concat(content, " "))
@@ -183,7 +252,7 @@ local function gen_docs(filename: string, module_name: string): string
       if d.kind == "desc" then
          emit[node_kind](d.content, d.obj, sections)
       elseif d.kind == "brief" then
-         brief = table.concat(d.content, "\n\n") .. "\n\n"
+         brief = escape(table.concat(d.content)) .. br:rep(2)
       else
          log.warn("Unhandled node kind: ", node_kind)
       end
@@ -191,28 +260,66 @@ local function gen_docs(filename: string, module_name: string): string
 
    if #sections > 0 then
       table.sort(sections)
-      table.insert(sections, 1, "## `" .. module_name .. "`\n---\n\n" .. (brief or ""))
+      table.insert(sections, 1, html {
+         h1 (module_name),
+         p (brief or "")
+      })
 
       return table.concat(sections)
    end
 end
 
 local output <const> = {}
-for p in fs.scan_dir("src", {"cyan/**/*"}) do
-   local file <const> = ("src" .. p):to_real_path()
-   local mod <const> = p:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
+for path in fs.scan_dir("src", {"cyan/**/*"}) do
+   local file <const> = ("src" .. path):to_real_path()
+   local mod <const> = path:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
    local docs <const> = gen_docs(file, mod)
    if docs then
-      info("Processed ", cs.highlight(cs.colors.file, p:tostring()))
+      info("Processed ", cs.highlight(cs.colors.file, path:tostring()))
       table.insert(output, docs)
    end
 end
 table.sort(output)
 local fh <const> = assert(io.open(docfile:to_real_path(), "w"))
+fh:write[[
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8"/>
+<style>
+html {
+   background-color: #16191a;
+}
+
+body {
+   background-color: #181a1b;
+   margin: auto;
+   max-width: 70em;
+   width: 90%;
+   padding: 32px;
+   font-family: Helvetica, Arial, sans-serif;
+   color: #e8e6e3;
+}
+
+a {
+   text-decoration: none;
+   color: #3391ff;
+}
+
+h2 {
+   color: #117dee;
+}
+</style>
+<body>
+]]
 fh:write(
-   "# Api Documentation\n",
-   "This documentation is autogenerated and may be incomplete\n\n"
+   html { h1 "Api Documentation",
+          p "This documentation is autogenerated and may be incomplete",
+          br:rep(2) }
 )
 fh:write(table.concat(output))
+fh:write[[
+</body>
+</html>
+]]
 fh:close()
 info("Wrote ", cs.highlight(cs.colors.file, docfile:to_real_path()))
