@@ -1,8 +1,9 @@
 
--- Super simplistic sandboxing
--- In the future maybe could be integrated with some very simple debugging utilities
--- for now, we just offer the convenience of exiting gracefully if someone puts
--- `while true do end` in their config for some reason
+---@brief
+--- Super simplistic sandboxing
+--- In the future maybe could be integrated with some very simple debugging utilities
+--- for now, we just offer the convenience of exiting gracefully if someone puts
+--- `while true do end` in their config for some reason
 
 local record Sandbox
    _fn: function

@@ -1,3 +1,7 @@
+---@brief
+--- The command line driver
+---
+--- This is not a module to be used and requiring it will attempt to start the cli and call os.exit
 local argparse <const> = require("argparse")
 local tl <const> = require("tl")
 

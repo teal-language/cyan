@@ -15,14 +15,14 @@
 --- You may notice that these are nicely padded and after the first line the prefix is replaced by a '...'
 --- Another function is provided, `create_logger`,
 ---
---- <pre>
---- create_logger: function(<br>
----    stream: FILE,<br>
----    prefix: string | ColorString,<br>
----    cont: string | ColorString,<br>
----    inspector: function(any): string<br>
---- ): function(...: any)<br>
---- </pre>
+---@@code
+--- create_logger: function(
+---    stream: FILE,
+---    prefix: string | ColorString,
+---    cont: string | ColorString,
+---    inspector: function(any): string
+--- ): function(...: any)
+---@@end
 --- to automatically generate formatted output. `cont` defaults to `"..."` and
 --- `inspector` defaults to `tostring`. Prefixes will be padded to 10 characters
 --- wide, so your logging may look off from the default if your prefix is longer.

@@ -1,3 +1,4 @@
+---@nodoc
 
 -- Check and gen basically do the same thing, gen just goes a step further and writes to some files
 -- so to avoid writing the same file twice, just implement them both here
