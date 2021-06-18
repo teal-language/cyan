@@ -1,4 +1,4 @@
-
+---@nodoc
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 local log <const> = require("cyan.log")

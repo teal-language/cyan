@@ -1,3 +1,4 @@
+---@nodoc
 
 -- create some directories and a tlconfig.lua pointing at those directories
 

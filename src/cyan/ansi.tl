@@ -1,4 +1,7 @@
 
+---@brief
+--- A small utility library for grabbing the ANSI escapes for colors and such
+
 local CSI <const> = string.char(27) .. "["
 
 local dark: {string:number} = {

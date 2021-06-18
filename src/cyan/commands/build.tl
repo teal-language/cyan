@@ -1,3 +1,4 @@
+---@nodoc
 
 local argparse <const> = require("argparse")
 local tl <const> = require("tl")

@@ -115,15 +115,16 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
    return coroutine.wrap(function() dir_iter(dir) end) as function(): Path
 end
 
----@brief
+---@desc
 --- Split a path on its extension
 ---
 --- the `ndots` argument lets you specify how many dots the extension can have
 ---
 --- ex:
---- `fs.extension_split("foo.d.tl") == ".tl"`
----
---- `fs.extension_split("foo.d.tl", 2) == ".d.tl"`
+---@@code
+--- fs.extension_split("foo.d.tl") => "foo.d", ".tl"
+--- fs.extension_split("foo.d.tl", 2) => "foo", ".d.tl"
+---@@end
 function fs.extension_split(p: Path | string, ndots: number): string, string
    if not p then
       return nil
@@ -140,17 +141,16 @@ function fs.extension_split(p: Path | string, ndots: number): string, string
    return str_path
 end
 
----@brief
+---@desc
 --- Concatenate two strings using the os path separator
 function fs.path_concat(a: string, b: string): string
    return a .. path.separator .. b
 end
 
----@brief
+---@desc
 --- Search for a file in the parent directories of the given path. Returns the path of the file found.
 ---
---- e.g. if `file.txt` is in `/foo/bar`
---- `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == "/foo/bar/file.txt"`
+--- e.g. if `file.txt` is in `/foo/bar`, then `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == "/foo/bar/file.txt"`
 function fs.search_parent_dirs(start_path: string | Path, fname: string): Path
    local p <const> = to_path(start_path, true)
 

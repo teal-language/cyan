@@ -22,8 +22,8 @@ if not has_teal_parser then
    return
 end
 
-local docfile <const> = fs.path.new("docs/api.html")
-local type Emitter = function(prefix: {string}, object: ts.Node, output: {string})
+local docfile <const> = fs.path.new("docs/index.html")
+local type Emitter = function(prefix: {string}, object: ts.Node, output: {string}): string
 
 local function assertf(val: any, fmt: string, ...: any)
    assert(val, fmt:format(...))
@@ -34,41 +34,54 @@ local function html(tags: TagTree): string
    local flattened <const>: {string} = {}
    for _, v in ipairs(tags) do
       if v is string then
-         table.insert(flattened, v)
+         if #v > 0 then
+            table.insert(flattened, v)
+         end
       else
          table.insert(flattened, html(v))
       end
    end
    return table.concat(flattened)
 end
-local function tag_wrapper(name: string): function(string | TagTree): TagTree
-   return function(content: string | TagTree): TagTree
+local function tag_wrapper(name: string): function(string | TagTree, {string:string}): TagTree
+   return function(content: string | TagTree, attrs: {string:string}): TagTree
       if content is string then
          content = { content }
       end
-      table.insert(content as TagTree, 1, "<" .. name .. ">\n")
+      local start = { "<", name }
+      if attrs then
+         for k, v in pairs(attrs) do
+            table.insert(start, (" %s=%s"):format(k, v))
+         end
+      end
+      table.insert(start, ">")
+      table.insert(content as TagTree, 1, start)
       table.insert(content as TagTree, "</" .. name .. ">\n")
       return content as TagTree
    end
 end
 local h1 <const> = tag_wrapper "h1"
 local h2 <const> = tag_wrapper "h2"
--- local h3 <const> = tag_wrapper "h3"
+local _h3 <const> = tag_wrapper "h3"
+local _h4 <const> = tag_wrapper "h4"
 local pre <const> = tag_wrapper "pre"
 local p <const> = tag_wrapper "p"
+local a <const> = tag_wrapper "a"
 local br <const> = "<br>"
 
 local emit: {string:Emitter} = setmetatable({}, {
    __newindex = function(self: {string:Emitter}, name: string, emitter: Emitter)
       -- wrap all functions in these asserts
-      rawset(self, name, function(prefix: {string}, n: ts.Node, out: {string})
+      rawset(self, name, function(prefix: {string}, n: ts.Node, out: {string}): string
          assertf(prefix, "nil prefix for emitter %q", name)
          assertf(n, "nil node for emitter %q", name)
          assertf(out, "nil output for emitter %q", name)
 
          assertf(n:type() == name, "Wrong node type (%q) for emitter %q", n:type(), name)
 
-         emitter(prefix, n, out)
+         local obj_name = emitter(prefix, n, out)
+         assertf(obj_name, "Emitter %q did not return object name", name)
+         return obj_name
       end)
    end,
    __index = function(_: {string:Emitter}, name: string)
@@ -76,27 +89,32 @@ local emit: {string:Emitter} = setmetatable({}, {
    end,
 })
 
+local href_prefix <const> = docfile[#docfile]
 local function escape(str: string): string
-   return (str:gsub("\n\n", "<br>")
-              :gsub("`(.-)`", "<code>%1</code>"))
+   return (str:gsub("\n\n", br)
+              :gsub("`(.-)`", "<code>%1</code>")
+              :gsub("([\"'])([^%1]-)%1", "<code>%1%2%1</code>"))
 end
 
-emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string})
+emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string}): string
    local sig <const> = n:child_by_field_name("signature")
    local ret <const> = sig:child_by_field_name("return_type")
+   local name <const> = n:child_by_field_name("name"):source()
 
    table.insert(
       out,
       html {
-         h2 { n:child_by_field_name("name"):source(),
+         h2 ( a ({name,
               sig:child_by_field_name("arguments"):source(),
-              (ret and ": " .. ret:source() or "") },
-         p (escape(table.concat(prefix)))
+              (ret and ": " .. ret:source() or "")},
+              { name = name })),
+         escape(table.concat(prefix))
       }
    )
+   return name
 end
 
-emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
+emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
    local fields <const> = {}
    local meta <const> = {}
    local body <const> = n:child_by_field_name("record_body")
@@ -134,17 +152,19 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
          )
       end
    end
+   local obj_name <const> = n:child_by_field_name("name"):source()
    table.insert(
       out,
       html {
-         pre  { "record ", n:child_by_field_name("name"):source(), br, "   ",
+         h2 ( a ({ "type ", obj_name }, { name = obj_name })),
+         pre  { "record ", obj_name, br, "   ",
                  table.concat(meta, br .. "   "), br, "   ",
                  table.concat(fields, br .. "   "), br,
                 "end" },
-         br,
-         p (escape(table.concat(prefix)))
+         escape(table.concat(prefix))
       }
    )
+   return obj_name
 end
 
 local query <const> = teal_parser:query[[
@@ -158,7 +178,7 @@ local record Doc
    obj: ts.Node
 end
 
-local function gen_docs(filename: string, module_name: string): string
+local function gen_docs(filename: string, module_name: string): string, {string}
    local root: ts.Node
    do
       local file <const> = assert(filename, "No filename provided")
@@ -173,7 +193,6 @@ local function gen_docs(filename: string, module_name: string): string
       local caps <const> = match.captures as {ts.Node}
       local n <const> = caps[match.capture_count as integer]
       local s = n:type()
-      local n_leading_spaces: integer
       if s ~= "comment" then
          -- obj will match comments as the query will produce EVERY match
          -- resulting in the same nodes being matched over and over
@@ -181,42 +200,54 @@ local function gen_docs(filename: string, module_name: string): string
          local obj <const> = table.remove(caps, match.capture_count)
          local kind_node = table.remove(caps, 1)
          local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
+         if kind == "nodoc" then
+            return
+         end
          local lines <const> = {}
          local content: {string} = {}
          local current_state: string
+         local n_leading_spaces: integer
+         local function ins(str: string)
+            if str:match("^%s*$") then return end
+            table.insert(content, str)
+         end
          for i, v in ipairs(caps) do
             local src <const> = v:source()
             if not src:match("^%-%-%-") then
                break
             end
             local sub <const>, rest <const> = src:match("^%-%-%-@@(%w+)(.*)%s*$")
+            -- TODO: make a proper state machine for this
             if sub then
                if sub == "end" then
                   if current_state == "table" then
-                     table.insert(lines, "</table>")
+                     ins("</table>")
+                  elseif current_state == "code" then
+                     ins("</pre>")
                   end
-                  table.insert(lines, br:rep(2))
                   current_state = nil
                elseif current_state then
                   error("Attempt to use @@" .. sub .. " inside of @@" .. current_state)
                else
                   current_state = sub
                   if current_state == "table" then
-                     table.insert(lines, "<table>")
+                     ins("<table>")
                      local row <const> = { "<tr>" }
                      for col in rest:gmatch("[^|]+") do
                         table.insert(row, "<th>" .. col .. "</th>")
                      end
                      table.insert(row, "</tr>")
-                     table.insert(lines, table.concat(row))
+                     ins(table.concat(row))
+                  elseif current_state == "code" then
+                     ins("<pre>")
                   end
                end
             else
-               local leadingws, line = src:match("^%-%-%-(%s*)(.*)%s*$")
+               local leadingws <const>, line = src:match("^%-%-%-(%s*)(.*)%s*$")
                if i == 1 then
                   n_leading_spaces = #leadingws
                else
-                  line = leadingws:sub(n_leading_spaces, -1) .. line
+                  line = leadingws:sub(n_leading_spaces + 1, -1) .. line
                end
                if current_state == "table" then
                   local row = { "<tr>" }
@@ -224,18 +255,21 @@ local function gen_docs(filename: string, module_name: string): string
                      table.insert(row, "<td>" .. col .. "</td>")
                   end
                   table.insert(row, "</tr>")
-                  table.insert(lines, table.concat(row))
+                  ins(table.concat(row))
+               elseif current_state == "code" then
+                  ins(line .. "<br>")
                else
-                  if line == "" then
-                     table.insert(lines, table.concat(content, " "))
+                  if line == "" and #content > 0 then
+                     table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
                      content = {}
                   else
-                     table.insert(content, line)
+                     ins(line)
                   end
                end
             end
          end
-         table.insert(lines, table.concat(content, " "))
+         assertf(not current_state, "Unended doc block %q in %s", current_state, filename)
+         table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
          table.insert(docs, {
             kind = kind,
             content = lines,
@@ -246,39 +280,70 @@ local function gen_docs(filename: string, module_name: string): string
 
    local brief: string
    local sections <const>: {string} = {}
+   local table_of_contents <const>: {string} = {}
 
    for _, d in ipairs(docs) do
       local node_kind <const> = d.obj:type()
       if d.kind == "desc" then
-         emit[node_kind](d.content, d.obj, sections)
+         local name <const> = emit[node_kind](d.content, d.obj, sections)
+         table.insert(table_of_contents, html {
+            a (name, { href = ("%s#%s"):format(href_prefix, name)}),
+         })
       elseif d.kind == "brief" then
-         brief = escape(table.concat(d.content)) .. br:rep(2)
+         if brief then
+            error("Module " .. module_name .. " contains more than one @brief directive")
+         end
+         brief = escape(table.concat(d.content))
       else
          log.warn("Unhandled node kind: ", node_kind)
       end
    end
 
-   if #sections > 0 then
-      table.sort(sections)
-      table.insert(sections, 1, html {
-         h1 (module_name),
-         p (brief or "")
-      })
+   if not brief then
+      log.warn(
+         filename, " has no ",
+         cs.highlight(cs.colors.keyword, "---@brief"), "\n   If this is intentional, use ",
+         cs.highlight(cs.colors.keyword, "---@nodoc"), " to silence this warning"
+      )
+   end
 
-      return table.concat(sections)
+   if #sections > 0 or brief as boolean then
+      table.sort(sections)
+      local res = {
+         h1 (a (module_name, { name = module_name })),
+      }
+      if brief then
+         table.insert(res, p (brief))
+      end
+      table.insert(sections, 1, html (res))
+      table.sort(table_of_contents)
+      return table.concat(sections), table_of_contents
    end
 end
 
+local table_of_contents <const> = {}
 local output <const> = {}
 for path in fs.scan_dir("src", {"cyan/**/*"}) do
    local file <const> = ("src" .. path):to_real_path()
    local mod <const> = path:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
-   local docs <const> = gen_docs(file, mod)
+   local docs <const>, toc <const> = gen_docs(file, mod)
    if docs then
       info("Processed ", cs.highlight(cs.colors.file, path:tostring()))
+      table.insert(table_of_contents, html {
+         p { a (mod, { href = ("%s#%s"):format(href_prefix, mod)}),
+             br,
+             table.concat(toc, br) }
+      })
       table.insert(output, docs)
    end
 end
+table.sort(table_of_contents)
+for i = #table_of_contents, 1, -1 do
+   if i % 4 == 1 then
+      table.insert(table_of_contents, i, "</td><td valign=top>")
+   end
+end
+table.insert(table_of_contents, "</td></tr>")
 table.sort(output)
 local fh <const> = assert(io.open(docfile:to_real_path(), "w"))
 fh:write[[
@@ -303,6 +368,20 @@ body {
 a {
    text-decoration: none;
    color: #3391ff;
+   padding: 3px 3px 3px 3px;
+}
+
+a:link:hover {
+   background-color: #25282A;
+   border-radius: 4px;
+}
+
+h1 {
+   color: #117dee;
+}
+h1::before {
+   content: "\2756";
+   padding-right: 0.5em;
 }
 
 h2 {
@@ -314,8 +393,9 @@ h2 {
 fh:write(
    html { h1 "Api Documentation",
           p "This documentation is autogenerated and may be incomplete",
-          br:rep(2) }
+          br }
 )
+fh:write(html { h1 "Index", "<table width='100%'><tbody>", table_of_contents, "</tbody></table>" })
 fh:write(table.concat(output))
 fh:write[[
 </body>
