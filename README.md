@@ -16,7 +16,7 @@ A build system for the Teal language
 
 The output of all the commands is much nicer for humans than it is for computers. If you'd like the output of commands, or to be able to load a config file in your own tooling, we provide a small api.
 
-Auto-generated documentation can be found [here](docs/api.md).
+Auto-generated documentation can be found [here](https://teal-language.github.io/cyan/).
 
 ## tlconfig.lua
 
