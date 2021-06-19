@@ -17,12 +17,16 @@ Each bullet may contain one of these words, treat them as meaning the following:
 Both of the above are in the `.editorconfig` file of this repository. I'd reccommend you find an editor/plugin that automatically adheres to it.
 
 ### Doc Comments
- Teal currently doesn't have an 'official' or widespread doc-comment format. Currently we use a [custom script](#documentation-generation) to generate the [api docs](./api). There are currently only 2 directives:
+ Teal currently doesn't have an 'official' or widespread doc-comment format. Currently we use a [custom script](#documentation-generation) to generate the [api docs](./index.html). There are currently only 2 directives:
  - `@brief`
    - One per file, a brief summary of what that file does/contains
  - `@desc`
    - Documents the piece of code under it, giving a description. Currently only supports function and record declarations. The script will emit a warning when it doesn't know how to document a certain piece of code.
    - These should briefly describe _what_ something is or does, not necessarily _how_ it does it, unless that is relevant. (For example: You should document when a function modifies its arguments)
+
+Additionally there are 2 subdirectives to control how the output is formatted. Subdirectives start with `---@@` (note that there is no space between the `---` and `@@`) and define a block until the corresponding `---@@end` is found:
+ - `@@code`: place the block in a `<pre>` tag and append `<br>` to each line
+ - `@@table`: create a `<table>` of data. `|` is used to separate columns. If you define a row on the same line as this directive it will be used as the header.
 
 ### Variables
  - Variables and functions should be `snake_case`
@@ -113,7 +117,7 @@ local function do_things(x: integer, y: integer): number, string
    end
 end
 
--- good
+-- better
 local function do_things(x: integer, y: integer): number, string
    if x <= 0 then
       return nil, "argument 1: expected positive integer"
@@ -129,6 +133,19 @@ local function do_things(x: integer, y: integer): number, string
 
    return x / y
 end
+
+-- best
+local function do_things(x: integer, y: integer): number, string
+   if x <= 0 then
+      return nil, "argument 1: expected positive integer"
+   end
+   if y >= 0 then
+      return nil, "argument 2: expected negative integer"
+   end
+
+   return x / y
+end
+
 ```
  - If a signature is getting long, split each argument to its own indented line, with the closing paren on its own line at the same indent level as the `function` keyword
 
@@ -137,7 +154,7 @@ local function foo(
    w: string
    x: number,
    y: number,
-   z: integer,
+   z: integer
 ): number
    -- ...
 end
@@ -222,6 +239,18 @@ end
 Without exposing a type, it is _extremely hard_ for users of the api to interact with anything that has to do with that type
 
  - When type checking manually, prefer the `is` operator to manually calling `type()`
+
+### Generics
+
+ - When declaring generic types, avoid using single letter type variables. The name of the type variable should at least vaguely describe what the type represents:
+
+```
+-- bad
+local type Mapper = function<A, B>({A}): {B}
+
+-- good
+local type Mapper = function<Value, Mapped>({Value}): Mapped
+```
 
 ### Working Around the Type System
 Sometimes Teal's type system isn't powerful or expressive enough to annotate common Lua code. Workarounds should be done in isolation
