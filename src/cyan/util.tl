@@ -20,7 +20,7 @@ end
 
 ---@desc
 --- Sort a table (in place) and return that table
-function tab.sort<T>(t: {T}, fn: function(T, T): boolean): {T}
+function tab.sort_in_place<T>(t: {T}, fn: function(T, T): boolean): {T}
    table.sort(t, fn)
    return t
 end

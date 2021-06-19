@@ -9,7 +9,7 @@ local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
 
 local keys <const>, sort <const>, from <const>, values <const>
-   = util.tab.keys, util.tab.sort, util.tab.from, util.tab.values
+   = util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values
 
 ---@desc
 --- The config data

@@ -4,16 +4,16 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local ansi = require("cyan.ansi")
-local config = require("cyan.config")
 local command = require("cyan.command")
-local log = require("cyan.log")
+local config = require("cyan.config")
 local cs = require("cyan.colorstring")
-local util = require("cyan.util")
+local log = require("cyan.log")
 local tl = require("tl")
+local util = require("cyan.util")
 
 local pad_left = util.str.pad_left
 local values, set, keys, from, sort =
-util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort
+util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort_in_place
 
 local function exec(_, c)
    local disable = set(c.disable_warnings or {})
@@ -47,6 +47,6 @@ end
 
 command.new({
    name = "warnings",
-   description = [[List all warnings the Teal compiler can produce and whether or not they are enabled]],
+   description = [[List all warnings the Teal compiler can produce and whether or not they are enabled.]],
    exec = exec,
 })

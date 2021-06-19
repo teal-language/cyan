@@ -4,16 +4,16 @@
 -- and whether or not they are enabled in the config
 
 local ansi <const> = require("cyan.ansi")
-local config <const> = require("cyan.config")
 local command <const> = require("cyan.command")
-local log <const> = require("cyan.log")
+local config <const> = require("cyan.config")
 local cs <const> = require("cyan.colorstring")
-local util <const> = require("cyan.util")
+local log <const> = require("cyan.log")
 local tl <const> = require("tl")
+local util <const> = require("cyan.util")
 
 local pad_left <const> = util.str.pad_left
 local values <const>, set <const>, keys <const>, from <const>, sort <const>
-   = util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort
+   = util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort_in_place
 
 local function exec(_: command.Args, c: config.Config): integer
    local disable <const> = set(c.disable_warnings or {})
@@ -47,6 +47,6 @@ end
 
 command.new{
    name = "warnings",
-   description = [[List all warnings the Teal compiler can produce and whether or not they are enabled]],
+   description = [[List all warnings the Teal compiler can produce and whether or not they are enabled.]],
    exec = exec,
 }
