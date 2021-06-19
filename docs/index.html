@@ -162,141 +162,141 @@ h2 {
 <h1><a name=cyan.colorstring>cyan.colorstring</a>
 </h1>
 <p><p>Some wrappers/conveniences around working with ansi escape codes For example getting the length of a string that contains escape codes shouldnt include them</p></p>
-<h2><a name=ColorString:surround>ColorString:surround(col: {number})</a>
+<h2><a name=ColorString:surround><code>ColorString:surround(col: {number})</code></code></a>
 </h2>
-<p>surrounds a string with a color</p><h2><a name=ColorString:tostring>ColorString:tostring(): string</a>
+<p>surrounds a string with a color</p><h2><a name=ColorString:tostring><code>ColorString:tostring(): string</code></code></a>
 </h2>
-<p>Converts a <code>Colorstring</code> to a regular string with the correct ANSI escapes</p><h2><a name=ColorString>type ColorString</a>
+<p>Converts a <code>Colorstring</code> to a regular string with the correct ANSI escapes</p><h2><a name=ColorString><code>typeColorString</code></a>
 </h2>
 <pre>record ColorString<br>   metamethod __len: function(ColorString): number<br>   metamethod __concat: function(ColorString | string, ColorString | string): ColorString<br>   content: {string | {number}}<br>   len: function(ColorString): number<br>   tostring: function(ColorString): string<br>end</pre>
-<p>The main object that this library consumes and produces. It basically implements the <code>'string'</code> interface and can be used wherever a string is.</p><p>Colors are described as arrays of numbers that directly correspond to ANSI escape sequences</p><h2><a name=colorstring.highlight>colorstring.highlight(hl: {number}, str: string): ColorString</a>
+<p>The main object that this library consumes and produces. It basically implements the <code>'string'</code> interface and can be used wherever a string is.</p><p>Colors are described as arrays of numbers that directly correspond to ANSI escape sequences</p><h2><a name=colorstring.highlight><code>colorstring.highlight(hl: {number}, str: string): ColorString</code></code></a>
 </h2>
-<p>Create a <code>Colorstring</code> by surrounding a string with the given ANSI color and an ANSI reset</p><h2><a name=colorstring.new>colorstring.new(...: string | {number}): ColorString</a>
+<p>Create a <code>Colorstring</code> by surrounding a string with the given ANSI color and an ANSI reset</p><h2><a name=colorstring.new><code>colorstring.new(...: string | {number}): ColorString</code></code></a>
 </h2>
-<p>The <code>Colorstring</code> constructor</p><h2><a name=colorstring.rgb_bg>colorstring.rgb_bg(r: number, g: number, b: number): {number, number, number, number, number}</a>
+<p>The <code>Colorstring</code> constructor</p><h2><a name=colorstring.rgb_bg><code>colorstring.rgb_bg(r: number, g: number, b: number): {number, number, number, number, number}</code></code></a>
 </h2>
-<p>The ansi escape for an arbitrary RGB background color</p><h2><a name=colorstring.rgb_fg>colorstring.rgb_fg(r: number, g: number, b: number): {number, number, number, number, number}</a>
+<p>The ansi escape for an arbitrary RGB background color</p><h2><a name=colorstring.rgb_fg><code>colorstring.rgb_fg(r: number, g: number, b: number): {number, number, number, number, number}</code></code></a>
 </h2>
 <p>The ansi escape for an arbitrary RGB foreground color</p><h1><a name=cyan.command>cyan.command</a>
 </h1>
 <p><p>The common interface for commands to implement</p></p>
-<h2><a name=Command>type Command</a>
+<h2><a name=Command><code>typeCommand</code></a>
 </h2>
 <pre>record Command<br>   <br>   name: string<br>   description: string<br>   argparse: function(argparse.Command)<br>   script_hooks: {string}<br>   exec: CommandFn<br>end</pre>
-<p>The interface</p><h2><a name=command.get>command.get(name: string): Command</a>
+<p>The interface</p><h2><a name=command.get><code>command.get(name: string): Command</code></code></a>
 </h2>
-<p>Get a command that was created with <code>command.new</code></p><p>Works whether or not <code>command.register_all</code> was called</p><h2><a name=command.merge_args_into_config>command.merge_args_into_config(cfg: config.Config, args: Args)</a>
+<p>Get a command that was created with <code>command.new</code></p><p>Works whether or not <code>command.register_all</code> was called</p><h2><a name=command.merge_args_into_config><code>command.merge_args_into_config(cfg: config.Config, args: Args)</code></code></a>
 </h2>
-<p>Merge the relevant entries of the provided command arguments into the provided config table</p><h2><a name=command.new>command.new(cmd: Command)</a>
+<p>Merge the relevant entries of the provided command arguments into the provided config table</p><h2><a name=command.new><code>command.new(cmd: Command)</code></code></a>
 </h2>
-<p>Create a new command</p><p>This is stored in an internal cache and will do nothing unless <code>command.register_all</code> is called afterwards</p><h2><a name=command.register_all>command.register_all(p: argparse.Parser)</a>
+<p>Create a new command</p><p>This is stored in an internal cache and will do nothing unless <code>command.register_all</code> is called afterwards</p><h2><a name=command.register_all><code>command.register_all(p: argparse.Parser)</code></code></a>
 </h2>
 <p>Install all commands created with <code>command.new</code> into the given parser</p><h1><a name=cyan.config>cyan.config</a>
 </h1>
 <p><p>Config loading API</p></p>
-<h2><a name=Config>type Config</a>
+<h2><a name=Config><code>typeConfig</code></a>
 </h2>
 <pre>record Config<br>   <br>   loaded_from: fs.Path<br>   build_dir: string<br>   source_dir: string<br>   include: {string}<br>   exclude: {string}<br>   global_env_def: string<br>   include_dir: {string}<br>   module_name: string<br>   scripts: {string:{string}}<br>   gen_compat: tl.CompatMode<br>   gen_target: tl.TargetMode<br>   disable_warnings: {tl.WarningKind}<br>   warning_error: {tl.WarningKind}<br>   externals: {string:any}<br>end</pre>
-<p>The config data</p><h2><a name=config.find>config.find(): fs.Path</a>
+<p>The config data</p><h2><a name=config.find><code>config.find(): fs.Path</code></code></a>
 </h2>
-<p>Find <code>config.filename</code> in the current or parent directories</p><h2><a name=config.is_config>config.is_config(c: any): Config, {string}, {string}</a>
+<p>Find <code>config.filename</code> in the current or parent directories</p><h2><a name=config.is_config><code>config.is_config(c: any): Config, {string}, {string}</code></code></a>
 </h2>
-<p>Check if <code>c</code> conforms to the <code>Config</code> type and return any errors and warnings generated from checking</p><h2><a name=config.load>config.load(): Config, {string}, {string}</a>
+<p>Check if <code>c</code> conforms to the <code>Config</code> type and return any errors and warnings generated from checking</p><h2><a name=config.load><code>config.load(): Config, {string}, {string}</code></code></a>
 </h2>
 <p>Try to load <code>tlconfig.lua</code> in the current directory</p><h1><a name=cyan.fs.path>cyan.fs.path</a>
 </h1>
 <p><p>Object oriented path management</p></p>
-<h2><a name=Path.eq>Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean</a>
+<h2><a name=Path.eq><code>Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean</code></code></a>
 </h2>
-<p>Check if two paths are equal</p><p>This function is used for the __eq metamethod with use_os_sep as false</p><h2><a name=Path:ancestors>Path:ancestors(): function(): Path</a>
+<p>Check if two paths are equal</p><p>This function is used for the __eq metamethod with use_os_sep as false</p><h2><a name=Path:ancestors><code>Path:ancestors(): function(): Path</code></code></a>
 </h2>
-<p>Iterate over the leading folders in a path</p><p>ex: <code>path.new(<code>"foo/bar/baz/bat"</code>):ancestors()</code> will construct <code>Path</code> objects from <code>"foo"</code>, <code>"foo/bar"</code>, <code>"foo/bar/baz"</code></p><h2><a name=Path:append>Path:append(other: string | Path)</a>
+<p>Iterate over the leading folders in a path</p><p>ex: <code>path.new(<code>"foo/bar/baz/bat"</code>):ancestors()</code> will construct <code>Path</code> objects from <code>"foo"</code>, <code>"foo/bar"</code>, <code>"foo/bar/baz"</code></p><h2><a name=Path:append><code>Path:append(other: string | Path)</code></code></a>
 </h2>
-<p>Mutate the given <code>Path</code> by appending another path to it</p><h2><a name=Path:copy>Path:copy(): Path</a>
+<p>Mutate the given <code>Path</code> by appending another path to it</p><h2><a name=Path:copy><code>Path:copy(): Path</code></code></a>
 </h2>
-<p>Create a copy of the given path</p><h2><a name=Path:exists>Path:exists(): boolean</a>
+<p>Create a copy of the given path</p><h2><a name=Path:exists><code>Path:exists(): boolean</code></code></a>
 </h2>
-<p>Check if the path exists</p><h2><a name=Path:is_absolute>Path:is_absolute(): boolean</a>
+<p>Check if the path exists</p><h2><a name=Path:is_absolute><code>Path:is_absolute(): boolean</code></code></a>
 </h2>
-<p>Returns whether the path is absolute</p><p>On windows, checks for paths like <code>"C:\..."</code>, elsewhere looks for <code>"/..."</code></p><h2><a name=Path:is_directory>Path:is_directory(): boolean</a>
+<p>Returns whether the path is absolute</p><p>On windows, checks for paths like <code>"C:\..."</code>, elsewhere looks for <code>"/..."</code></p><h2><a name=Path:is_directory><code>Path:is_directory(): boolean</code></code></a>
 </h2>
-<p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"directory"</code></p><h2><a name=Path:is_file>Path:is_file(): boolean</a>
+<p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"directory"</code></p><h2><a name=Path:is_file><code>Path:is_file(): boolean</code></code></a>
 </h2>
-<p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"file"</code></p><h2><a name=Path:is_in>Path:is_in(dirname: string | Path): boolean</a>
+<p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"file"</code></p><h2><a name=Path:is_in><code>Path:is_in(dirname: string | Path): boolean</code></code></a>
 </h2>
-<p>returns true if the path is inside the given directory</p><p>If relative and absolute paths are mixed, the relative path is assumed to be in the current working directory (as determined by <code>lfs.currentdir()</code>)</p><h2><a name=Path:match>Path:match(patt: string): boolean</a>
+<p>returns true if the path is inside the given directory</p><p>If relative and absolute paths are mixed, the relative path is assumed to be in the current working directory (as determined by <code>lfs.currentdir()</code>)</p><h2><a name=Path:match><code>Path:match(patt: string): boolean</code></code></a>
 </h2>
-<p>See if the given path matches the pattern</p><p>Path separators in patterns are always represented with <code>'/'</code>.</p><p><code>*</code> characters represent any number of non-path-separator characters</p><p><code>**/</code> represent any number of directories</p><h2><a name=Path:match_any>Path:match_any(patts: {string}): integer, string</a>
+<p>See if the given path matches the pattern</p><p>Path separators in patterns are always represented with <code>'/'</code>.</p><p><code>*</code> characters represent any number of non-path-separator characters</p><p><code>**/</code> represent any number of directories</p><h2><a name=Path:match_any><code>Path:match_any(patts: {string}): integer, string</code></code></a>
 </h2>
-<p>See if the given path matches any of the given patterns</p><h2><a name=Path:mk_parent_dirs>Path:mk_parent_dirs(): boolean, string</a>
+<p>See if the given path matches any of the given patterns</p><h2><a name=Path:mk_parent_dirs><code>Path:mk_parent_dirs(): boolean, string</code></code></a>
 </h2>
-<p>Attempt to create the leading directories of a given path</p><h2><a name=Path:mkdir>Path:mkdir(): boolean, string</a>
+<p>Attempt to create the leading directories of a given path</p><h2><a name=Path:mkdir><code>Path:mkdir(): boolean, string</code></code></a>
 </h2>
-<p>Attempt to create a directory at the given path, creating the parent directories if needed. Can be seen as an equivalent to <code>mkdir -p</code></p><h2><a name=Path:mod_time>Path:mod_time(): integer</a>
+<p>Attempt to create a directory at the given path, creating the parent directories if needed. Can be seen as an equivalent to <code>mkdir -p</code></p><h2><a name=Path:mod_time><code>Path:mod_time(): integer</code></code></a>
 </h2>
-<p>Get the <code>"modification"</code> attribute of a file</p><h2><a name=Path:prepend>Path:prepend(other: string | Path)</a>
+<p>Get the <code>"modification"</code> attribute of a file</p><h2><a name=Path:prepend><code>Path:prepend(other: string | Path)</code></code></a>
 </h2>
-<p>Mutate the given <code>Path</code> by prepending another path to it</p><h2><a name=Path:relative_to>Path:relative_to(other: Path): string</a>
+<p>Mutate the given <code>Path</code> by prepending another path to it</p><h2><a name=Path:relative_to><code>Path:relative_to(other: Path): string</code></code></a>
 </h2>
-<p>Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory</p><p>Returns an actual path since path objects cannot contain <code>'..'</code></p><p>for example: <code>path.new(<code>"/foo/bar/baz"</code>):relative_to(path.new(<code>"/foo/bat"</code>)) == <code>"../bar/baz"</code></code></p><h2><a name=Path:remove_leading>Path:remove_leading(p: string | Path)</a>
+<p>Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory</p><p>Returns an actual path since path objects cannot contain <code>'..'</code></p><p>for example: <code>path.new(<code>"/foo/bar/baz"</code>):relative_to(path.new(<code>"/foo/bat"</code>)) == <code>"../bar/baz"</code></code></p><h2><a name=Path:remove_leading><code>Path:remove_leading(p: string | Path)</code></code></a>
 </h2>
-<p>Mutate the given path by removing the leading parts from the given path</p><p>Will error if you attempt to mix absolute and non-absolute paths</p><h2><a name=Path:to_real_path>Path:to_real_path(): string</a>
+<p>Mutate the given path by removing the leading parts from the given path</p><p>Will error if you attempt to mix absolute and non-absolute paths</p><h2><a name=Path:to_real_path><code>Path:to_real_path(): string</code></code></a>
 </h2>
-<p>Convert a <code>Path</code> to a string describing a real path</p><h2><a name=Path:tostring>Path:tostring(): string</a>
+<p>Convert a <code>Path</code> to a string describing a real path</p><h2><a name=Path:tostring><code>Path:tostring(): string</code></code></a>
 </h2>
-<p>Convert a path to a string. Always uses <code>'/'</code> as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use <code>Path:to_real_path()</code></p><p>Used for the __tostring metamethod</p><h2><a name=Path>type Path</a>
+<p>Convert a path to a string. Always uses <code>'/'</code> as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use <code>Path:to_real_path()</code></p><p>Used for the __tostring metamethod</p><h2><a name=Path><code>typePath</code></a>
 </h2>
 <pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>   {string}<br>end</pre>
-<p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p><h2><a name=path.ensure>path.ensure(s: string | Path): Path</a>
+<p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p><h2><a name=path.ensure><code>path.ensure(s: string | Path): Path</code></code></a>
 </h2>
-<p>Ensures <code>s</code> is a Path</p><h2><a name=path.new>path.new(s: string, use_os_sep: boolean): Path</a>
+<p>Ensures <code>s</code> is a Path</p><h2><a name=path.new><code>path.new(s: string, use_os_sep: boolean): Path</code></code></a>
 </h2>
 <p>The <code>Path</code> constructor</p><p>By default uses <code>'/'</code> as a path separator</p><h1><a name=cyan.fs>cyan.fs</a>
 </h1>
 <p><p>Filesystem and path management</p></p>
-<h2><a name=fs.chdir>fs.chdir(p: string | Path): boolean, string</a>
+<h2><a name=fs.chdir><code>fs.chdir(p: string | Path): boolean, string</code></code></a>
 </h2>
-<p>Change the current directory to <code>p</code></p><h2><a name=fs.cwd>fs.cwd(): Path</a>
+<p>Change the current directory to <code>p</code></p><h2><a name=fs.cwd><code>fs.cwd(): Path</code></code></a>
 </h2>
-<p>Get the current working directory as an <code>fs.Path</code></p><h2><a name=fs.dir>fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path</a>
+<p>Get the current working directory as an <code>fs.Path</code></p><h2><a name=fs.dir><code>fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path</code></code></a>
 </h2>
-<p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p><h2><a name=fs.extension_split>fs.extension_split(p: Path | string, ndots: number): string, string</a>
+<p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p><h2><a name=fs.extension_split><code>fs.extension_split(p: Path | string, ndots: number): string, string</code></code></a>
 </h2>
-<p>Split a path on its extension</p><p>the <code>ndots</code> argument lets you specify how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p><h2><a name=fs.path_concat>fs.path_concat(a: string, b: string): string</a>
+<p>Split a path on its extension</p><p>the <code>ndots</code> argument lets you specify how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p><h2><a name=fs.path_concat><code>fs.path_concat(a: string, b: string): string</code></code></a>
 </h2>
-<p>Concatenate two strings using the os path separator</p><h2><a name=fs.scan_dir>fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path</a>
+<p>Concatenate two strings using the os path separator</p><h2><a name=fs.scan_dir><code>fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path</code></code></a>
 </h2>
-<p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><h2><a name=fs.search_parent_dirs>fs.search_parent_dirs(start_path: string | Path, fname: string): Path</a>
+<p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><h2><a name=fs.search_parent_dirs><code>fs.search_parent_dirs(start_path: string | Path, fname: string): Path</code></code></a>
 </h2>
 <p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == <code>"/foo/bar/file.txt"</code></code></p><h1><a name=cyan.graph>cyan.graph</a>
 </h1>
 <p><p>A utility for building directed acyclic graphs of Teal source files</p><p>This is the main driver behind the <code>build</code> command</p></p>
-<h2><a name=Dag:find>Dag:find(fstr: string | fs.Path): Node</a>
+<h2><a name=Dag:find><code>Dag:find(fstr: string | fs.Path): Node</code></code></a>
 </h2>
-<p>Find a node in the graph with the given path name</p><h2><a name=Dag:insert_file>Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)</a>
+<p>Find a node in the graph with the given path name</p><h2><a name=Dag:insert_file><code>Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)</code></code></a>
 </h2>
-<p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><h2><a name=Dag:mark_each>Dag:mark_each(predicate: function(fs.Path): boolean)</a>
+<p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><h2><a name=Dag:mark_each><code>Dag:mark_each(predicate: function(fs.Path): boolean)</code></code></a>
 </h2>
-<p>For each node in the graph, if <code>predicate</code> returns true for that input path, the node is marked for compilation, and that node's children are marked for type checking</p><h2><a name=Dag:marked_nodes>Dag:marked_nodes(m: Node.Mark): function(): Node</a>
+<p>For each node in the graph, if <code>predicate</code> returns true for that input path, the node is marked for compilation, and that node's children are marked for type checking</p><h2><a name=Dag:marked_nodes><code>Dag:marked_nodes(m: Node.Mark): function(): Node</code></code></a>
 </h2>
-<p>Iterate over every node with the given mark <code>m</code>. Iterates in order of most dependents to least</p><h2><a name=Dag:nodes>Dag:nodes(): function(): Node</a>
+<p>Iterate over every node with the given mark <code>m</code>. Iterates in order of most dependents to least</p><h2><a name=Dag:nodes><code>Dag:nodes(): function(): Node</code></code></a>
 </h2>
-<p>Iterate over nodes in order of dependents</p><p>If two nodes have the same number of dependent nodes, the order of iteration between those two nodes is not guaranteed</p><h2><a name=Dag>type Dag</a>
+<p>Iterate over nodes in order of dependents</p><p>If two nodes have the same number of dependent nodes, the order of iteration between those two nodes is not guaranteed</p><h2><a name=Dag><code>typeDag</code></a>
 </h2>
 <pre>record Dag<br>   <br>   <br>end</pre>
-<p>The graph object</p><h2><a name=graph.empty>graph.empty(): Dag</a>
+<p>The graph object</p><h2><a name=graph.empty><code>graph.empty(): Dag</code></code></a>
 </h2>
-<p>Initializes an empty graph</p><h2><a name=graph.scan_dir>graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag</a>
+<p>Initializes an empty graph</p><h2><a name=graph.scan_dir><code>graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag</code></code></a>
 </h2>
 <p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><h1><a name=cyan.log>cyan.log</a>
 </h1>
 <p><p>Console logging utils, not to be confused with log files</p><p>Each logging function has the same signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code> Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): function(...: any)<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide, so your logging may look off from the default if your prefix is longer.</p></p>
-<h2><a name=create_logger>create_logger(
+<h2><a name=create_logger><code>create_logger(
    stream: FILE,
    prefix: string | cs.ColorString,
    cont: string | cs.ColorString,
    inspector: function(any): string
-): function(...: any)</a>
+): function(...: any)</code></code></a>
 </h2>
 <p>Creates a logging function as described above</p><h1><a name=cyan.sandbox>cyan.sandbox</a>
 </h1>
@@ -304,72 +304,71 @@ h2 {
 <h1><a name=cyan.script>cyan.script</a>
 </h1>
 <p><p>The script loading api</p></p>
-<h2><a name=script.disable>script.disable()</a>
+<h2><a name=script.disable><code>script.disable()</code></code></a>
 </h2>
-<p>Make everything in this library a no-op, there is currently no way to re-enable this</p><h2><a name=script.emit_hook>script.emit_hook(name: string, ...: any): boolean, string</a>
+<p>Make everything in this library a no-op, there is currently no way to re-enable this</p><h2><a name=script.emit_hook><code>script.emit_hook(name: string, ...: any): boolean, string</code></code></a>
 </h2>
-<p>Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error</p><h2><a name=script.emitter>script.emitter(name: string, ...: any): function(): fs.Path, boolean, string</a>
+<p>Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error</p><h2><a name=script.emitter><code>script.emitter(name: string, ...: any): function(): fs.Path, boolean, string</code></code></a>
 </h2>
-<p>Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't</p><h2><a name=script.load>script.load(path: string, flags: {string}): boolean, string</a>
+<p>Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't</p><h2><a name=script.load><code>script.load(path: string, flags: {string}): boolean, string</code></code></a>
 </h2>
 <p>Loads a file as a lua/teal script and caches it with the given flags to be run when <code>script.emit_hook</code> is called</p><p>This is called by the cli driver to load the scripts found in the config file with the relevant hooks</p><h1><a name=cyan.tlcommon>cyan.tlcommon</a>
 </h1>
 <p><p>Common things needed by most commands in addition to wrappers around the tl api, since it isn't super stable</p></p>
-<h2><a name=ParseResult>type ParseResult</a>
+<h2><a name=ParseResult><code>typeParseResult</code></a>
 </h2>
 <pre>record ParseResult<br>   <br>   tks: {Token}<br>   ast: Node<br>   reqs: {string}<br>   errs: {tl.Error}<br>end</pre>
-<p>The result from parsing source code including the tokens, ast, calls to require, and errors</p><h2><a name=common.init_env_from_config>common.init_env_from_config(cfg: config.Config): tl.Env, string</a>
+<p>The result from parsing source code including the tokens, ast, calls to require, and errors</p><h2><a name=common.init_env_from_config><code>common.init_env_from_config(cfg: config.Config): tl.Env, string</code></code></a>
 </h2>
-<p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p><h2><a name=common.init_teal_env>common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string</a>
+<p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p><h2><a name=common.init_teal_env><code>common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string</code></code></a>
 </h2>
-<p>Initialize a strict Teal environment</p><h2><a name=common.make_error_header>common.make_error_header(file: string, num_errors: number, category: string): string</a>
+<p>Initialize a strict Teal environment</p><h2><a name=common.make_error_header><code>common.make_error_header(file: string, num_errors: number, category: string): string</code></code></a>
 </h2>
-<p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p><h2><a name=common.prepend_to_lua_path>common.prepend_to_lua_path(path_str: string)</a>
+<p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p><h2><a name=common.prepend_to_lua_path><code>common.prepend_to_lua_path(path_str: string)</code></code></a>
 </h2>
-<p>Prepend the given string to package.path and package.cpath.</p><p>Correctly adds ?.lua and ?/init.lua to the path</p><h2><a name=common.report_config_errors>common.report_config_errors(errs: {string}, warnings: {string}): boolean</a>
+<p>Prepend the given string to package.path and package.cpath.</p><p>Correctly adds ?.lua and ?/init.lua to the path</p><h2><a name=common.report_config_errors><code>common.report_config_errors(errs: {string}, warnings: {string}): boolean</code></code></a>
 </h2>
-<p>use <code>log.warn</code> and <code>log.err</code> to report errors and warnings from <code>config.load</code></p><h2><a name=common.report_env_results>common.report_env_results(env: tl.Env, cfg: config.Config): boolean</a>
+<p>use <code>log.warn</code> and <code>log.err</code> to report errors and warnings from <code>config.load</code></p><h2><a name=common.report_env_results><code>common.report_env_results(env: tl.Env, cfg: config.Config): boolean</code></code></a>
 </h2>
-<p>Report all errors from a tl.Env</p><p>Returns false when errors were reported</p><h2><a name=common.report_errors>common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)</a>
+<p>Report all errors from a tl.Env</p><p>Returns false when errors were reported</p><h2><a name=common.report_errors><code>common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)</code></code></a>
 </h2>
-<p>Logs an array of errors with nice colors and a header generated by <code>make_error_header</code></p><h2><a name=common.report_result>common.report_result(r: tl.Result, c: config.Config): boolean</a>
+<p>Logs an array of errors with nice colors and a header generated by <code>make_error_header</code></p><h2><a name=common.report_result><code>common.report_result(r: tl.Result, c: config.Config): boolean</code></code></a>
 </h2>
-<p>Logs all the syntax errors, warnings, type errors, etc. from a <code>tl.Result</code> with proper colors</p><p>Returns if there were any warnings or unknowns. May return <code>true</code> even if some warnings were reported</p><h2><a name=common.result_has_errors>common.result_has_errors(r: tl.Result, c: config.Config): boolean</a>
+<p>Logs all the syntax errors, warnings, type errors, etc. from a <code>tl.Result</code> with proper colors</p><p>Returns if there were any warnings or unknowns. May return <code>true</code> even if some warnings were reported</p><h2><a name=common.result_has_errors><code>common.result_has_errors(r: tl.Result, c: config.Config): boolean</code></code></a>
 </h2>
-<p>Returns whether or not the result has errors. Doesn't print/log anything</p><h2><a name=common.search_module>common.search_module(name: string, search_dtl: boolean): fs.Path</a>
+<p>Returns whether or not the result has errors. Doesn't print/log anything</p><h2><a name=common.search_module><code>common.search_module(name: string, search_dtl: boolean): fs.Path</code></code></a>
 </h2>
-<p>A wrapper around <code>tl.search_module</code> but, returns an <code>fs.Path</code> and will cache results</p><h2><a name=common.type_check_ast>common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result</a>
+<p>A wrapper around <code>tl.search_module</code> but, returns an <code>fs.Path</code> and will cache results</p><h2><a name=common.type_check_ast><code>common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result</code></code></a>
 </h2>
 <p>Just type checks an ast</p><h1><a name=cyan.util>cyan.util</a>
 </h1>
 <p><p>Basically some extensions of the std lib. Currently these lean towards a more functional style</p><p>This is split into two main modules, <code>str</code> and <code>tab</code>. For string and table utilities respectively.</p></p>
-<h2><a name=str.esc>str.esc(s: string, sub: string | function(string): string | {string:string}): string, integer</a>
+<h2><a name=str.esc><code>str.esc(s: string, sub: string | function(string): string | {string:string}): string, integer</code></code></a>
 </h2>
-<p>escape any special characters in a string</p><p>use <code>sub</code> to control how the characters are substituted, by default a special character <code>x</code> will be replaced with <code>%x</code></p><p>returns the new string and the number of characters replaced</p><h2><a name=str.pad_left>str.pad_left(s: string, n: integer): string</a>
+<p>escape any special characters in a string</p><p>use <code>sub</code> to control how the characters are substituted, by default a special character <code>x</code> will be replaced with <code>%x</code></p><p>returns the new string and the number of characters replaced</p><h2><a name=str.pad_left><code>str.pad_left(s: string, n: integer): string</code></code></a>
 </h2>
-<p>Prefix <code>s</code> with spaces so the resulting string is at least <code>n</code> characters long</p><h2><a name=str.split>str.split(s: string, del: string, no_patt: boolean): function(): string</a>
+<p>Prefix <code>s</code> with spaces so the resulting string is at least <code>n</code> characters long</p><h2><a name=str.split><code>str.split(s: string, del: string, no_patt: boolean): function(): string</code></code></a>
 </h2>
-<p>Split a string by <code>del</code>, returning the substring that was matched</p><p>Will error if the delimiter matches the empty string</p><h2><a name=str.split_find>str.split_find(s: string, del: string, no_patt: boolean): function(): integer, integer</a>
+<p>Split a string by <code>del</code>, returning the substring that was matched</p><p>Will error if the delimiter matches the empty string</p><h2><a name=str.split_find><code>str.split_find(s: string, del: string, no_patt: boolean): function(): integer, integer</code></code></a>
 </h2>
-<p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.filter>tab.filter(t: {T}, pred: function(T): boolean): {T}, {T}</a>
+<p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.filter><code>tab.filter&lt;T&gt;(t: {T}, pred: function(T): boolean): {T}, {T}</code></code></a>
 </h2>
-<p>Create two new lists from <code>t</code>: the values that return <code>true</code> from <code>pred</code> and the values that return false</p><h2><a name=tab.from>tab.from(fn: function(...: any): (T), ...: any): {T}</a>
+<p>Create two new lists from <code>t</code>: the values that return <code>true</code> from <code>pred</code> and the values that return false</p><h2><a name=tab.from><code>tab.from&lt;T&gt;(fn: function(...: any): (T), ...: any): {T}</code></code></a>
 </h2>
-<p>Collect all the values of an iterator in a list</p><h2><a name=tab.ivalues>tab.ivalues(t: {any:V}): function(): V</a>
+<p>Collect all the values of an iterator in a list</p><h2><a name=tab.ivalues><code>tab.ivalues&lt;V&gt;(t: {any:V}): function(): V</code></code></a>
 </h2>
-<p>Iterate over the integer indexed values of a map</p><h2><a name=tab.keys>tab.keys(t: {K:any}): function(): K</a>
+<p>Iterate over the integer indexed values of a map</p><h2><a name=tab.keys><code>tab.keys&lt;K&gt;(t: {K:any}): function(): K</code></code></a>
 </h2>
-<p>Iterate over the keys of a map</p><h2><a name=tab.map>tab.map(t: {K:V}, fn: function(V): T): {K:T}</a>
+<p>Iterate over the keys of a map</p><h2><a name=tab.map><code>tab.map&lt;K, V, T&gt;(t: {K:V}, fn: function(V): T): {K:T}</code></code></a>
 </h2>
-<p>Create a new map from <code>t</code> by passing each value through <code>fn</code></p><h2><a name=tab.map_ipairs>tab.map_ipairs(t: {T}, fn: function(T): K): function(): integer, K</a>
+<p>Create a new map from <code>t</code> by passing each value through <code>fn</code></p><h2><a name=tab.map_ipairs><code>tab.map_ipairs&lt;T, K&gt;(t: {T}, fn: function(T): K): function(): integer, K</code></code></a>
 </h2>
-<p>iterate over a list like ipairs does, but filter the values through <code>fn</code></p><h2><a name=tab.merge_list>tab.merge_list(a: {T}, b: {T}): {T}</a>
+<p>iterate over a list like ipairs does, but filter the values through <code>fn</code></p><h2><a name=tab.merge_list><code>tab.merge_list&lt;T&gt;(a: {T}, b: {T}): {T}</code></code></a>
 </h2>
-<p>Create a new list by shallow copying the contents of <code>a</code> and <code>b</code></p><h2><a name=tab.set>tab.set(lst: {T}): {T:boolean}</a>
+<p>Create a new list by shallow copying the contents of <code>a</code> and <code>b</code></p><h2><a name=tab.set><code>tab.set&lt;T&gt;(lst: {T}): {T:boolean}</code></code></a>
 </h2>
-<p>Create a Set from a list</p><h2><a name=tab.sort_in_place>tab.sort_in_place(t: {T}, fn: function(T, T): boolean): {T}</a>
+<p>Create a Set from a list</p><h2><a name=tab.sort_in_place><code>tab.sort_in_place&lt;T&gt;(t: {T}, fn: function(T, T): boolean): {T}</code></code></a>
 </h2>
-<p>Sort a table (in place) and return that table</p><h2><a name=tab.values>tab.values(t: {K:V}): function(): V</a>
+<p>Sort a table (in place) and return that table</p><h2><a name=tab.values><code>tab.values&lt;K, V&gt;(t: {K:V}): function(): V</code></code></a>
 </h2>
-<p>Iterate over the values of a map</p></body>
-</html>
+<p>Iterate over the values of a map</p></body></html>

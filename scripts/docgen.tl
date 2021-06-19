@@ -68,6 +68,9 @@ local pre <const> = tag_wrapper "pre"
 local p <const> = tag_wrapper "p"
 local a <const> = tag_wrapper "a"
 local br <const> = "<br>"
+local function doc_header(content: string | TagTree, name: string): TagTree
+   return h2(a({ "<code>", content, "</code>" }, { name = name }))
+end
 
 local emit: {string:Emitter} = setmetatable({}, {
    __newindex = function(self: {string:Emitter}, name: string, emitter: Emitter)
@@ -96,18 +99,25 @@ local function escape(str: string): string
               :gsub("([\"'])([^%1]-)%1", "<code>%1%2%1</code>"))
 end
 
+local html_escape_map <const> = {
+   ["<"] = "&lt;",
+   [">"] = "&gt;",
+}
+
 emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string}): string
    local sig <const> = n:child_by_field_name("signature")
    local ret <const> = sig:child_by_field_name("return_type")
+   local typeargs <const> = sig:child_by_field_name("typeargs")
    local name <const> = n:child_by_field_name("name"):source()
 
    table.insert(
       out,
       html {
-         h2 ( a ({name,
-              sig:child_by_field_name("arguments"):source(),
-              (ret and ": " .. ret:source() or "")},
-              { name = name })),
+         doc_header({ name,
+                      typeargs and typeargs:source():gsub("[<>]", html_escape_map) or "",
+                      sig:child_by_field_name("arguments"):source(),
+                      (ret and ": " .. ret:source() or ""),
+                      "</code>" }, name),
          escape(table.concat(prefix))
       }
    )
@@ -156,7 +166,7 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    table.insert(
       out,
       html {
-         h2 ( a ({ "type ", obj_name }, { name = obj_name })),
+         doc_header ({"type", obj_name}, obj_name),
          pre  { "record ", obj_name, br, "   ",
                  table.concat(meta, br .. "   "), br, "   ",
                  table.concat(fields, br .. "   "), br,
@@ -397,9 +407,6 @@ fh:write(
 )
 fh:write(html { h1 "Index", "<table width='100%'><tbody>", table_of_contents, "</tbody></table>" })
 fh:write(table.concat(output))
-fh:write[[
-</body>
-</html>
-]]
+fh:write[[</body></html>]]
 fh:close()
 info("Wrote ", cs.highlight(cs.colors.file, docfile:to_real_path()))
