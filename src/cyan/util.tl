@@ -10,9 +10,9 @@ local tab <const> = {}
 
 ---@desc
 --- Iterate over the keys of a map
-function tab.keys<K>(t: {K:any}): function(): K
-   local k: K
-   return function(): K
+function tab.keys<Key>(t: {Key:any}): function(): Key
+   local k: Key
+   return function(): Key
       k = next(t, k)
       return k
    end
@@ -20,16 +20,16 @@ end
 
 ---@desc
 --- Sort a table (in place) and return that table
-function tab.sort_in_place<T>(t: {T}, fn: function(T, T): boolean): {T}
+function tab.sort_in_place<Value>(t: {Value}, fn: function(Value, Value): boolean): {Value}
    table.sort(t, fn)
    return t
 end
 
 ---@desc
 --- Iterate over the values of a map
-function tab.values<K, V>(t: {K:V}): function(): V
-   local k, v: K, V
-   return function(): V
+function tab.values<Key, Value>(t: {Key:Value}): function(): Value
+   local k, v: Key, Value
+   return function(): Value
       k, v = next(t, k)
       return v
    end
@@ -37,9 +37,9 @@ end
 
 ---@desc
 --- Iterate over the integer indexed values of a map
-function tab.ivalues<V>(t: {any:V}): function(): V
+function tab.ivalues<Value>(t: {any:Value}): function(): Value
    local i = 0
-   return function(): V
+   return function(): Value
       i = i + 1
       return t[i]
    end
@@ -47,7 +47,7 @@ end
 
 ---@desc
 --- Collect all the values of an iterator in a list
-function tab.from<T>(fn: function(...: any): (T), ...: any): {T}
+function tab.from<Value>(fn: function(...: any): (Value), ...: any): {Value}
    local t = {}
    for val in fn, ... do
       table.insert(t, val)
@@ -57,7 +57,7 @@ end
 
 ---@desc
 --- Create a Set from a list
-function tab.set<T>(lst: {T}): {T:boolean}
+function tab.set<Value>(lst: {Value}): {Value:boolean}
    local s <const> = {}
    for _, v in ipairs(lst) do
       s[v] = true
@@ -67,8 +67,8 @@ end
 
 ---@desc
 --- Create a new map from `t` by passing each value through `fn`
-function tab.map<K, V, T>(t: {K:V}, fn: function(V): T): {K:T}
-   local new <const>: {K:T} = {}
+function tab.map<Key, Value, MappedValue>(t: {Key:Value}, fn: function(Value): MappedValue): {Key:MappedValue}
+   local new <const>: {Key:MappedValue} = {}
    for k, v in pairs(t) do
       new[k] = fn(v)
    end
@@ -77,9 +77,9 @@ end
 
 ---@desc
 --- iterate over a list like ipairs does, but filter the values through `fn`
-function tab.map_ipairs<T, K>(t: {T}, fn: function(T): K): function(): integer, K
+function tab.map_ipairs<Value, MappedValue>(t: {Value}, fn: function(Value): MappedValue): function(): integer, MappedValue
    local i = 0
-   return function(): integer, K
+   return function(): integer, MappedValue
       i = i + 1
       if not t[i] then
          return
@@ -91,9 +91,9 @@ end
 
 ---@desc
 --- Create two new lists from `t`: the values that return `true` from `pred` and the values that return false
-function tab.filter<T>(t: {T}, pred: function(T): boolean): {T}, {T}
-   local pass <const>: {T} = {}
-   local fail <const>: {T} = {}
+function tab.filter<Value>(t: {Value}, pred: function(Value): boolean): {Value}, {Value}
+   local pass <const>: {Value} = {}
+   local fail <const>: {Value} = {}
    for _, v in ipairs(t) do
       table.insert(pred(v) and pass or fail, v)
    end
@@ -102,7 +102,7 @@ end
 
 ---@desc
 --- Create a new list by shallow copying the contents of `a` and `b`
-function tab.merge_list<T>(a: {T}, b: {T}): {T}
+function tab.merge_list<Value>(a: {Value}, b: {Value}): {Value}
    a = a or {}
    b = b or {}
    for _, v in ipairs(b) do

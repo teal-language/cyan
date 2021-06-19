@@ -351,24 +351,24 @@ h2 {
 </h2>
 <p>Split a string by <code>del</code>, returning the substring that was matched</p><p>Will error if the delimiter matches the empty string</p><h2><a name=str.split_find><code>str.split_find(s: string, del: string, no_patt: boolean): function(): integer, integer</code></code></a>
 </h2>
-<p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.filter><code>tab.filter&lt;T&gt;(t: {T}, pred: function(T): boolean): {T}, {T}</code></code></a>
+<p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.filter><code>tab.filter&lt;Value&gt;(t: {Value}, pred: function(Value): boolean): {Value}, {Value}</code></code></a>
 </h2>
-<p>Create two new lists from <code>t</code>: the values that return <code>true</code> from <code>pred</code> and the values that return false</p><h2><a name=tab.from><code>tab.from&lt;T&gt;(fn: function(...: any): (T), ...: any): {T}</code></code></a>
+<p>Create two new lists from <code>t</code>: the values that return <code>true</code> from <code>pred</code> and the values that return false</p><h2><a name=tab.from><code>tab.from&lt;Value&gt;(fn: function(...: any): (Value), ...: any): {Value}</code></code></a>
 </h2>
-<p>Collect all the values of an iterator in a list</p><h2><a name=tab.ivalues><code>tab.ivalues&lt;V&gt;(t: {any:V}): function(): V</code></code></a>
+<p>Collect all the values of an iterator in a list</p><h2><a name=tab.ivalues><code>tab.ivalues&lt;Value&gt;(t: {any:Value}): function(): Value</code></code></a>
 </h2>
-<p>Iterate over the integer indexed values of a map</p><h2><a name=tab.keys><code>tab.keys&lt;K&gt;(t: {K:any}): function(): K</code></code></a>
+<p>Iterate over the integer indexed values of a map</p><h2><a name=tab.keys><code>tab.keys&lt;Key&gt;(t: {Key:any}): function(): Key</code></code></a>
 </h2>
-<p>Iterate over the keys of a map</p><h2><a name=tab.map><code>tab.map&lt;K, V, T&gt;(t: {K:V}, fn: function(V): T): {K:T}</code></code></a>
+<p>Iterate over the keys of a map</p><h2><a name=tab.map><code>tab.map&lt;Key, Value, MappedValue&gt;(t: {Key:Value}, fn: function(Value): MappedValue): {Key:MappedValue}</code></code></a>
 </h2>
-<p>Create a new map from <code>t</code> by passing each value through <code>fn</code></p><h2><a name=tab.map_ipairs><code>tab.map_ipairs&lt;T, K&gt;(t: {T}, fn: function(T): K): function(): integer, K</code></code></a>
+<p>Create a new map from <code>t</code> by passing each value through <code>fn</code></p><h2><a name=tab.map_ipairs><code>tab.map_ipairs&lt;Value, MappedValue&gt;(t: {Value}, fn: function(Value): MappedValue): function(): integer, MappedValue</code></code></a>
 </h2>
-<p>iterate over a list like ipairs does, but filter the values through <code>fn</code></p><h2><a name=tab.merge_list><code>tab.merge_list&lt;T&gt;(a: {T}, b: {T}): {T}</code></code></a>
+<p>iterate over a list like ipairs does, but filter the values through <code>fn</code></p><h2><a name=tab.merge_list><code>tab.merge_list&lt;Value&gt;(a: {Value}, b: {Value}): {Value}</code></code></a>
 </h2>
-<p>Create a new list by shallow copying the contents of <code>a</code> and <code>b</code></p><h2><a name=tab.set><code>tab.set&lt;T&gt;(lst: {T}): {T:boolean}</code></code></a>
+<p>Create a new list by shallow copying the contents of <code>a</code> and <code>b</code></p><h2><a name=tab.set><code>tab.set&lt;Value&gt;(lst: {Value}): {Value:boolean}</code></code></a>
 </h2>
-<p>Create a Set from a list</p><h2><a name=tab.sort_in_place><code>tab.sort_in_place&lt;T&gt;(t: {T}, fn: function(T, T): boolean): {T}</code></code></a>
+<p>Create a Set from a list</p><h2><a name=tab.sort_in_place><code>tab.sort_in_place&lt;Value&gt;(t: {Value}, fn: function(Value, Value): boolean): {Value}</code></code></a>
 </h2>
-<p>Sort a table (in place) and return that table</p><h2><a name=tab.values><code>tab.values&lt;K, V&gt;(t: {K:V}): function(): V</code></code></a>
+<p>Sort a table (in place) and return that table</p><h2><a name=tab.values><code>tab.values&lt;Key, Value&gt;(t: {Key:Value}): function(): Value</code></code></a>
 </h2>
 <p>Iterate over the values of a map</p></body></html>
