@@ -3,6 +3,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+
+
 local str = {}
 local tab = {}
 
@@ -18,7 +20,7 @@ end
 
 
 
-function tab.sort(t, fn)
+function tab.sort_in_place(t, fn)
    table.sort(t, fn)
    return t
 end
@@ -145,6 +147,8 @@ end
 local function esc_char(c)
    return "%" .. c
 end
+
+
 
 
 

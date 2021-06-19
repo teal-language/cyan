@@ -15,7 +15,7 @@ local script = require("cyan.script")
 local util = require("cyan.util")
 
 local keys, from, sort, ivalues =
-util.tab.keys, util.tab.from, util.tab.sort, util.tab.ivalues
+util.tab.keys, util.tab.from, util.tab.sort_in_place, util.tab.ivalues
 
 local parser = argparse("cyan", "The Teal build system")
 parser:add_help(false)

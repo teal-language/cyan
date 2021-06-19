@@ -9,7 +9,7 @@ local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
 
 local keys, sort, from, values =
-util.tab.keys, util.tab.sort, util.tab.from, util.tab.values
+util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values
 
 
 

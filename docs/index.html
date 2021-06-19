@@ -150,7 +150,7 @@ h2 {
 <br><a href=index.html#tab.map_ipairs>tab.map_ipairs</a>
 <br><a href=index.html#tab.merge_list>tab.merge_list</a>
 <br><a href=index.html#tab.set>tab.set</a>
-<br><a href=index.html#tab.sort>tab.sort</a>
+<br><a href=index.html#tab.sort_in_place>tab.sort_in_place</a>
 <br><a href=index.html#tab.values>tab.values</a>
 </p>
 </td></tr></tbody></table><h1><a name=cyan.ansi>cyan.ansi</a>
@@ -342,14 +342,14 @@ h2 {
 </h2>
 <p>Just type checks an ast</p><h1><a name=cyan.util>cyan.util</a>
 </h1>
-<p><p>Basically some extensions of the std lib Currently these lean towards a more functional style</p></p>
-<h2><a name=str.esc>str.esc(s: string, sub: string | function(string): string | {string:string}): string, number</a>
+<p><p>Basically some extensions of the std lib. Currently these lean towards a more functional style</p><p>This is split into two main modules, <code>str</code> and <code>tab</code>. For string and table utilities respectively.</p></p>
+<h2><a name=str.esc>str.esc(s: string, sub: string | function(string): string | {string:string}): string, integer</a>
 </h2>
-<p>escape any special characters in a string</p><p>use <code>sub</code> to control how the characters are substituted, by default a special character <code>x</code> will be replaced with <code>%x</code></p><h2><a name=str.pad_left>str.pad_left(s: string, n: number): string</a>
+<p>escape any special characters in a string</p><p>use <code>sub</code> to control how the characters are substituted, by default a special character <code>x</code> will be replaced with <code>%x</code></p><p>returns the new string and the number of characters replaced</p><h2><a name=str.pad_left>str.pad_left(s: string, n: integer): string</a>
 </h2>
 <p>Prefix <code>s</code> with spaces so the resulting string is at least <code>n</code> characters long</p><h2><a name=str.split>str.split(s: string, del: string, no_patt: boolean): function(): string</a>
 </h2>
-<p>Split a string by <code>del</code>, returning the substring that was matched</p><p>Will error if the delimiter matches the empty string</p><h2><a name=str.split_find>str.split_find(s: string, del: string, no_patt: boolean): function(): number, number</a>
+<p>Split a string by <code>del</code>, returning the substring that was matched</p><p>Will error if the delimiter matches the empty string</p><h2><a name=str.split_find>str.split_find(s: string, del: string, no_patt: boolean): function(): integer, integer</a>
 </h2>
 <p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.filter>tab.filter(t: {T}, pred: function(T): boolean): {T}, {T}</a>
 </h2>
@@ -361,13 +361,13 @@ h2 {
 </h2>
 <p>Iterate over the keys of a map</p><h2><a name=tab.map>tab.map(t: {K:V}, fn: function(V): T): {K:T}</a>
 </h2>
-<p>Create a new map from <code>t</code> by passing each value through <code>fn</code></p><h2><a name=tab.map_ipairs>tab.map_ipairs(t: {T}, fn: function(T): K): function(): number, K</a>
+<p>Create a new map from <code>t</code> by passing each value through <code>fn</code></p><h2><a name=tab.map_ipairs>tab.map_ipairs(t: {T}, fn: function(T): K): function(): integer, K</a>
 </h2>
 <p>iterate over a list like ipairs does, but filter the values through <code>fn</code></p><h2><a name=tab.merge_list>tab.merge_list(a: {T}, b: {T}): {T}</a>
 </h2>
 <p>Create a new list by shallow copying the contents of <code>a</code> and <code>b</code></p><h2><a name=tab.set>tab.set(lst: {T}): {T:boolean}</a>
 </h2>
-<p>Create a Set from a list</p><h2><a name=tab.sort>tab.sort(t: {T}, fn: function(T, T): boolean): {T}</a>
+<p>Create a Set from a list</p><h2><a name=tab.sort_in_place>tab.sort_in_place(t: {T}, fn: function(T, T): boolean): {T}</a>
 </h2>
 <p>Sort a table (in place) and return that table</p><h2><a name=tab.values>tab.values(t: {K:V}): function(): V</a>
 </h2>

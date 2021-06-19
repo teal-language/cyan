@@ -16,9 +16,10 @@ describe("util api", function()
          end
          assert.are.same(expected, actual)
       end)
-      it("sort should sort the table and return the same table", function()
+      it("sort_in_place should sort the table and return the same table", function()
          local t = {2, 3, 1}
-         assert.are.equal(t, tab.sort(t))
+         assert.are.equal(t, tab.sort_in_place(t))
+         assert.are.same(t, {1, 2, 3})
       end)
       it("values should produce each value in the table", function()
          local expected = {
