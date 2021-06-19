@@ -3,6 +3,8 @@ local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
 local ansi <const> = require("cyan.ansi")
 local cs <const> = require("cyan.colorstring")
+local util <const> = require("cyan.util")
+local merge_list <const> = util.tab.merge_list
 
 local info = log.create_logger(
    io.stdout,
@@ -166,10 +168,10 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    table.insert(
       out,
       html {
-         doc_header ({"type", obj_name}, obj_name),
+         doc_header ({"type ", obj_name}, obj_name),
          pre  { "record ", obj_name, br, "   ",
-                 table.concat(meta, br .. "   "), br, "   ",
-                 table.concat(fields, br .. "   "), br,
+                 table.concat(merge_list(meta, fields), br .. "   "),
+                 br,
                 "end" },
          escape(table.concat(prefix))
       }
