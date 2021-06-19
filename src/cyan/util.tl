@@ -1,7 +1,9 @@
 
 ---@brief
---- Basically some extensions of the std lib
+--- Basically some extensions of the std lib.
 --- Currently these lean towards a more functional style
+---
+--- This is split into two main modules, `str` and `tab`. For string and table utilities respectively.
 
 local str <const> = {}
 local tab <const> = {}
@@ -75,9 +77,9 @@ end
 
 ---@desc
 --- iterate over a list like ipairs does, but filter the values through `fn`
-function tab.map_ipairs<T, K>(t: {T}, fn: function(T): K): function(): number, K
+function tab.map_ipairs<T, K>(t: {T}, fn: function(T): K): function(): integer, K
    local i = 0
-   return function(): number, K
+   return function(): integer, K
       i = i + 1
       if not t[i] then
          return
@@ -114,10 +116,10 @@ end
 --- Split a string by `del`, returning the indexes of the match
 ---
 --- Will error if the delimiter matches the empty string
-function str.split_find(s: string, del: string, no_patt: boolean): function(): number, number
+function str.split_find(s: string, del: string, no_patt: boolean): function(): integer, integer
    local idx = 0
-   local prev_idx, start_idx: number, number
-   return function(): number, number
+   local prev_idx, start_idx: integer, integer
+   return function(): integer, integer
       if not idx then return end
       idx = idx + 1
       prev_idx = idx
@@ -150,7 +152,9 @@ end
 --- escape any special characters in a string
 ---
 --- use `sub` to control how the characters are substituted, by default a special character `x` will be replaced with `%x`
-function str.esc(s: string, sub: string | function(string): string | {string:string}): string, number
+---
+--- returns the new string and the number of characters replaced
+function str.esc(s: string, sub: string | function(string): string | {string:string}): string, integer
    return s:gsub(
       "[%^%$%(%)%%%.%[%]%*%+%-%?]",
       sub as function(string): string
@@ -160,7 +164,7 @@ end
 
 ---@desc
 --- Prefix `s` with spaces so the resulting string is at least `n` characters long
-function str.pad_left(s: string, n: number): string
+function str.pad_left(s: string, n: integer): string
    return (" "):rep(n - #s) .. s
 end
 
