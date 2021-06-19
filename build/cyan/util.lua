@@ -165,7 +165,7 @@ end
 
 
 function str.pad_left(s, n)
-   return (" "):rep(n - #s) .. s
+   return (" "):rep(n - s:len()) .. s
 end
 
 local function xor(a, b)

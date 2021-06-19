@@ -78,5 +78,12 @@ describe("util api", function()
       it("esc should escape magic chars in the provided string", function()
          assert.are.equal("a%*b%.c%-", str.esc("a*b.c-"))
       end)
+      it("pad_left should return a string with length >= the provided argument", function()
+         for pad_length = 1, 20 do
+            for in_length = 1, 20 do
+               assert.is["true"](#str.pad_left(("a"):rep(in_length), pad_length) >= pad_length)
+            end
+         end
+      end)
    end)
 end)

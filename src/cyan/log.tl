@@ -68,7 +68,7 @@ local function create_logger(
    inspector: function(any): string
 ): function(...: any)
    inspector = inspector or tostring
-   local prefix_len <const> = #(prefix as string)
+   local prefix_len <const> = (prefix as string):len()
    prefix = prefix and (prefix as string) .. " " or ""
    cont = cont and (cont as string) .. " " or "... "
    return function(...: any)
