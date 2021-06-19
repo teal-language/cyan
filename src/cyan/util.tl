@@ -165,7 +165,7 @@ end
 ---@desc
 --- Prefix `s` with spaces so the resulting string is at least `n` characters long
 function str.pad_left(s: string, n: integer): string
-   return (" "):rep(n - #s) .. s
+   return (" "):rep(n - s:len()) .. s
 end
 
 local function xor(a: any, b: any): boolean
