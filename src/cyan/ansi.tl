@@ -4,7 +4,7 @@
 
 local CSI <const> = string.char(27) .. "["
 
-local dark: {string:number} = {
+local dark: {string:integer} = {
    black = 30,
    red = 31,
    green = 32,
@@ -15,7 +15,7 @@ local dark: {string:number} = {
    white = 37,
 }
 
-local bright: {string:number} = {
+local bright: {string:integer} = {
    black = 90,
    red = 91,
    green = 92,
@@ -28,22 +28,22 @@ local bright: {string:number} = {
 
 local cursor <const> = {}
 
-function cursor.up(n: number)
+function cursor.up(n: integer)
    io.write(CSI, tostring(n or 1), "A")
 end
-function cursor.down(n: number)
+function cursor.down(n: integer)
    io.write(CSI, tostring(n or 1), "B")
 end
-function cursor.right(n: number)
+function cursor.right(n: integer)
    io.write(CSI, tostring(n or 1), "C")
 end
-function cursor.left(n: number)
+function cursor.left(n: integer)
    io.write(CSI, tostring(n or 1), "D")
 end
-function cursor.set_column(col: number)
+function cursor.set_column(col: integer)
    io.write(CSI, tostring(col or 0), "G")
 end
-function cursor.clear_line(n: number)
+function cursor.clear_line(n: integer)
    io.write(CSI, tostring(n or 0), "K")
 end
 

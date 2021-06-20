@@ -22,6 +22,10 @@ local ColorString = {}
 
 
 
+
+
+
+
 function ColorString:len()
    local l = 0
    for _, chunk in ipairs(self.content) do
