@@ -1,6 +1,6 @@
 
 ---@brief
---- Some wrappers/conveniences around working with ansi escape codes
+--- Some wrappers/conveniences around working with ansi escape codes.
 --- For example getting the length of a string that contains escape codes shouldnt include them
 
 local ansi <const> = require("cyan.ansi")
@@ -13,16 +13,20 @@ local map <const>, ivalues <const> = util.tab.map, util.tab.ivalues
 ---
 --- Colors are described as arrays of numbers that directly correspond to ANSI escape sequences
 local record ColorString
-   content: {string | {number}}
-   len: function(ColorString): number
+   content: {string | {integer}}
+   len: function(ColorString): integer
    tostring: function(ColorString): string
 
-   metamethod __len: function(ColorString): number
+   metamethod __len: function(ColorString): integer
    metamethod __concat: function(ColorString | string, ColorString | string): ColorString
    -- metamethod __tostring: function(ColorString): string
 end
 
-function ColorString:len(): number
+---@desc
+--- Get the length of a given `ColorString`, not counting any escape sequences.
+---
+--- Note that `ColorString:len() >= ColorString:tostring():len()`
+function ColorString:len(): integer
    local l = 0
    for _, chunk in ipairs(self.content) do
       if chunk is string then
@@ -48,7 +52,7 @@ function ColorString:append(...: string | ColorString)
    end
 end
 
-function ColorString:insert(...: string | {number})
+function ColorString:insert(...: string | {integer})
    for i = 1, select("#", ...) do
       table.insert(self.content, (select(i, ...)))
    end
@@ -56,7 +60,7 @@ end
 
 ---@desc
 --- surrounds a string with a color
-function ColorString:surround(col: {number})
+function ColorString:surround(col: {integer})
    table.insert(self.content, 1, col)
    table.insert(self.content, 0)
 end
@@ -64,11 +68,11 @@ end
 ---@desc
 --- Converts a `Colorstring` to a regular string with the correct ANSI escapes
 function ColorString:tostring(): string
-   return table.concat(map(self.content, function(chunk: {number} | string): string
+   return table.concat(map(self.content, function(chunk: {integer} | string): string
       if chunk is string then
          return chunk
       else
-         return ansi.CSI .. table.concat(map(chunk, tostring as function(number): string), ";") .. "m"
+         return ansi.CSI .. table.concat(map(chunk, tostring as function(integer): string), ";") .. "m"
       end
    end))
 end
@@ -77,12 +81,12 @@ local colorstring_mt <const>: metatable<ColorString> = {}
 
 local colorstring <const> = {
    ColorString = ColorString,
-   colors: {string:{number}} = {}
+   colors: {string:{integer}} = {}
 }
 
 ---@desc
 --- The `Colorstring` constructor
-function colorstring.new(...: string | {number}): ColorString
+function colorstring.new(...: string | {integer}): ColorString
    return setmetatable({
       content = { ... }
    } as ColorString, colorstring_mt)
@@ -90,7 +94,7 @@ end
 
 ---@desc
 --- Create a `Colorstring` by surrounding a string with the given ANSI color and an ANSI reset
-function colorstring.highlight(hl: {number}, str: string): ColorString
+function colorstring.highlight(hl: {integer}, str: string): ColorString
    return colorstring.new(hl, str, {0})
 end
 
@@ -114,13 +118,13 @@ colorstring_mt.__len = ColorString.len
 
 ---@desc
 --- The ansi escape for an arbitrary RGB foreground color
-function colorstring.rgb_fg(r: number, g: number, b: number): {number, number, number, number, number}
+function colorstring.rgb_fg(r: integer, g: integer, b: integer): {integer, integer, integer, integer, integer}
    return {38, 2, r, g, b}
 end
 
 ---@desc
 --- The ansi escape for an arbitrary RGB background color
-function colorstring.rgb_bg(r: number, g: number, b: number): {number, number, number, number, number}
+function colorstring.rgb_bg(r: integer, g: integer, b: integer): {integer, integer, integer, integer, integer}
    return {48, 2, r, g, b}
 end
 
