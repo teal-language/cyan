@@ -72,8 +72,12 @@ end
 
 ```
 -- bad
-local my_tuple = { "a", "b" } as {string, string} -- If the value is changed later
-                                                  -- the type system won't report mistakes
+
+local my_tuple = { "a", "b" } as {string, string}
+-- If the value is changed later the type system won't report mistakes
+-- e.g. you make a quick edit to this
+local my_tuple = { "a", "b", "c" } as {string, string}
+-- the type is now incorrect
 
 -- good
 local my_tuple: {string, string} = { "a", "b" } -- tuples are subtypes of arrays
