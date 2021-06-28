@@ -38,7 +38,6 @@ bootstrap: default
 	$(BOOTSTRAP3) build
 	rm -rf build
 	mv tmp build
-	busted
 
 test: default
 	busted

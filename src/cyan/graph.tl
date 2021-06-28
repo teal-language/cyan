@@ -184,7 +184,7 @@ function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)
    local n <const>: Node = make_node(f)
    self._nodes_by_filename[real_path] = n
 
-   local dir <const> = fs.path.ensure(in_dir)
+   local dir <const> = fs.path.ensure(in_dir, true)
 
    for mod_name in ivalues(res.reqs) do
       -- TODO: should we search for .d.tl files?

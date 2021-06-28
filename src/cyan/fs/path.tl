@@ -75,9 +75,9 @@ end
 
 ---@desc
 --- Ensures `s` is a Path
-function path.ensure(s: string | Path): Path
+function path.ensure(s: string | Path, use_os_sep: boolean): Path
    if s is string then
-      return path.new(s)
+      return path.new(s, use_os_sep)
    else
       return s
    end
@@ -455,9 +455,12 @@ end
 ---
 --- If relative and absolute paths are mixed, the relative path is assumed to
 --- be in the current working directory (as determined by `lfs.currentdir()`)
-function Path:is_in(dirname: string | Path): boolean
+---
+--- If dirname is a `string`, a path will be constructed using `path.new` with
+--- `use_os_sep`
+function Path:is_in(dirname: string | Path, use_os_sep: boolean): boolean
    if not dirname then return false end
-   local dir <const> = path.ensure(dirname)
+   local dir <const> = path.ensure(dirname, use_os_sep)
 
    local a, b = self, dir
    if xor(self:is_absolute(), dir:is_absolute()) then

@@ -31,7 +31,7 @@ local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res <const> = env.loaded[name]
-      if not fs.path.new(res.filename):is_in(source_dir) then
+      if not fs.path.new(res.filename, true):is_in(source_dir) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
                common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 local argparse = require("argparse")
 local tl = require("tl")
@@ -31,7 +31,7 @@ local function report_dep_errors(env, source_dir)
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
-      if not fs.path.new(res.filename):is_in(source_dir) then
+      if not fs.path.new(res.filename, true):is_in(source_dir) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
                common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")

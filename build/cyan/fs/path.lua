@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local package = _tl_compat and _tl_compat.package or package; local rawlen = _tl_compat and _tl_compat.rawlen or rawlen; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -75,9 +75,9 @@ end
 
 
 
-function path.ensure(s)
+function path.ensure(s, use_os_sep)
    if type(s) == "string" then
-      return path.new(s)
+      return path.new(s, use_os_sep)
    else
       return s
    end
@@ -455,9 +455,12 @@ end
 
 
 
-function Path:is_in(dirname)
+
+
+
+function Path:is_in(dirname, use_os_sep)
    if not dirname then return false end
-   local dir = path.ensure(dirname)
+   local dir = path.ensure(dirname, use_os_sep)
 
    local a, b = self, dir
    if xor(self:is_absolute(), dir:is_absolute()) then

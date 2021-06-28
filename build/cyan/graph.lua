@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = pcall(require, 'compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -184,7 +184,7 @@ function Dag:insert_file(fstr, in_dir)
    local n = make_node(f)
    self._nodes_by_filename[real_path] = n
 
-   local dir = fs.path.ensure(in_dir)
+   local dir = fs.path.ensure(in_dir, true)
 
    for mod_name in ivalues(res.reqs) do
 
