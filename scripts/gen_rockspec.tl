@@ -5,11 +5,11 @@ rockspec_format = "3.0"
 package = "cyan"
 version = "dev-1"
 source = {
-   url = "git+https://github.com/teal-language/cyan.git",
+   url = "git://github.com/teal-language/cyan",
 }
 description = {
    summary = "A build system for the Teal language",
-   detailed = "A build system for the Teal language",
+   detailed = "A build system for the Teal language along with an api for external tooling to work with Teal",
    homepage = "https://github.com/teal-language/cyan",
    license = "MIT",
    issues_url = "https://github.com/teal-language/cyan/issues",

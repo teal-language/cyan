@@ -1,8 +1,9 @@
 rockspec_format = "3.0"
 package = "cyan"
-version = "dev-1"
+version = "0.1.0-1"
 source = {
    url = "git://github.com/teal-language/cyan",
+	tag = "v0.1.0",
 }
 description = {
    summary = "A build system for the Teal language",
