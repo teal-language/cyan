@@ -214,9 +214,9 @@ h2 {
 </h2>
 <p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"directory"</code></p><h2><a name=Path:is_file><code>Path:is_file(): boolean</code></a>
 </h2>
-<p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"file"</code></p><h2><a name=Path:is_in><code>Path:is_in(dirname: string | Path): boolean</code></a>
+<p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"file"</code></p><h2><a name=Path:is_in><code>Path:is_in(dirname: string | Path, use_os_sep: boolean): boolean</code></a>
 </h2>
-<p>returns true if the path is inside the given directory</p><p>If relative and absolute paths are mixed, the relative path is assumed to be in the current working directory (as determined by <code>lfs.currentdir()</code>)</p><h2><a name=Path:match><code>Path:match(patt: string): boolean</code></a>
+<p>returns true if the path is inside the given directory</p><p>If relative and absolute paths are mixed, the relative path is assumed to be in the current working directory (as determined by <code>lfs.currentdir()</code>)</p><p>If dirname is a <code>string</code>, a path will be constructed using <code>path.new</code> with <code>use_os_sep</code></p><h2><a name=Path:match><code>Path:match(patt: string): boolean</code></a>
 </h2>
 <p>See if the given path matches the pattern</p><p>Path separators in patterns are always represented with <code>'/'</code>.</p><p><code>*</code> characters represent any number of non-path-separator characters</p><p><code>**/</code> represent any number of directories</p><h2><a name=Path:match_any><code>Path:match_any(patts: {string}): integer, string</code></a>
 </h2>
@@ -239,7 +239,7 @@ h2 {
 <p>Convert a path to a string. Always uses <code>'/'</code> as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use <code>Path:to_real_path()</code></p><p>Used for the __tostring metamethod</p><h2><a name=Path><code>type Path</code></a>
 </h2>
 <pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>   {string}<br>end</pre>
-<p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p><h2><a name=path.ensure><code>path.ensure(s: string | Path): Path</code></a>
+<p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p><h2><a name=path.ensure><code>path.ensure(s: string | Path, use_os_sep: boolean): Path</code></a>
 </h2>
 <p>Ensures <code>s</code> is a Path</p><h2><a name=path.new><code>path.new(s: string, use_os_sep: boolean): Path</code></a>
 </h2>
