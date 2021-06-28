@@ -68,6 +68,19 @@ parser:flag("-h --help", "Show this help message and exit")
          os.exit(command.get("help").exec())
       end)
 
+command.new{
+   name = "version",
+   description = [[Print version information and exit]],
+   exec = function(): integer
+      log.info(
+         "Cyan version: ", require("cyan.meta").version, "\n",
+         "Teal version: ", tl.version(), "\n",
+         " Lua version: ", _VERSION
+      )
+      return 0
+   end
+}
+
 require("cyan.commands.initialize")
 require("cyan.commands.check-gen")
 require("cyan.commands.run")
