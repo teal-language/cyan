@@ -4,13 +4,20 @@ A build system for the Teal language
 
 [![test](https://github.com/teal-language/cyan/actions/workflows/test.yml/badge.svg)](https://github.com/teal-language/cyan/actions/workflows/test.yml)
 
+```console
+luarocks install cyan
+```
+
 # Commands
 
+ - `build`: build a project based on `tlconfig.lua`
  - `check`: type check one or more Teal files
  - `gen`: type check and compile one or more Teal files
- - `run`: type check and run a Teal script in a sandbox
- - `build`: build a project based on `tlconfig.lua`
+ - `help`: show the help info and exit
  - `init`: initialize a Teal project
+ - `run`: type check and run a Teal script in a sandbox
+ - `version`: show version info and exit
+ - `warnings`: list the warnings the compiler can generate and exit
 
 ## API
 
