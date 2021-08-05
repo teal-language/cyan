@@ -45,7 +45,7 @@ end
 ---
 --- This is called by the cli driver to load the scripts found in the config
 --- file with the relevant hooks
-function script.load(path: string, flags: {string}): boolean, string
+function script.load(path: string, flags: {string}): boolean, string | tl.Result
    local p <const> = fs.path.new(path)
 
    local box, err: sandbox.Sandbox, string
@@ -54,10 +54,9 @@ function script.load(path: string, flags: {string}): boolean, string
       local result <const> = tl.process(path)
       -- TODO: right now it is the responsibility of the user to run `{tl,cyan} check` on their scripts
       -- but we could report these a little better using prettify_error or something from tlcommon
-      if #result.syntax_errors > 0 then
-         return nil, "Script has syntax errors"
-      elseif #result.type_errors > 0 then
-         return nil, "Script has type errors"
+      if #result.syntax_errors > 0
+         or #result.type_errors > 0 then
+         return nil, result
       end
       box, err = sandbox.from_string(tl.pretty_print_ast(result.ast), path, _G)
    else

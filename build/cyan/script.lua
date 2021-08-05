@@ -54,10 +54,9 @@ function script.load(path, flags)
       local result = tl.process(path)
 
 
-      if #result.syntax_errors > 0 then
-         return nil, "Script has syntax errors"
-      elseif #result.type_errors > 0 then
-         return nil, "Script has type errors"
+      if #result.syntax_errors > 0 or
+         #result.type_errors > 0 then
+         return nil, result
       end
       box, err = sandbox.from_string(tl.pretty_print_ast(result.ast), path, _G)
    else

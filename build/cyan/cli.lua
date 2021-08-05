@@ -5,7 +5,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local argparse = require("argparse")
 local tl = require("tl")
 
-local cs = require("cyan.colorstring")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
@@ -136,9 +135,13 @@ if loaded_config then
       for fname, hooks in pairs(loaded_config.scripts) do
          for hook in ivalues(hooks) do
             if hook:find(command.running.name .. ":", 1, true) then
-               local ok, err = script.load(fname, hooks)
+               local ok, res = script.load(fname, hooks)
                if not ok then
-                  log.err("loading script ", cs.highlight(cs.colors.file, fname), "\n", err)
+                  if type(res) == "string" then
+                     log.err("Could not load script: ", res)
+                  else
+                     common.report_result(res, loaded_config);
+                  end
                   os.exit(1)
                end
                break

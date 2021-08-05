@@ -5,7 +5,6 @@
 local argparse <const> = require("argparse")
 local tl <const> = require("tl")
 
-local cs <const> = require("cyan.colorstring")
 local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
 local config <const> = require("cyan.config")
@@ -136,9 +135,13 @@ if loaded_config then
       for fname, hooks in pairs(loaded_config.scripts) do
          for hook in ivalues(hooks) do
             if hook:find(command.running.name .. ":", 1, true) then
-               local ok <const>, err <const> = script.load(fname, hooks)
+               local ok <const>, res <const> = script.load(fname, hooks)
                if not ok then
-                  log.err("loading script ", cs.highlight(cs.colors.file, fname), "\n", err)
+                  if res is string then
+                     log.err("Could not load script: ", res)
+                  else
+                     common.report_result(res, loaded_config);
+                  end
                   os.exit(1)
                end
                break
