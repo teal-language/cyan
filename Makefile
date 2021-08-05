@@ -6,7 +6,7 @@ TL = tl
 TLFLAGS = --quiet -I src
 BOOTSTRAP1= bin/bootstrap --no-script
 BOOTSTRAP2= bin/bootstrap --no-script
-BOOTSTRAP3= bin/bootstrap
+BOOTSTRAP3= bin/bootstrap --no-script
 
 build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@

@@ -24,6 +24,10 @@ parser:option("-l --preload", "Execute the equivalent of require('modulename') b
       :argname("<modulename>")
       :count("*")
 
+parser:option("--global-env-def", "Load <dtlfilename> before typechecking. Use this to define types provided by your environment.")
+      :argname("<dtlfilename>")
+      :count("?")
+
 parser:option("-I --include-dir", "Prepend this directory to the module search path.")
       :argname("<directory>")
       :count("*")
