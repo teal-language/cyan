@@ -103,10 +103,14 @@ end
 
 
 function tab.merge_list(a, b)
+   local new_list = {}
    a = a or {}
    b = b or {}
+   for _, v in ipairs(a) do
+      table.insert(new_list, v)
+   end
    for _, v in ipairs(b) do
-      table.insert(a, v)
+      table.insert(new_list, v)
    end
    return a
 end

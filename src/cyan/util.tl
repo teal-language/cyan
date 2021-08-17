@@ -103,10 +103,14 @@ end
 ---@desc
 --- Create a new list by shallow copying the contents of `a` and `b`
 function tab.merge_list<Value>(a: {Value}, b: {Value}): {Value}
+   local new_list <const> = {}
    a = a or {}
    b = b or {}
+   for _, v in ipairs(a) do
+      table.insert(new_list, v)
+   end
    for _, v in ipairs(b) do
-      table.insert(a, v)
+      table.insert(new_list, v)
    end
    return a
 end
