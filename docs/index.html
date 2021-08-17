@@ -140,6 +140,7 @@ h2 {
 <br><a href=index.html#str.pad_left>str.pad_left</a>
 <br><a href=index.html#str.split>str.split</a>
 <br><a href=index.html#str.split_find>str.split_find</a>
+<br><a href=index.html#tab.contains>tab.contains</a>
 <br><a href=index.html#tab.filter>tab.filter</a>
 <br><a href=index.html#tab.from>tab.from</a>
 <br><a href=index.html#tab.ivalues>tab.ivalues</a>
@@ -165,7 +166,7 @@ h2 {
 </h2>
 <p>Converts a <code>Colorstring</code> to a regular string with the correct ANSI escapes</p><h2><a name=ColorString><code>type ColorString</code></a>
 </h2>
-<pre>record ColorString<br>   metamethod __len: function(ColorString): integer<br>   metamethod __concat: function(ColorString | string, ColorString | string): ColorString<br>   content: {string | {integer}}<br>   len: function(ColorString): integer<br>   tostring: function(ColorString): string<br>end</pre>
+<pre>record ColorString<br>   metamethod __len: function(ColorString): integer<br>   metamethod __concat: function(ColorString | string, ColorString | string): ColorString<br>end</pre>
 <p>The main object that this library consumes and produces. It basically implements the <code>'string'</code> interface and can be used wherever a string is.</p><p>Colors are described as arrays of numbers that directly correspond to ANSI escape sequences</p><h2><a name=colorstring.highlight><code>colorstring.highlight(hl: {integer}, str: string): ColorString</code></a>
 </h2>
 <p>Create a <code>Colorstring</code> by surrounding a string with the given ANSI color and an ANSI reset</p><h2><a name=colorstring.new><code>colorstring.new(...: string | {integer}): ColorString</code></a>
@@ -178,7 +179,7 @@ h2 {
 </h1>
 <p>The common interface for commands to implement</p><h2><a name=Command><code>type Command</code></a>
 </h2>
-<pre>record Command<br>   name: string<br>   description: string<br>   argparse: function(argparse.Command)<br>   script_hooks: {string}<br>   exec: CommandFn<br>end</pre>
+<pre>record Command<br>   <br>end</pre>
 <p>The interface</p><h2><a name=command.get><code>command.get(name: string): Command</code></a>
 </h2>
 <p>Get a command that was created with <code>command.new</code></p><p>Works whether or not <code>command.register_all</code> was called</p><h2><a name=command.merge_args_into_config><code>command.merge_args_into_config(cfg: config.Config, args: Args)</code></a>
@@ -191,7 +192,7 @@ h2 {
 </h1>
 <p>Config loading API</p><h2><a name=Config><code>type Config</code></a>
 </h2>
-<pre>record Config<br>   loaded_from: fs.Path<br>   build_dir: string<br>   source_dir: string<br>   include: {string}<br>   exclude: {string}<br>   global_env_def: string<br>   include_dir: {string}<br>   module_name: string<br>   scripts: {string:{string}}<br>   gen_compat: tl.CompatMode<br>   gen_target: tl.TargetMode<br>   disable_warnings: {tl.WarningKind}<br>   warning_error: {tl.WarningKind}<br>   externals: {string:any}<br>end</pre>
+<pre>record Config<br>   <br>end</pre>
 <p>The config data</p><h2><a name=config.find><code>config.find(): fs.Path</code></a>
 </h2>
 <p>Find <code>config.filename</code> in the current or parent directories</p><h2><a name=config.is_config><code>config.is_config(c: any): Config, {string}, {string}</code></a>
@@ -240,7 +241,7 @@ h2 {
 </h2>
 <p>Convert a path to a string. Always uses <code>'/'</code> as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use <code>Path:to_real_path()</code></p><p>Used for the __tostring metamethod</p><h2><a name=Path><code>type Path</code></a>
 </h2>
-<pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>   {string}<br>end</pre>
+<pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>end</pre>
 <p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p><h2><a name=path.ensure><code>path.ensure(s: string | Path, use_os_sep: boolean): Path</code></a>
 </h2>
 <p>Ensures <code>s</code> is a Path</p><h2><a name=path.new><code>path.new(s: string, use_os_sep: boolean): Path</code></a>
@@ -301,13 +302,13 @@ h2 {
 </h2>
 <p>Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error</p><h2><a name=script.emitter><code>script.emitter(name: string, ...: any): function(): fs.Path, boolean, string</code></a>
 </h2>
-<p>Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't</p><h2><a name=script.load><code>script.load(path: string, flags: {string}): boolean, string</code></a>
+<p>Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't</p><h2><a name=script.load><code>script.load(path: string, flags: {string}): boolean, string | tl.Result</code></a>
 </h2>
 <p>Loads a file as a lua/teal script and caches it with the given flags to be run when <code>script.emit_hook</code> is called</p><p>This is called by the cli driver to load the scripts found in the config file with the relevant hooks</p><h1><a name=cyan.tlcommon>cyan.tlcommon</a>
 </h1>
 <p>Common things needed by most commands in addition to wrappers around the tl api, since it isn't super stable</p><h2><a name=ParseResult><code>type ParseResult</code></a>
 </h2>
-<pre>record ParseResult<br>   tks: {Token}<br>   ast: Node<br>   reqs: {string}<br>   errs: {tl.Error}<br>end</pre>
+<pre>record ParseResult<br>   <br>end</pre>
 <p>The result from parsing source code including the tokens, ast, calls to require, and errors</p><h2><a name=common.init_env_from_config><code>common.init_env_from_config(cfg: config.Config): tl.Env, string</code></a>
 </h2>
 <p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p><h2><a name=common.init_teal_env><code>common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string</code></a>
@@ -340,7 +341,9 @@ h2 {
 </h2>
 <p>Split a string by <code>del</code>, returning the substring that was matched</p><p>Will error if the delimiter matches the empty string</p><h2><a name=str.split_find><code>str.split_find(s: string, del: string, no_patt: boolean): function(): integer, integer</code></a>
 </h2>
-<p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.filter><code>tab.filter&lt;Value&gt;(t: {Value}, pred: function(Value): boolean): {Value}, {Value}</code></a>
+<p>Split a string by <code>del</code>, returning the indexes of the match</p><p>Will error if the delimiter matches the empty string</p><h2><a name=tab.contains><code>tab.contains&lt;Value&gt;(t: {Value}, val: Value): boolean</code></a>
+</h2>
+<p>Report if an array contains an element (as determined by the <code>==</code> operator)</p><h2><a name=tab.filter><code>tab.filter&lt;Value&gt;(t: {Value}, pred: function(Value): boolean): {Value}, {Value}</code></a>
 </h2>
 <p>Create two new lists from <code>t</code>: the values that return <code>true</code> from <code>pred</code> and the values that return false</p><h2><a name=tab.from><code>tab.from&lt;Value&gt;(fn: function(...: any): (Value), ...: any): {Value}</code></a>
 </h2>

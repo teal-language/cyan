@@ -9,7 +9,8 @@ local config <const> = require("cyan.config")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
 
-local merge_list <const> = util.tab.merge_list
+local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>
+   = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains
 
 local record Args
    command: string
@@ -95,6 +96,8 @@ function command.get(name: string): Command
    return commands[name]
 end
 
+local all_warnings <const> = sort(from(keys(tl.warning_kinds)))
+
 ---@desc
 --- Merge the relevant entries of the provided command arguments into the provided config table
 function command.merge_args_into_config(cfg: config.Config, args: Args)
@@ -103,8 +106,16 @@ function command.merge_args_into_config(cfg: config.Config, args: Args)
    cfg.global_env_def = args.global_env_def or cfg.global_env_def
 
    cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
-   cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
-   cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
+   if contains(args.wdisable, "all") then
+      cfg.disable_warnings = all_warnings
+   else
+      cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable as {tl.WarningKind})
+   end
+   if contains(args.werror, "all") then
+      cfg.warning_error = all_warnings
+   else
+      cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
+   end
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target

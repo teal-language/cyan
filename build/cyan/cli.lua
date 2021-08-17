@@ -32,6 +32,7 @@ argname("<directory>"):
 count("*")
 
 local warnings = sort(from(keys(tl.warning_kinds)))
+table.insert(warnings, "all")
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings"):
 argname("<warning>"):
 choices(warnings):

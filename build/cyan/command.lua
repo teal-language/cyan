@@ -9,7 +9,8 @@ local config = require("cyan.config")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
 
-local merge_list = util.tab.merge_list
+local merge_list, sort, from, keys, contains =
+util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains
 
 local Args = {}
 
@@ -95,6 +96,8 @@ function command.get(name)
    return commands[name]
 end
 
+local all_warnings = sort(from(keys(tl.warning_kinds)))
+
 
 
 function command.merge_args_into_config(cfg, args)
@@ -103,8 +106,16 @@ function command.merge_args_into_config(cfg, args)
    cfg.global_env_def = args.global_env_def or cfg.global_env_def
 
    cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
-   cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
-   cfg.warning_error = merge_list(cfg.warning_error, args.werror)
+   if contains(args.wdisable, "all") then
+      cfg.disable_warnings = all_warnings
+   else
+      cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
+   end
+   if contains(args.werror, "all") then
+      cfg.warning_error = all_warnings
+   else
+      cfg.warning_error = merge_list(cfg.warning_error, args.werror)
+   end
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target
