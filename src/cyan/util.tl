@@ -115,6 +115,16 @@ function tab.merge_list<Value>(a: {Value}, b: {Value}): {Value}
    return a
 end
 
+---@desc
+--- Report if an array contains an element (as determined by the `==` operator)
+function tab.contains<Value>(t: {Value}, val: Value): boolean
+   for _, v in ipairs(t) do
+      if val == v then
+         return true
+      end
+   end
+   return false
+end
 
 ---@desc
 --- Split a string by `del`, returning the indexes of the match

@@ -117,6 +117,16 @@ end
 
 
 
+function tab.contains(t, val)
+   for _, v in ipairs(t) do
+      if val == v then
+         return true
+      end
+   end
+   return false
+end
+
+
 
 
 
