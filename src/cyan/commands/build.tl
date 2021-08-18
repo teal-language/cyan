@@ -82,7 +82,19 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude or {}
 
-   local dag <const> = graph.scan_dir(source_dir, include, exclude)
+   local dag <const>, cycles <const> = graph.scan_dir(source_dir, include, exclude)
+   if not dag then
+      log.err(
+         "Circular dependency detected in the following files:\n   ",
+         table.concat(
+            util.tab.map(cycles, function(fname: string): string
+               return cs.highlight(cs.colors.file, fname):tostring()
+            end),
+            "\n   "
+         )
+      )
+      return 1
+   end
    local exit = 0
 
    local function get_output_name(src: fs.Path): fs.Path

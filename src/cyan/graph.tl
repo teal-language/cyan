@@ -8,8 +8,8 @@ local common <const> = require("cyan.tlcommon")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
 
-local values <const>, ivalues <const>, keys <const>
-   = util.tab.values, util.tab.ivalues, util.tab.keys
+local values <const>, ivalues <const>, keys <const>, from <const>
+   = util.tab.values, util.tab.ivalues, util.tab.keys, util.tab.from
 
 local record Node
    input: fs.Path
@@ -150,19 +150,17 @@ function graph.empty(): Dag
    }, { __index = Dag })
 end
 
----@desc
---- Inserts a file and its dependencies into a graph
----
---- Ignores absolute paths and non `.tl` files
----
---- If in_dir is provided, dependencies of the given file will not be added to
---- the graph unless they are inside of the given dir
-function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)
-   local f <const> = fstr is fs.Path
-      and fstr
-      or fs.path.new(fstr as string)
+local function add_deps(t: {Node:boolean}, n: Node)
+   for child in pairs(n.dependents) do
+      if not t[child] then
+         t[child] = true
+         add_deps(t, child)
+      end
+   end
+   t[n] = true
+end
 
-   assert(f, "No path given")
+local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
    if f:is_absolute() then
       -- If a path is absolute, assume it is out of the project
       return
@@ -170,7 +168,7 @@ function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)
 
    local real_path <const> = f:to_real_path()
 
-   if self._nodes_by_filename[real_path] then
+   if dag._nodes_by_filename[real_path] then
       -- We already have this in the graph
       return
    end
@@ -182,29 +180,69 @@ function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)
    local res <const> = common.parse_file(real_path)
    if not res then return end
    local n <const>: Node = make_node(f)
-   self._nodes_by_filename[real_path] = n
-
-   local dir <const> = fs.path.ensure(in_dir, true)
+   dag._nodes_by_filename[real_path] = n
 
    for mod_name in ivalues(res.reqs) do
       -- TODO: should we search for .d.tl files?
-      local search_result <const> = common.search_module(mod_name, true)
+      local search_result = common.search_module(mod_name, true)
       if search_result then
+         if in_dir and search_result:is_absolute() and search_result:is_in(in_dir) then
+            search_result = fs.path.new(search_result:relative_to(in_dir))
+            assert(not search_result:is_absolute())
+         end
          n.modules[mod_name] = search_result
 
-         if not dir or dir and search_result:is_in(dir) then
-            self:insert_file(search_result)
+         if not in_dir or search_result:is_in(in_dir) then
+            unchecked_insert(dag, search_result, in_dir)
          end
       end
    end
 
-   for node in values(self._nodes_by_filename) do
+   for node in values(dag._nodes_by_filename) do
       for mod_path in values(node.modules) do
-         local dep_node = self._nodes_by_filename[mod_path:to_real_path()]
+         local dep_node = dag._nodes_by_filename[mod_path:to_real_path()]
          if dep_node then
-            dep_node.dependents[node] = true
+            add_deps(dep_node.dependents, node)
          end
       end
+   end
+end
+
+-- returns the list of filenames that depend on themselves
+local function check_for_cycles(dag: Dag): {string}
+   local ret = {}
+   for fname, n in pairs(dag._nodes_by_filename) do
+      if n.dependents[n] then
+         ret[fname] = true
+      end
+   end
+   if next(ret) then
+      return from(keys(ret))
+   end
+end
+
+---@desc
+--- Inserts a file and its dependencies into a graph
+---
+--- Ignores absolute paths and non `.tl` files
+---
+--- If in_dir is provided, dependencies of the given file will not be added to
+--- the graph unless they are inside of the given dir
+---
+--- Returns `false` if inserting the file introduced a circular dependency along
+--- with a list of the filenames in the cycle
+function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path): boolean, {string}
+   local f <const> = fstr is fs.Path
+      and fstr
+      or fs.path.new(fstr as string)
+
+   assert(f, "No path given")
+   unchecked_insert(self, f, fs.path.ensure(in_dir))
+   local cycles <const> = check_for_cycles(self)
+   if cycles then
+      return false, cycles
+   else
+      return true
    end
 end
 
@@ -218,19 +256,26 @@ end
 ---@desc
 --- Recursively scan a directory (using `fs.scan_dir`) and build up a graph,
 --- respecting the given `include` and `exclude` patterns
-function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag
+---
+--- Returns `nil` if a circular dependency was found, along
+--- with a list of the filenames in the cycle
+function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag, {string}
    local d <const> = graph.empty()
 
+   dir = fs.path.ensure(dir)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
-         d:insert_file(dir .. p, dir)
+         unchecked_insert(d, dir .. p, dir)
       end
    end
 
-   -- TODO: check for circular deps
-
-   return d
+   local cycles <const> = check_for_cycles(d)
+   if cycles then
+      return nil, cycles
+   else
+      return d
+   end
 end
 
 return graph

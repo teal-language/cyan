@@ -95,6 +95,7 @@ h2 {
 <br><a href=index.html#fs.dir>fs.dir</a>
 <br><a href=index.html#fs.extension_split>fs.extension_split</a>
 <br><a href=index.html#fs.path_concat>fs.path_concat</a>
+<br><a href=index.html#fs.read>fs.read</a>
 <br><a href=index.html#fs.scan_dir>fs.scan_dir</a>
 <br><a href=index.html#fs.search_parent_dirs>fs.search_parent_dirs</a>
 </p>
@@ -258,7 +259,9 @@ h2 {
 </h2>
 <p>Split a path on its extension</p><p>the <code>ndots</code> argument lets you specify how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p><h2><a name=fs.path_concat><code>fs.path_concat(a: string, b: string): string</code></a>
 </h2>
-<p>Concatenate two strings using the os path separator</p><h2><a name=fs.scan_dir><code>fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path</code></a>
+<p>Concatenate two strings using the os path separator</p><h2><a name=fs.read><code>fs.read(p: string): string, string</code></a>
+</h2>
+<p>Open a file, read it, close the file, return the contents or <code>nil</code> and an error if it couldn't be opened</p><p>Additionally caches results so multiple locations can read the same file for minimal cost. There is currently no way to clear out this cache.</p><h2><a name=fs.scan_dir><code>fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path</code></a>
 </h2>
 <p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><h2><a name=fs.search_parent_dirs><code>fs.search_parent_dirs(start_path: string | Path, fname: string): Path</code></a>
 </h2>
@@ -266,9 +269,9 @@ h2 {
 </h1>
 <p>A utility for building directed acyclic graphs of Teal source files</p><p>This is the main driver behind the <code>build</code> command</p><h2><a name=Dag:find><code>Dag:find(fstr: string | fs.Path): Node</code></a>
 </h2>
-<p>Find a node in the graph with the given path name</p><h2><a name=Dag:insert_file><code>Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path)</code></a>
+<p>Find a node in the graph with the given path name</p><h2><a name=Dag:insert_file><code>Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path): boolean, {string}</code></a>
 </h2>
-<p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><h2><a name=Dag:mark_each><code>Dag:mark_each(predicate: function(fs.Path): boolean)</code></a>
+<p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><p>Returns <code>false</code> if inserting the file introduced a circular dependency along with a list of the filenames in the cycle</p><h2><a name=Dag:mark_each><code>Dag:mark_each(predicate: function(fs.Path): boolean)</code></a>
 </h2>
 <p>For each node in the graph, if <code>predicate</code> returns true for that input path, the node is marked for compilation, and that node's children are marked for type checking</p><h2><a name=Dag:marked_nodes><code>Dag:marked_nodes(m: Node.Mark): function(): Node</code></a>
 </h2>
@@ -279,9 +282,9 @@ h2 {
 <pre>record Dag<br>   <br>end</pre>
 <p>The graph object</p><h2><a name=graph.empty><code>graph.empty(): Dag</code></a>
 </h2>
-<p>Initializes an empty graph</p><h2><a name=graph.scan_dir><code>graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag</code></a>
+<p>Initializes an empty graph</p><h2><a name=graph.scan_dir><code>graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag, {string}</code></a>
 </h2>
-<p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><h1><a name=cyan.log>cyan.log</a>
+<p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p><h1><a name=cyan.log>cyan.log</a>
 </h1>
 <p>Console logging utils, not to be confused with log files</p><p>Each logging function has the same signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code> Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): function(...: any)<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide, so your logging may look off from the default if your prefix is longer.</p><h2><a name=create_logger><code>create_logger(
    stream: FILE,

@@ -168,6 +168,20 @@ describe("build command", function()
          exit_code = 0,
       })
    end)
+   it("should detect circular dependencies", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = [[return {}]],
+            ["a.tl"] = [[require "b"]],
+            ["b.tl"] = [[require "c"]],
+            ["c.tl"] = [[require "a"]],
+         },
+         generated_files = {},
+         exit_code = 1,
+         output_match = [[Circular dependency]],
+      })
+   end)
    describe("script hooks", function()
       it("should emit a build:pre hook before doing any actions", function()
          util.run_mock_project(function() end, {

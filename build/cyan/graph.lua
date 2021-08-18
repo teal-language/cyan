@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -8,8 +8,8 @@ local common = require("cyan.tlcommon")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
 
-local values, ivalues, keys =
-util.tab.values, util.tab.ivalues, util.tab.keys
+local values, ivalues, keys, from =
+util.tab.values, util.tab.ivalues, util.tab.keys, util.tab.from
 
 local Node = {}
 
@@ -150,6 +150,80 @@ function graph.empty()
    }, { __index = Dag })
 end
 
+local function add_deps(t, n)
+   for child in pairs(n.dependents) do
+      if not t[child] then
+         t[child] = true
+         add_deps(t, child)
+      end
+   end
+   t[n] = true
+end
+
+local function unchecked_insert(dag, f, in_dir)
+   if f:is_absolute() then
+
+      return
+   end
+
+   local real_path = f:to_real_path()
+
+   if dag._nodes_by_filename[real_path] then
+
+      return
+   end
+   local _, ext = fs.extension_split(f, 2)
+   if ext ~= ".tl" then
+
+      return
+   end
+   local res = common.parse_file(real_path)
+   if not res then return end
+   local n = make_node(f)
+   dag._nodes_by_filename[real_path] = n
+
+   for mod_name in ivalues(res.reqs) do
+
+      local search_result = common.search_module(mod_name, true)
+      if search_result then
+         if in_dir and search_result:is_absolute() and search_result:is_in(in_dir) then
+            search_result = fs.path.new(search_result:relative_to(in_dir))
+            assert(not search_result:is_absolute())
+         end
+         n.modules[mod_name] = search_result
+
+         if not in_dir or search_result:is_in(in_dir) then
+            unchecked_insert(dag, search_result, in_dir)
+         end
+      end
+   end
+
+   for node in values(dag._nodes_by_filename) do
+      for mod_path in values(node.modules) do
+         local dep_node = dag._nodes_by_filename[mod_path:to_real_path()]
+         if dep_node then
+            add_deps(dep_node.dependents, node)
+         end
+      end
+   end
+end
+
+
+local function check_for_cycles(dag)
+   local ret = {}
+   for fname, n in pairs(dag._nodes_by_filename) do
+      if n.dependents[n] then
+         ret[fname] = true
+      end
+   end
+   if next(ret) then
+      return from(keys(ret))
+   end
+end
+
+
+
+
 
 
 
@@ -163,48 +237,12 @@ function Dag:insert_file(fstr, in_dir)
    fs.path.new(fstr)
 
    assert(f, "No path given")
-   if f:is_absolute() then
-
-      return
-   end
-
-   local real_path = f:to_real_path()
-
-   if self._nodes_by_filename[real_path] then
-
-      return
-   end
-   local _, ext = fs.extension_split(f, 2)
-   if ext ~= ".tl" then
-
-      return
-   end
-   local res = common.parse_file(real_path)
-   if not res then return end
-   local n = make_node(f)
-   self._nodes_by_filename[real_path] = n
-
-   local dir = fs.path.ensure(in_dir, true)
-
-   for mod_name in ivalues(res.reqs) do
-
-      local search_result = common.search_module(mod_name, true)
-      if search_result then
-         n.modules[mod_name] = search_result
-
-         if not dir or dir and search_result:is_in(dir) then
-            self:insert_file(search_result)
-         end
-      end
-   end
-
-   for node in values(self._nodes_by_filename) do
-      for mod_path in values(node.modules) do
-         local dep_node = self._nodes_by_filename[mod_path:to_real_path()]
-         if dep_node then
-            dep_node.dependents[node] = true
-         end
-      end
+   unchecked_insert(self, f, fs.path.ensure(in_dir))
+   local cycles = check_for_cycles(self)
+   if cycles then
+      return false, cycles
+   else
+      return true
    end
 end
 
@@ -218,19 +256,26 @@ end
 
 
 
+
+
+
 function graph.scan_dir(dir, include, exclude)
    local d = graph.empty()
 
+   dir = fs.path.ensure(dir)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" then
-         d:insert_file(dir .. p, dir)
+         unchecked_insert(d, dir .. p, dir)
       end
    end
 
-
-
-   return d
+   local cycles = check_for_cycles(d)
+   if cycles then
+      return nil, cycles
+   else
+      return d
+   end
 end
 
 return graph
