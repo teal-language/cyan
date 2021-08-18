@@ -50,7 +50,7 @@ function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
    end
 end
 
-local read_cache <const>: {string:string} = setmetatable({}, { __mode = "k" }) -- TODO: does this even do anything?
+local read_cache <const>: {string:string} = {}
 ---@desc
 --- Open a file, read it, close the file, return the contents or `nil` and an error if it couldn't be opened
 ---

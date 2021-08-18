@@ -50,7 +50,7 @@ p:sub(1, 1) ~= "."; return path.new(p)
    end
 end
 
-local read_cache = setmetatable({}, { __mode = "k" })
+local read_cache = {}
 
 
 

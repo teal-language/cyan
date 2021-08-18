@@ -52,8 +52,6 @@ function script.load(path, flags)
    local _, ext = fs.extension_split(p)
    if ext == ".tl" then
       local result = tl.process(path)
-
-
       if #result.syntax_errors > 0 or
          #result.type_errors > 0 then
          return nil, result
