@@ -138,10 +138,22 @@ function config.is_config(c)
       end
    end
 
+   local function verify_non_absolute_path(key)
+      local val = (c)[key]
+      if type(val) ~= "string" then
 
+         return
+      end
+      local as_path = fs.path.new(val)
+      if as_path:is_absolute() then
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_real_path()))
+      end
+   end
+   verify_non_absolute_path("source_dir")
+   verify_non_absolute_path("build_dir")
 
    local function verify_warnings(key)
-      local arr = (config)[key]
+      local arr = (c)[key]
       if arr then
          for _, warning in ipairs(arr) do
             if not tl.warning_kinds[warning] then

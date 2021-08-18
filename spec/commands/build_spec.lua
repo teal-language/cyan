@@ -37,7 +37,7 @@ describe("build command", function()
          },
          generated_files = {},
          exit_code = 1,
-         output_match = "syntax error",
+         cmd_output_match = "syntax error",
       })
    end)
    it("should only compile .tl files", function()
@@ -88,6 +88,29 @@ describe("build command", function()
             ["src"] = [[uh oh]],
          },
          cmd_output_match = [[Source dir "src" is not a directory]],
+         exit_code = 1,
+      })
+   end)
+   local abs_path = util.path_sep == "/"
+      and "/foo/bar"
+      or "C:\\foo\\bar"
+   it("should error out if source_dir is absolute", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = ([[return { source_dir = %q }]]):format(abs_path),
+         },
+         cmd_output_match = [[Expected a non%-absolute path]],
+         exit_code = 1,
+      })
+   end)
+   it("should error out if build_dir is absolute", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = ([[return { build_dir = %q }]]):format(abs_path),
+         },
+         cmd_output_match = [[Expected a non%-absolute path]],
          exit_code = 1,
       })
    end)
@@ -179,7 +202,7 @@ describe("build command", function()
          },
          generated_files = {},
          exit_code = 1,
-         output_match = [[Circular dependency]],
+         cmd_output_match = [[Circular dependency]],
       })
    end)
    describe("script hooks", function()
@@ -189,12 +212,12 @@ describe("build command", function()
             dir_structure = {
                [util.configfile] = [[ return {
                   scripts = {
-                     ["foo.lua"] = { "build:post" }
+                     ["foo.lua"] = { "build:pre" }
                   },
                } ]],
                ["foo.lua"] = [[print"foo"]],
             },
-            output_match = "foo",
+            cmd_output_match = "foo",
             generated_files = { },
             exit_code = 0,
          })
