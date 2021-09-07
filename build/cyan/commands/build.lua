@@ -73,6 +73,7 @@ local function build(args, loaded_config, starting_dir)
    local env, env_err = common.init_env_from_config(loaded_config)
    if not env then
       log.err("Could not initialize Teal environment:\n", env_err)
+      return 1
    end
 
    if not script.emit_hook("pre") then

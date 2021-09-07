@@ -207,7 +207,7 @@ describe("build command", function()
    end)
    describe("script hooks", function()
       it("should emit a build:pre hook before doing any actions", function()
-         util.run_mock_project(function() end, {
+         util.run_mock_project(finally, {
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
@@ -223,7 +223,7 @@ describe("build command", function()
          })
       end)
       it("should emit a build:post hook after building", function()
-         util.run_mock_project(function() end, {
+         util.run_mock_project(finally, {
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
@@ -247,7 +247,7 @@ describe("build command", function()
          })
       end)
       it("should not emit a build:post hook when there is nothing to do", function()
-         util.run_mock_project(function() end, {
+         util.run_mock_project(finally, {
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
@@ -259,6 +259,35 @@ describe("build command", function()
             },
             cmd_output = "",
             exit_code = 0,
+         })
+      end)
+   end)
+   describe("--global-env-def", function()
+      it("it should load the given file before type checking", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            dir_structure = {
+               [util.configfile] = [[return { global_env_def = "types" }]],
+               ["types.d.tl"] = [[
+                  global record Foo
+                     bar: integer
+                  end
+               ]],
+               ["main.tl"] = [[local x: integer = Foo.bar; print(x)]],
+            },
+            generated_files = { "main.lua" },
+            exit_code = 0,
+         })
+      end)
+      it("it should gracefully exit when the env def cannot be loaded", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            dir_structure = {
+               [util.configfile] = [[return { global_env_def = "file-that-doesnt-exist" }]],
+               ["main.tl"] = [[local x: integer = Foo.bar; print(x)]],
+            },
+            exit_code = 1,
+            cmd_output_match = [[could not predefine]],
          })
       end)
    end)
