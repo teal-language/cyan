@@ -77,6 +77,18 @@ function ColorString:tostring()
    end))
 end
 
+
+
+function ColorString:to_raw()
+   local buf = {}
+   for v in ivalues(self.content) do
+      if type(v) == "string" then
+         table.insert(buf, v)
+      end
+   end
+   return table.concat(buf)
+end
+
 local colorstring_mt = {}
 
 local colorstring = {

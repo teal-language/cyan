@@ -77,6 +77,18 @@ function ColorString:tostring(): string
    end))
 end
 
+---@desc
+--- Converts a `Colorstring` to a regular string, stripping any ANSI escapes
+function ColorString:to_raw(): string
+   local buf = {}
+   for v in ivalues(self.content) do
+      if v is string then
+         table.insert(buf, v)
+      end
+   end
+   return table.concat(buf)
+end
+
 local colorstring_mt <const>: metatable<ColorString> = {}
 
 local colorstring <const> = {
