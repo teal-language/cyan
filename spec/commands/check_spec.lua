@@ -23,7 +23,7 @@ describe("check command", function()
             ["bar.tl"] = [[local _x: string = "hello"]],
          },
          cmd_output_match_lines = {
-            [1] = "%d.*Error.*foo%.tl",
+            [1] = "Error.*%d.*foo%.tl",
             [6] = "Type checked.*bar%.tl",
          },
          exit_code = 1,
