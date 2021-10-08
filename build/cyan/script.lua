@@ -46,6 +46,7 @@ end
 
 
 function script.load(path, flags)
+   log.extra("Loading script: ", cs.highlight(cs.colors.file, path))
    local p = fs.path.new(path)
 
    local box, err

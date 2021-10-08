@@ -46,6 +46,7 @@ end
 --- This is called by the cli driver to load the scripts found in the config
 --- file with the relevant hooks
 function script.load(path: string, flags: {string}): boolean, string | tl.Result
+   log.extra("Loading script: ", cs.highlight(cs.colors.file, path))
    local p <const> = fs.path.new(path)
 
    local box, err: sandbox.Sandbox, string

@@ -8,6 +8,7 @@ local merge_list <const> = util.tab.merge_list
 
 local info = log.create_logger(
    io.stdout,
+   "normal",
    cs.highlight({ansi.color.bright.cyan}, "Docgen"),
    cs.highlight({ansi.color.bright.cyan}, "...")
 )
@@ -122,6 +123,33 @@ emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string
          escape(table.concat(prefix))
       }
    )
+   return name
+end
+
+emit["enum_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
+   local contents <const> = {}
+   local body <const> = n:child_by_field_name("enum_body")
+   assertf(body, "enum_body is nil for %s", tostring(n));
+
+   local name <const> = n:child_by_field_name("name"):source()
+   local entries <const> = {}
+
+   for child in body:named_children() do
+      table.insert(entries, child:source())
+   end
+
+   table.insert(
+      out,
+      html {
+         doc_header ({"type ", name}, name),
+         pre { "enum ", name, br, "   ",
+               table.concat(entries, br .. "   "),
+               br,
+               "end " },
+         escape(table.concat(prefix)),
+      }
+   )
+
    return name
 end
 

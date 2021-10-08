@@ -42,6 +42,7 @@ local log <const> = require("cyan.log")
 
 local info <const> = log.create_logger(
    io.stdout,
+   "normal",
    cs.highlight({ansi.color.dark.cyan}, "Rockspec"),
    cs.highlight({ansi.color.dark.cyan}, "...")
 )
