@@ -12,8 +12,8 @@
 ---        `debug`  | stderr | Used for debugging, uses the inspect module (if it is found) to print its arguments
 ---@@end
 ---
---- You may notice that these are nicely padded and after the first line the prefix is replaced by a '...'
---- Another function is provided, `create_logger`,
+--- You may notice that these are nicely padded and after the first line the
+--- prefix is replaced by a '...'. Another function is provided, `create_logger`,
 ---
 ---@@code
 --- create_logger: function(
@@ -26,12 +26,19 @@
 --- to automatically generate formatted output. `cont` defaults to `"..."` and
 --- `inspector` defaults to `tostring`. Prefixes will be padded to 10 characters
 --- wide, so your logging may look off from the default if your prefix is longer.
-
+---
+--- Additionally, loggers will try to detect whether or not to display colors.
+--- This is only handled with the `ColorString` type to avoid the many pitfalls of
+--- trying to parse ANSI escape sequences. If a regular string contains any escape
+--- sequences or an inspector produces them (outside of a `ColorString`) it will
+--- not be handled.
 
 local util <const> = require("cyan.util")
 local cs <const> = require("cyan.colorstring")
 local tab <const> = util.tab
 local str <const> = util.str
+
+local no_color_env <const> = os.getenv("NO_COLOR") ~= nil
 
 local inspect: function(any): string
 do
@@ -59,6 +66,37 @@ end
 
 local max_prefix_len <const> = 10
 
+local as_fd <const>: {FILE:integer} = {
+   [io.stdin] = 0,
+   [io.stdout] = 1,
+   [io.stderr] = 2,
+}
+
+local ttys <const> = {}
+local function is_a_tty(fd: integer): boolean
+   if ttys[fd] == nil then
+      if not fd then return false end
+      local ok <const>, exit <const>, signal <const> = os.execute(("test -t %d"):format(fd))
+      ttys[fd] = (ok and exit == "exit") and signal == 0 or false
+   end
+   return ttys[fd]
+end
+
+local colorstring_mt <const> = getmetatable(cs.new())
+local function is_color_string(val: any): boolean
+   return getmetatable(val) == colorstring_mt
+end
+
+local function sanitizer(stream: FILE): function(any): any
+   local is_not_tty <const> = not is_a_tty(as_fd[stream])
+   return function(val: any): any
+      if is_color_string(val) and (is_not_tty or no_color_env) then
+         return (val as cs.ColorString):to_raw()
+      end
+      return val
+   end
+end
+
 ---@desc
 --- Creates a logging function as described above
 local function create_logger(
@@ -71,15 +109,16 @@ local function create_logger(
    local prefix_len <const> = (prefix as string):len()
    prefix = prefix and (prefix as string) .. " " or ""
    cont = cont and (cont as string) .. " " or "... "
+   local sanitize <const> = sanitizer(stream)
    return function(...: any)
-      stream:write(tostring(str.pad_left(prefix, max_prefix_len)))
+      stream:write(tostring(sanitize(str.pad_left(prefix, max_prefix_len))))
       for i = 1, select("#", ...) do
-         local val <const> = inspector((select(i, ...)))
+         local val <const> = inspector(sanitize((select(i, ...))))
          local lns <const> = tab.from(str.split(val, "\n", true))
          for j, ln in ipairs(lns) do
             stream:write(ln)
             if j < #lns then
-               stream:write("\n", prefix_len > 0 and tostring(str.pad_left(cont, max_prefix_len)) or "")
+               stream:write("\n", prefix_len > 0 and sanitize(str.pad_left(cont, max_prefix_len)) as string or "")
             end
          end
       end

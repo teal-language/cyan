@@ -1,4 +1,9 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+
+
+
+
+
 
 
 
@@ -33,6 +38,8 @@ local cs = require("cyan.colorstring")
 local tab = util.tab
 local str = util.str
 
+local no_color_env = os.getenv("NO_COLOR") ~= nil
+
 local inspect
 do
    local req = require
@@ -59,6 +66,37 @@ end
 
 local max_prefix_len = 10
 
+local as_fd = {
+   [io.stdin] = 0,
+   [io.stdout] = 1,
+   [io.stderr] = 2,
+}
+
+local ttys = {}
+local function is_a_tty(fd)
+   if ttys[fd] == nil then
+      if not fd then return false end
+      local ok, exit, signal = os.execute(("test -t %d"):format(fd))
+      ttys[fd] = (ok and exit == "exit") and signal == 0 or false
+   end
+   return ttys[fd]
+end
+
+local colorstring_mt = getmetatable(cs.new())
+local function is_color_string(val)
+   return getmetatable(val) == colorstring_mt
+end
+
+local function sanitizer(stream)
+   local is_not_tty = not is_a_tty(as_fd[stream])
+   return function(val)
+      if is_color_string(val) and (is_not_tty or no_color_env) then
+         return (val):to_raw()
+      end
+      return val
+   end
+end
+
 
 
 local function create_logger(
@@ -71,15 +109,16 @@ local function create_logger(
    local prefix_len = (prefix):len()
    prefix = prefix and (prefix) .. " " or ""
    cont = cont and (cont) .. " " or "... "
+   local sanitize = sanitizer(stream)
    return function(...)
-      stream:write(tostring(str.pad_left(prefix, max_prefix_len)))
+      stream:write(tostring(sanitize(str.pad_left(prefix, max_prefix_len))))
       for i = 1, select("#", ...) do
-         local val = inspector((select(i, ...)))
+         local val = inspector(sanitize((select(i, ...))))
          local lns = tab.from(str.split(val, "\n", true))
          for j, ln in ipairs(lns) do
             stream:write(ln)
             if j < #lns then
-               stream:write("\n", prefix_len > 0 and tostring(str.pad_left(cont, max_prefix_len)) or "")
+               stream:write("\n", prefix_len > 0 and sanitize(str.pad_left(cont, max_prefix_len)) or "")
             end
          end
       end
