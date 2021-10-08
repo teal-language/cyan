@@ -118,7 +118,7 @@ local function create_logger(
          for j, ln in ipairs(lns) do
             stream:write(ln)
             if j < #lns then
-               stream:write("\n", prefix_len > 0 and sanitize(str.pad_left(cont, max_prefix_len)) or "")
+               stream:write("\n", prefix_len > 0 and tostring(sanitize(str.pad_left(cont, max_prefix_len))) or "")
             end
          end
       end
