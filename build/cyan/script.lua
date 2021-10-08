@@ -118,6 +118,8 @@ end
 
 
 function script.emit_hook(name, ...)
+   log.extra("Emitting hook: '", name, "'")
+   log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
       if ok then
          log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))

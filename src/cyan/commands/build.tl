@@ -98,6 +98,12 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
    local exit = 0
 
+   log.debug("Built dependency graph")
+
+   local function display_filename(f: fs.Path): cs.ColorString
+      return cs.highlight(cs.colors.file, f:relative_to(starting_dir))
+   end
+
    local function get_output_name(src: fs.Path): fs.Path
       local out <const> = src:copy()
       out:remove_leading(source_dir)
@@ -108,15 +114,16 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
 
    local function source_is_newer(src: fs.Path): boolean
+      local target <const> = get_output_name(src)
       local newer: boolean
       if args.update_all then
          newer = true
       else
-         local target <const> = get_output_name(src)
          local in_t <const>, out_t <const> = src:mod_time(), target:mod_time() or -1
          newer = in_t > out_t
       end
       if newer then
+         log.extra("Source ", display_filename(src), " is newer than target (", display_filename(target), ")")
          if not script.emit_hook("file_updated", src:copy()) then
             exit = 1
             coroutine.yield()
@@ -132,10 +139,6 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
 
    if not res then
       return exit
-   end
-
-   local function display_filename(f: fs.Path): cs.ColorString
-      return cs.highlight(cs.colors.file, f:relative_to(starting_dir))
    end
 
    local to_write <const> = {}

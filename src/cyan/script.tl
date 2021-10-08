@@ -118,6 +118,8 @@ end
 --- Iterates through each loaded script and runs any with the given hook,
 --- logging each script that it ran, and stopping early if any error
 function script.emit_hook(name: string, ...: any): boolean, string
+   log.extra("Emitting hook: '", name, "'")
+   log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
       if ok then
          log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))
