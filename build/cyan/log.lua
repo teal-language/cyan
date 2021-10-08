@@ -164,7 +164,7 @@ local log = {
    io.stderr,
    "debug",
    cs.highlight(cs.colors.debug, "DEBUG"),
-   cs.highlight(cs.colors.error, "..."),
+   cs.highlight(cs.colors.debug, "..."),
    inspect),
 
    err = create_logger(

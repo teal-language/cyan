@@ -51,13 +51,17 @@ parser:option("--gen-compat", "Generate compatibility code for targeting differe
 parser:option("--gen-target", "Minimum targeted Lua version for generated code.")
       :choices({ "5.1", "5.3" })
 
-parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr.")
-
 parser:flag("--no-script", "Do not run any scripts.")
       :action(script.disable)
 
-parser:option("-v --verbosity", "Set verbosity of logging.")
-      :choices(log.verbosities)
+parser:mutex(
+   parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr. (Same as --verbosity quiet)."),
+   parser:option("-v --verbosity", "Set verbosity of logging.")
+         :choices(log.verbosities)
+         :action(function(_: argparse.Args, __: string, val: string|boolean|{string})
+            log.set_verbosity(val as log.Verbosity)
+         end)
+)
 
 parser:command_target("command")
 
@@ -107,14 +111,10 @@ do
    end
    args = res as Args
 end
-log.set_verbosity(args.verbosity)
 local cmd <const> = assert(command.get(args.command))
 command.running = cmd
 
-if args.quiet then
-   log.info = function() end
-   log.warn = function() end
-end
+log.debug("Arguments: ", args)
 
 local exit: integer = 1
 local starting_dir <const> = fs.cwd()
