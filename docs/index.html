@@ -45,6 +45,7 @@ h2 {
 <p><a href=index.html#cyan.colorstring>cyan.colorstring</a>
 <br><a href=index.html#ColorString:len>ColorString:len</a>
 <br><a href=index.html#ColorString:surround>ColorString:surround</a>
+<br><a href=index.html#ColorString:to_raw>ColorString:to_raw</a>
 <br><a href=index.html#ColorString:tostring>ColorString:tostring</a>
 <br><a href=index.html#ColorString>ColorString</a>
 <br><a href=index.html#colorstring.highlight>colorstring.highlight</a>
@@ -163,7 +164,9 @@ h2 {
 </h2>
 <p>Get the length of a given <code>ColorString</code>, not counting any escape sequences.</p><p>Note that <code>ColorString:len() >= ColorString:tostring():len()</code></p><h2><a name=ColorString:surround><code>ColorString:surround(col: {integer})</code></a>
 </h2>
-<p>surrounds a string with a color</p><h2><a name=ColorString:tostring><code>ColorString:tostring(): string</code></a>
+<p>surrounds a string with a color</p><h2><a name=ColorString:to_raw><code>ColorString:to_raw(): string</code></a>
+</h2>
+<p>Converts a <code>Colorstring</code> to a regular string, stripping any ANSI escapes</p><h2><a name=ColorString:tostring><code>ColorString:tostring(): string</code></a>
 </h2>
 <p>Converts a <code>Colorstring</code> to a regular string with the correct ANSI escapes</p><h2><a name=ColorString><code>type ColorString</code></a>
 </h2>
@@ -286,7 +289,7 @@ h2 {
 </h2>
 <p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p><h1><a name=cyan.log>cyan.log</a>
 </h1>
-<p>Console logging utils, not to be confused with log files</p><p>Each logging function has the same signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code> Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): function(...: any)<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide, so your logging may look off from the default if your prefix is longer.</p><h2><a name=create_logger><code>create_logger(
+<p>Console logging utils, not to be confused with log files</p><p>Each logging function has the same signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): function(...: any)<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>ColorString</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>ColorString</code>) it will not be handled.</p><h2><a name=create_logger><code>create_logger(
    stream: FILE,
    prefix: string | cs.ColorString,
    cont: string | cs.ColorString,
