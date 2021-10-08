@@ -189,6 +189,10 @@ local function build(args, loaded_config, starting_dir)
       return exit
    end
 
+   if args.check_only then
+      return exit
+   end
+
    for node_ast in ivalues(to_write) do
       local n, ast = node_ast[1], node_ast[2]
       local fh, err = io.open(n.output:to_real_path(), "w")
@@ -221,6 +225,7 @@ command.new({
    exec = build,
    argparse = function(cmd)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
+      cmd:flag("-c --check-only", "Only type check files.")
    end,
    script_hooks = { "pre", "post", "file_updated" },
 })

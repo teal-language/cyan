@@ -22,12 +22,14 @@ local record Args
    quiet: boolean
    global_env_def: string
 
+   -- TODO: it might not be too hard to auto generate these with a script
    -- TODO: These should be in some sort of subtype/interface made by the commands
    files: {string}
    output: string
    script: {string}
 
    update_all: boolean
+   check_only: boolean
 
    directory: string
    source_dir: string

@@ -291,5 +291,20 @@ describe("build command", function()
          })
       end)
    end)
+   describe("--check-only flag", function()
+      it("should not write any files", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            args = { "--check-only" },
+            dir_structure = {
+               [util.configfile] = [[return {}]],
+               ["foo.tl"] = "local x: integer = 1; print(x)",
+            },
+            exit_code = 0,
+            cmd_output_match = "Type checked.*foo",
+            cmd_output_not_match = "Wrote",
+         })
+      end)
+   end)
 end)
 
