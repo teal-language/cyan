@@ -122,7 +122,7 @@ local config_path <const> = config.find()
 if config_path then
    local config_dir <const> = config_path:copy()
    table.remove(config_dir)
-
+   log.debug("Changing directory into: ", config_dir)
    fs.chdir(config_dir)
 end
 
