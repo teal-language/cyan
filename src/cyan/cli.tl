@@ -56,6 +56,9 @@ parser:flag("-q --quiet", "Do not print information messages to stdout. Errors m
 parser:flag("--no-script", "Do not run any scripts.")
       :action(script.disable)
 
+parser:option("-v --verbosity", "Set verbosity of logging.")
+      :choices(log.verbosities)
+
 parser:command_target("command")
 
 command.new{
@@ -104,6 +107,7 @@ do
    end
    args = res as Args
 end
+log.set_verbosity(args.verbosity)
 local cmd <const> = assert(command.get(args.command))
 command.running = cmd
 

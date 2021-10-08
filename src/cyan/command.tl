@@ -7,6 +7,7 @@ local argparse <const> = require("argparse")
 
 local config <const> = require("cyan.config")
 local fs <const> = require("cyan.fs")
+local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
 local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>
@@ -21,6 +22,7 @@ local record Args
    gen_target: tl.TargetMode
    quiet: boolean
    global_env_def: string
+   verbosity: log.Verbosity
 
    -- TODO: it might not be too hard to auto generate these with a script
    -- TODO: These should be in some sort of subtype/interface made by the commands

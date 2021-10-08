@@ -18,6 +18,7 @@
 ---@@code
 --- create_logger: function(
 ---    stream: FILE,
+---    verbosity_threshold: Verbosity,
 ---    prefix: string | ColorString,
 ---    cont: string | ColorString,
 ---    inspector: function(any): string
@@ -39,6 +40,30 @@ local tab <const> = util.tab
 local str <const> = util.str
 
 local no_color_env <const> = os.getenv("NO_COLOR") ~= nil
+
+---@desc
+--- The thresholds for loggers to actually write their output
+local enum Verbosity
+   "quiet"
+   "normal"
+   "extra"
+   "debug"
+end
+
+local verbosities <const>: {Verbosity} = {
+   "quiet",
+   "normal",
+   "extra",
+   "debug",
+}
+local verbosity_to_int <const>: {Verbosity:integer} = {
+   quiet = 0,
+   normal = 1,
+   extra = 2,
+   debug = 3,
+}
+
+local verbosity: Verbosity = "normal"
 
 local inspect: function(any): string
 do
@@ -101,6 +126,7 @@ end
 --- Creates a logging function as described above
 local function create_logger(
    stream: FILE,
+   verbosity_threshold: Verbosity,
    prefix: string | cs.ColorString,
    cont: string | cs.ColorString,
    inspector: function(any): string
@@ -110,7 +136,10 @@ local function create_logger(
    prefix = prefix and (prefix as string) .. " " or ""
    cont = cont and (cont as string) .. " " or "... "
    local sanitize <const> = sanitizer(stream)
+   local threshold <const> = verbosity_threshold and verbosity_to_int[verbosity_threshold] or -math.huge
    return function(...: any)
+      if verbosity_to_int[verbosity] < threshold then return end
+
       stream:write(tostring(sanitize(str.pad_left(prefix, max_prefix_len))))
       for i = 1, select("#", ...) do
          local val <const> = inspector(sanitize((select(i, ...))))
@@ -126,30 +155,46 @@ local function create_logger(
    end
 end
 
+local function set_verbosity(level: Verbosity)
+   verbosity = level
+end
+
 local log <const> = {
    debug = create_logger(
       io.stderr,
+      "debug",
       cs.highlight(cs.colors.debug, "DEBUG"),
       cs.highlight(cs.colors.error, "..."),
       inspect
    ),
    err = create_logger(
       io.stderr,
+      nil,
       cs.highlight(cs.colors.error, "Error"),
       cs.highlight(cs.colors.error, "...")
    ),
    warn = create_logger(
       io.stderr,
+      "quiet",
       cs.highlight(cs.colors.warn, "Warn"),
       cs.highlight(cs.colors.warn, "...")
    ),
    info = create_logger(
       io.stdout,
+      "normal",
       cs.highlight(cs.colors.teal, "Info"),
       cs.highlight(cs.colors.teal, "...")
    ),
+   extra = create_logger(
+      io.stdout,
+      "extra",
+      cs.highlight(cs.colors.teal, "*Info"),
+      cs.highlight(cs.colors.teal, "...")
+   ),
    create_logger = create_logger,
+   set_verbosity = set_verbosity,
+   verbosities = verbosities,
+   Verbosity = Verbosity,
 }
 
 return log
-

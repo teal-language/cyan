@@ -1,4 +1,5 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+
 
 
 
@@ -39,6 +40,30 @@ local tab = util.tab
 local str = util.str
 
 local no_color_env = os.getenv("NO_COLOR") ~= nil
+
+
+
+local Verbosity = {}
+
+
+
+
+
+
+local verbosities = {
+   "quiet",
+   "normal",
+   "extra",
+   "debug",
+}
+local verbosity_to_int = {
+   quiet = 0,
+   normal = 1,
+   extra = 2,
+   debug = 3,
+}
+
+local verbosity = "normal"
 
 local inspect
 do
@@ -101,6 +126,7 @@ end
 
 local function create_logger(
    stream,
+   verbosity_threshold,
    prefix,
    cont,
    inspector)
@@ -110,7 +136,10 @@ local function create_logger(
    prefix = prefix and (prefix) .. " " or ""
    cont = cont and (cont) .. " " or "... "
    local sanitize = sanitizer(stream)
+   local threshold = verbosity_threshold and verbosity_to_int[verbosity_threshold] or -math.huge
    return function(...)
+      if verbosity_to_int[verbosity] < threshold then return end
+
       stream:write(tostring(sanitize(str.pad_left(prefix, max_prefix_len))))
       for i = 1, select("#", ...) do
          local val = inspector(sanitize((select(i, ...))))
@@ -126,29 +155,46 @@ local function create_logger(
    end
 end
 
+local function set_verbosity(level)
+   verbosity = level
+end
+
 local log = {
    debug = create_logger(
    io.stderr,
+   "debug",
    cs.highlight(cs.colors.debug, "DEBUG"),
    cs.highlight(cs.colors.error, "..."),
    inspect),
 
    err = create_logger(
    io.stderr,
+   nil,
    cs.highlight(cs.colors.error, "Error"),
    cs.highlight(cs.colors.error, "...")),
 
    warn = create_logger(
    io.stderr,
+   "quiet",
    cs.highlight(cs.colors.warn, "Warn"),
    cs.highlight(cs.colors.warn, "...")),
 
    info = create_logger(
    io.stdout,
+   "normal",
    cs.highlight(cs.colors.teal, "Info"),
    cs.highlight(cs.colors.teal, "...")),
 
+   extra = create_logger(
+   io.stdout,
+   "extra",
+   cs.highlight(cs.colors.teal, "*Info"),
+   cs.highlight(cs.colors.teal, "...")),
+
    create_logger = create_logger,
+   set_verbosity = set_verbosity,
+   verbosities = verbosities,
+   Verbosity = Verbosity,
 }
 
 return log
