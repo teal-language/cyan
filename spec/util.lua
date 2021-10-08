@@ -265,6 +265,9 @@ function util.run_mock_project(finally, t, use_folder)
    if t.cmd_output_match then
       batch:add(assert.match, t.cmd_output_match, actual_output, show_output)
    end
+   if t.cmd_output_not_match then
+      batch:add(assert["not"].match, t.cmd_output_not_match, actual_output, show_output)
+   end
    if t.cmd_output then
       batch:add(assert.are.equal, t.cmd_output, actual_output)
    end
