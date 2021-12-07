@@ -42,4 +42,7 @@ bootstrap: default
 test: default
 	busted
 
+docs: default
+	cyan run scripts/docgen.tl
+
 .PHONY: clean

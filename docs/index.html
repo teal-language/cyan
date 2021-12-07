@@ -107,6 +107,7 @@ h2 {
 <br><a href=index.html#Dag:marked_nodes>Dag:marked_nodes</a>
 <br><a href=index.html#Dag:nodes>Dag:nodes</a>
 <br><a href=index.html#Dag>Dag</a>
+<br><a href=index.html#Node>Node</a>
 <br><a href=index.html#graph.empty>graph.empty</a>
 <br><a href=index.html#graph.scan_dir>graph.scan_dir</a>
 </p>
@@ -284,7 +285,10 @@ h2 {
 <p>Iterate over nodes in order of dependents</p><p>If two nodes have the same number of dependent nodes, the order of iteration between those two nodes is not guaranteed</p><h2><a name=Dag><code>type Dag</code></a>
 </h2>
 <pre>record Dag<br>   <br>end</pre>
-<p>The graph object</p><h2><a name=graph.empty><code>graph.empty(): Dag</code></a>
+<p>The graph object</p><h2><a name=Node><code>type Node</code></a>
+</h2>
+<pre>record Node<br>   <br>end</pre>
+<p>The nodes that are stored in the graph</p><h2><a name=graph.empty><code>graph.empty(): Dag</code></a>
 </h2>
 <p>Initializes an empty graph</p><h2><a name=graph.scan_dir><code>graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag, {string}</code></a>
 </h2>

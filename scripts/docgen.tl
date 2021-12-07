@@ -127,7 +127,6 @@ emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string
 end
 
 emit["enum_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
-   local contents <const> = {}
    local body <const> = n:child_by_field_name("enum_body")
    assertf(body, "enum_body is nil for %s", tostring(n));
 

@@ -200,7 +200,7 @@ local function build(args, loaded_config, starting_dir)
       local n, ast = node_ast[1], node_ast[2]
       local fh, err = io.open(n.output:to_real_path(), "w")
       if not fh then
-         log.err("Error opening file", display_filename(n.output), err)
+         log.err("Error opening file ", display_filename(n.output), ": ", err)
          exit = 1
       else
          fh:write(common.compile_ast(ast))
@@ -212,6 +212,34 @@ local function build(args, loaded_config, starting_dir)
    if #to_write > 0 then
       if not script.emit_hook("post") then
          return 1
+      end
+   end
+
+   if build_dir ~= source_dir then
+      local expected_files = {}
+      for n in dag:nodes() do
+         log.debug(n.input, " -> ", get_output_name(n.input))
+         local p = get_output_name(n.input)
+         p:remove_leading(build_dir)
+         expected_files[p:tostring()] = true
+      end
+
+      local unexpected_files = {}
+      for p in fs.scan_dir(build_dir) do
+         log.debug("checking if ", p:tostring(), " is expected...")
+         if expected_files[p:tostring()] then
+            log.debug("   yes")
+         else
+            log.debug("   no")
+            table.insert(unexpected_files, display_filename(p):tostring())
+         end
+      end
+
+      if #unexpected_files > 0 then
+         log.warn(
+         "Unexpected files in build directory:\n   ",
+         table.concat(unexpected_files, "\n   "))
+
       end
    end
 

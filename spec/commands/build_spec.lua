@@ -205,6 +205,26 @@ describe("build command", function()
          cmd_output_match = [[Circular dependency]],
       })
    end)
+   it("should report when there are unexpected files in the build directory", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = [[return { build_dir = "build", source_dir = "src" }]],
+            build = {
+               ["baz.txt"] = [[]],
+            },
+            src = {
+               ["foo.tl"] = [[]],
+               ["bar.tl"] = [[]],
+            },
+         },
+         generated_files = {
+            build = { "foo.lua", "bar.lua" },
+         },
+         exit_code = 0,
+         cmd_output_match = [[Unexpected files in build directory]],
+      })
+   end)
    describe("script hooks", function()
       it("should emit a build:pre hook before doing any actions", function()
          util.run_mock_project(finally, {

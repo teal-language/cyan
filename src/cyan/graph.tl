@@ -11,6 +11,8 @@ local util <const> = require("cyan.util")
 local values <const>, ivalues <const>, keys <const>, from <const>
    = util.tab.values, util.tab.ivalues, util.tab.keys, util.tab.from
 
+---@desc
+--- The nodes that are stored in the graph
 local record Node
    input: fs.Path
    output: fs.Path
