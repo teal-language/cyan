@@ -32,6 +32,7 @@ local record Args
 
    update_all: boolean
    check_only: boolean
+   prune: boolean
 
    directory: string
    source_dir: string

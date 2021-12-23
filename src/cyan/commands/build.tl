@@ -224,22 +224,38 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          expected_files[p:tostring()] = true
       end
 
-      local unexpected_files <const> = {}
+      local unexpected_files <const>: {fs.Path} = {}
       for p in fs.scan_dir(build_dir) do
          log.debug("checking if ", p:tostring(), " is expected...")
          if expected_files[p:tostring()] then
             log.debug("   yes")
          else
             log.debug("   no")
-            table.insert(unexpected_files, display_filename(p):tostring())
+            table.insert(unexpected_files, p)
          end
       end
 
       if #unexpected_files > 0 then
-         log.warn(
-            "Unexpected files in build directory:\n   ",
-            table.concat(unexpected_files, "\n   ")
-         )
+         if args.prune then
+            for _, p in ipairs(unexpected_files) do
+               local file <const> = build_dir .. p
+               local disp <const> = display_filename(file)
+               local real <const> = file:relative_to(fs.cwd())
+               local ok <const>, err <const> = os.remove(real)
+               if ok then
+                  log.info("Pruned file ", disp)
+               else
+                  log.err("Unable to prune file '", disp, "': ", err)
+               end
+            end
+         else
+            local strs <const>: {string | cs.ColorString} = {}
+            for _, p in ipairs(unexpected_files) do
+               table.insert(strs, "\n   ")
+               table.insert(strs, display_filename(p))
+            end
+            log.warn("Unexpected files in build directory:", table.unpack(strs))
+         end
       end
    end
 
@@ -257,6 +273,7 @@ command.new{
    argparse = function(cmd: argparse.Command)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
       cmd:flag("-c --check-only", "Only type check files.")
+      cmd:flag("-p --prune", "Remove any unexpected files in the build directory.")
    end,
    script_hooks = { "pre", "post", "file_updated" },
 }

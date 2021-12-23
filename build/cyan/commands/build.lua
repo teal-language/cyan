@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 local argparse = require("argparse")
 local tl = require("tl")
@@ -231,15 +231,31 @@ local function build(args, loaded_config, starting_dir)
             log.debug("   yes")
          else
             log.debug("   no")
-            table.insert(unexpected_files, display_filename(p):tostring())
+            table.insert(unexpected_files, p)
          end
       end
 
       if #unexpected_files > 0 then
-         log.warn(
-         "Unexpected files in build directory:\n   ",
-         table.concat(unexpected_files, "\n   "))
-
+         if args.prune then
+            for _, p in ipairs(unexpected_files) do
+               local file = build_dir .. p
+               local disp = display_filename(file)
+               local real = file:relative_to(fs.cwd())
+               local ok, err = os.remove(real)
+               if ok then
+                  log.info("Pruned file ", disp)
+               else
+                  log.err("Unable to prune file '", disp, "': ", err)
+               end
+            end
+         else
+            local strs = {}
+            for _, p in ipairs(unexpected_files) do
+               table.insert(strs, "\n   ")
+               table.insert(strs, display_filename(p))
+            end
+            log.warn("Unexpected files in build directory:", _tl_table_unpack(strs))
+         end
       end
    end
 
@@ -257,6 +273,7 @@ command.new({
    argparse = function(cmd)
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
       cmd:flag("-c --check-only", "Only type check files.")
+      cmd:flag("-p --prune", "Remove any unexpected files in the build directory.")
    end,
    script_hooks = { "pre", "post", "file_updated" },
 })

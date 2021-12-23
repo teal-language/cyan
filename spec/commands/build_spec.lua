@@ -326,5 +326,26 @@ describe("build command", function()
          })
       end)
    end)
+   describe("--prune flag", function()
+      it("should delete unexpected files from the build directory", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            args = { "--prune" },
+            dir_structure = {
+               [util.configfile] = [[return { build_dir = "build" }]],
+               build = {
+                  ["foo.txt"] = [[]],
+               },
+               ["bar.tl"] = [[print 'hello']],
+            },
+            exit_code = 0,
+            cmd_output_match_lines = {
+               "Type checked.*bar%.tl",
+               "Wrote.*bar%.lua",
+               "Pruned.*foo%.txt",
+            },
+         })
+      end)
+   end)
 end)
 
