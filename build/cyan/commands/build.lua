@@ -87,12 +87,7 @@ local function build(args, loaded_config, starting_dir)
    if not dag then
       log.err(
       "Circular dependency detected in the following files:\n   ",
-      table.concat(
-      util.tab.map(cycles, function(fname)
-         return cs.highlight(cs.colors.file, fname):tostring()
-      end),
-      "\n   "))
-
+      _tl_table_unpack(util.tab.intersperse(cycles, "\n   ")))
 
       return 1
    end
@@ -132,12 +127,10 @@ local function build(args, loaded_config, starting_dir)
       return newer
    end
 
-   local res = coroutine.wrap(function()
-      dag:mark_each(source_is_newer)
-      return true
-   end)()
-
-   if not res then
+   if not coroutine.wrap(function()
+         dag:mark_each(source_is_newer)
+         return true
+      end)() then
       return exit
    end
 

@@ -87,12 +87,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    if not dag then
       log.err(
          "Circular dependency detected in the following files:\n   ",
-         table.concat(
-            util.tab.map(cycles, function(fname: string): string
-               return cs.highlight(cs.colors.file, fname):tostring()
-            end),
-            "\n   "
-         )
+         table.unpack(util.tab.intersperse(cycles, "\n   "))
       )
       return 1
    end
@@ -132,12 +127,10 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       return newer
    end
 
-   local res = coroutine.wrap(function(): boolean
+   if not coroutine.wrap(function(): boolean
       dag:mark_each(source_is_newer)
       return true
-   end)()
-
-   if not res then
+   end)() then
       return exit
    end
 

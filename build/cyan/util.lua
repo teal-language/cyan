@@ -91,6 +91,21 @@ end
 
 
 
+function tab.intersperse(t, val)
+   local new = {}
+   local len = #t
+   for i, v in ipairs(t) do
+      local idx = 2 * i
+      new[idx - 1] = v
+      if i < len then
+         new[idx] = val
+      end
+   end
+   return new
+end
+
+
+
 function tab.filter(t, pred)
    local pass = {}
    local fail = {}

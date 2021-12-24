@@ -90,6 +90,21 @@ function tab.map_ipairs<Value, MappedValue>(t: {Value}, fn: function(Value): Map
 end
 
 ---@desc
+--- produce a new list by inserting `val` after each element
+function tab.intersperse<Value>(t: {Value}, val: Value): {Value}
+   local new <const> = {}
+   local len <const> = #t
+   for i, v in ipairs(t) do
+      local idx <const> = 2 * i
+      new[idx - 1] = v
+      if i < len then
+         new[idx] = val
+      end
+   end
+   return new
+end
+
+---@desc
 --- Create two new lists from `t`: the values that return `true` from `pred` and the values that return false
 function tab.filter<Value>(t: {Value}, pred: function(Value): boolean): {Value}, {Value}
    local pass <const>: {Value} = {}
