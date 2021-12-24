@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
@@ -94,14 +94,62 @@ function common.make_error_header(file, num_errors, category)
    tostring()
 end
 
+local highlights_by_kind = {
+   string = cs.colors.string,
+   integer = cs.colors.number,
+   number = cs.colors.number,
+}
+
+local highlights_by_content = {
+   ["+"] = cs.colors.op,
+   ["*"] = cs.colors.op,
+   ["-"] = cs.colors.op,
+   ["/"] = cs.colors.op,
+   ["^"] = cs.colors.op,
+   ["&"] = cs.colors.op,
+   ["=="] = cs.colors.op,
+   ["~="] = cs.colors.op,
+   [">"] = cs.colors.op,
+   [">="] = cs.colors.op,
+   ["<"] = cs.colors.op,
+   ["<="] = cs.colors.op,
+   ["="] = cs.colors.op,
+   ["~"] = cs.colors.op,
+
+   ["type"] = cs.colors.keyword,
+   ["record"] = cs.colors.keyword,
+   ["enum"] = cs.colors.keyword,
+   ["and"] = cs.colors.keyword,
+   ["break"] = cs.colors.keyword,
+   ["do"] = cs.colors.keyword,
+   ["else"] = cs.colors.keyword,
+   ["elseif"] = cs.colors.keyword,
+   ["end"] = cs.colors.keyword,
+   ["false"] = cs.colors.keyword,
+   ["for"] = cs.colors.keyword,
+   ["function"] = cs.colors.keyword,
+   ["goto"] = cs.colors.keyword,
+   ["if"] = cs.colors.keyword,
+   ["in"] = cs.colors.keyword,
+   ["local"] = cs.colors.keyword,
+   ["nil"] = cs.colors.keyword,
+   ["not"] = cs.colors.keyword,
+   ["or"] = cs.colors.keyword,
+   ["repeat"] = cs.colors.keyword,
+   ["return"] = cs.colors.keyword,
+   ["then"] = cs.colors.keyword,
+   ["true"] = cs.colors.keyword,
+   ["until"] = cs.colors.keyword,
+   ["while"] = cs.colors.keyword,
+}
+
 local function highlight_token(tk)
-
-
-
-   if cs.colors[tk.kind] then
-      return cs.highlight(cs.colors[tk.kind], tk.tk):tostring()
+   if highlights_by_content[tk.tk] then
+      return cs.highlight(highlights_by_content[tk.tk], tk.tk)
+   elseif highlights_by_kind[tk.kind] then
+      return cs.highlight(highlights_by_kind[tk.kind], tk.tk)
    end
-   return tk.tk == "$EOF$" and "" or tk.tk
+   return cs.new(tk.tk == "$EOF$" and "" or tk.tk)
 end
 
 local function count_tabs(str)
@@ -110,22 +158,22 @@ end
 
 local function prettify_line(s)
    local tks = tl.lex(s)
-   local highlighted = {}
+   local highlighted = cs.new()
    local last_x = 1
    for _, tk in ipairs(tks) do
 
       local ts = count_tabs(s:sub(last_x, tk.x - 1))
       if ts > 0 then
          local spaces = 3 * ts
-         table.insert(highlighted, (" "):rep(spaces))
+         highlighted:append((" "):rep(spaces))
       end
       if last_x < tk.x then
-         table.insert(highlighted, (" "):rep(tk.x - last_x))
+         highlighted:append((" "):rep(tk.x - last_x))
       end
-      table.insert(highlighted, highlight_token(tk))
+      highlighted:append(highlight_token(tk))
       last_x = tk.x + #tk.tk
    end
-   return table.concat(highlighted)
+   return highlighted
 end
 
 local function prettify_error(e)
@@ -152,14 +200,15 @@ local function prettify_error(e)
    local num_len = #tostring(e.y)
    local prefix = (" "):rep(num_len) .. " | "
 
+   str:insert("   ", cs.colors.number, tostring(e.y), { 0 }, " | ")
+   str:append(prettify_line(ln))
    str:insert(
-   "   ", cs.colors.number, tostring(e.y), { 0 }, " | ", prettify_line(ln),
    "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
    cs.colors.error, ("^"):rep(#err_tk.tk), { 0 }, "\n   ",
    prefix, cs.colors.error, e.msg, { 0 })
 
 
-   return str:tostring()
+   return str
 end
 
 
@@ -167,7 +216,8 @@ end
 function common.report_errors(logfn, errs, file, category)
    logfn(
    common.make_error_header(file, #errs, category),
-   "\n", table.concat(map(errs, prettify_error), "\n\n"))
+   "\n",
+   _tl_table_unpack(util.tab.intersperse(map(errs, prettify_error), "\n\n")))
 
 end
 

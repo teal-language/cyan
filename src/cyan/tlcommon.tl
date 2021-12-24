@@ -94,41 +94,89 @@ function common.make_error_header(file: string, num_errors: number, category: st
    ):tostring()
 end
 
-local function highlight_token(tk: Token): string
-   -- TODO: dont rely on tk.kind and just keep a local map of keywords
-   --       since certain 'keywords' are contextual, but discouraged
-   --       from being used otherwise
-   if cs.colors[tk.kind] then
-      return cs.highlight(cs.colors[tk.kind], tk.tk):tostring()
+local highlights_by_kind <const>: {string:{integer}} = {
+   string = cs.colors.string,
+   integer = cs.colors.number,
+   number = cs.colors.number,
+}
+
+local highlights_by_content <const>: {string:{integer}} = {
+   ["+"] = cs.colors.op,
+   ["*"] = cs.colors.op,
+   ["-"] = cs.colors.op,
+   ["/"] = cs.colors.op,
+   ["^"] = cs.colors.op,
+   ["&"] = cs.colors.op,
+   ["=="] = cs.colors.op,
+   ["~="] = cs.colors.op,
+   [">"] = cs.colors.op,
+   [">="] = cs.colors.op,
+   ["<"] = cs.colors.op,
+   ["<="] = cs.colors.op,
+   ["="] = cs.colors.op,
+   ["~"] = cs.colors.op,
+
+   ["type"] = cs.colors.keyword,
+   ["record"] = cs.colors.keyword,
+   ["enum"] = cs.colors.keyword,
+   ["and"] = cs.colors.keyword,
+   ["break"] = cs.colors.keyword,
+   ["do"] = cs.colors.keyword,
+   ["else"] = cs.colors.keyword,
+   ["elseif"] = cs.colors.keyword,
+   ["end"] = cs.colors.keyword,
+   ["false"] = cs.colors.keyword,
+   ["for"] = cs.colors.keyword,
+   ["function"] = cs.colors.keyword,
+   ["goto"] = cs.colors.keyword,
+   ["if"] = cs.colors.keyword,
+   ["in"] = cs.colors.keyword,
+   ["local"] = cs.colors.keyword,
+   ["nil"] = cs.colors.keyword,
+   ["not"] = cs.colors.keyword,
+   ["or"] = cs.colors.keyword,
+   ["repeat"] = cs.colors.keyword,
+   ["return"] = cs.colors.keyword,
+   ["then"] = cs.colors.keyword,
+   ["true"] = cs.colors.keyword,
+   ["until"] = cs.colors.keyword,
+   ["while"] = cs.colors.keyword,
+}
+
+local function highlight_token(tk: Token): cs.ColorString
+   if highlights_by_content[tk.tk] then
+      return cs.highlight(highlights_by_content[tk.tk], tk.tk)
+   elseif highlights_by_kind[tk.kind] then
+      return cs.highlight(highlights_by_kind[tk.kind], tk.tk)
    end
-   return tk.tk == "$EOF$" and "" or tk.tk
+   return cs.new(tk.tk == "$EOF$" and "" or tk.tk)
 end
 
-local function count_tabs(str: string): number
-   return select(2, str:gsub("\t", "")) as number
+local function count_tabs(str: string): integer
+   return select(2, str:gsub("\t", "")) as integer
 end
 
-local function prettify_line(s: string): string
+local function prettify_line(s: string): cs.ColorString
    local tks <const> = tl.lex(s) as {Token}
-   local highlighted = {}
+   local highlighted <const> = cs.new()
    local last_x = 1
    for _, tk in ipairs(tks) do
       -- account for tabs
       local ts = count_tabs(s:sub(last_x, tk.x - 1))
       if ts > 0 then
          local spaces = 3 * ts
-         table.insert(highlighted, (" "):rep(spaces))
+         highlighted:append((" "):rep(spaces))
       end
       if last_x < tk.x then
-         table.insert(highlighted, (" "):rep(tk.x - last_x))
+         highlighted:append((" "):rep(tk.x - last_x))
       end
-      table.insert(highlighted, highlight_token(tk))
+      highlighted:append(highlight_token(tk))
       last_x = tk.x + #tk.tk
    end
-   return table.concat(highlighted)
+   return highlighted
 end
 
-local function prettify_error(e: tl.Error): string
+local function prettify_error(e: tl.Error): cs.ColorString
    local ln <const> = fs.get_line(e.filename, e.y)
 
    local tks <const> = tl.lex(ln)
@@ -152,14 +200,15 @@ local function prettify_error(e: tl.Error): string
    local num_len <const> = #tostring(e.y)
    local prefix <const> = (" "):rep(num_len) .. " | "
 
+   str:insert("   ", cs.colors.number, tostring(e.y), {0}, " | ")
+   str:append(prettify_line(ln))
    str:insert(
-      "   ", cs.colors.number, tostring(e.y), {0}, " | ", prettify_line(ln),
       "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
       cs.colors.error, ("^"):rep(#err_tk.tk), {0}, "\n   ",
       prefix, cs.colors.error, e.msg, {0}
    )
 
-   return str:tostring()
+   return str
 end
 
 ---@desc
@@ -167,7 +216,8 @@ end
 function common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)
    logfn(
       common.make_error_header(file, #errs, category),
-      "\n", table.concat(map(errs, prettify_error), "\n\n")
+      "\n",
+      table.unpack(util.tab.intersperse(map(errs, prettify_error), "\n\n" as cs.ColorString))
    )
 end
 
