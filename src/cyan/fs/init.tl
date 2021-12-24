@@ -68,7 +68,7 @@ function fs.read(p: string): string, string
    return read_cache[p]
 end
 
-function fs.get_line(p: string, n: number): string, string
+function fs.get_line(p: string, n: integer): string, string
    local content <const>, err <const> = fs.read(p)
    if err then
       return nil, err
@@ -125,7 +125,7 @@ end
 --- fs.extension_split("foo.d.tl") => "foo.d", ".tl"
 --- fs.extension_split("foo.d.tl", 2) => "foo", ".d.tl"
 ---@@end
-function fs.extension_split(p: Path | string, ndots: number): string, string
+function fs.extension_split(p: Path | string, ndots: integer): string, string
    if not p then
       return nil
    end

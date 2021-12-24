@@ -63,7 +63,7 @@ local function run(args: command.Args, loaded_config: config.Config): integer
       chunk(table.unpack(arg))
    end)
 
-   local ok <const>, err <const> = box:run(1e9)
+   local ok <const>, err <const> = box:run(1000000000)
    if ok then
       return 0
    else

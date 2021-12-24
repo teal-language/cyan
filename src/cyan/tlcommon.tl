@@ -51,7 +51,7 @@ function common.lex_file(path: string): {Token}, {Token}, string
    return lex_cache[path][1], lex_cache[path][2]
 end
 
-local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): number, Node, {string}
+local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): integer, Node, {string}
 local parse_cache <const>: {string:ParseResult} = {}
 function common.parse_file(path: string): ParseResult, string
    if not parse_cache[path] then
@@ -85,7 +85,7 @@ end
 ---
 --- For example `make_error_header("foo.tl", 10, "foo error")` would produce
 --- something like `10 foo errors in foo.tl` with `10` and `foo.tl` highlighted
-function common.make_error_header(file: string, num_errors: number, category: string): string
+function common.make_error_header(file: string, num_errors: integer, category: string): string
    return cs.new(
       cs.colors.emphasis, tostring(num_errors),
       " ", category, (num_errors ~= 1 and "s" or ""), {0},

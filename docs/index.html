@@ -261,7 +261,7 @@ h2 {
 </h2>
 <p>Get the current working directory as an <code>fs.Path</code></p><h2><a name=fs.dir><code>fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path</code></a>
 </h2>
-<p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p><h2><a name=fs.extension_split><code>fs.extension_split(p: Path | string, ndots: number): string, string</code></a>
+<p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p><h2><a name=fs.extension_split><code>fs.extension_split(p: Path | string, ndots: integer): string, string</code></a>
 </h2>
 <p>Split a path on its extension</p><p>the <code>ndots</code> argument lets you specify how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p><h2><a name=fs.path_concat><code>fs.path_concat(a: string, b: string): string</code></a>
 </h2>
@@ -329,7 +329,7 @@ h2 {
 </h2>
 <p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p><h2><a name=common.init_teal_env><code>common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string</code></a>
 </h2>
-<p>Initialize a strict Teal environment</p><h2><a name=common.make_error_header><code>common.make_error_header(file: string, num_errors: number, category: string): string</code></a>
+<p>Initialize a strict Teal environment</p><h2><a name=common.make_error_header><code>common.make_error_header(file: string, num_errors: integer, category: string): string</code></a>
 </h2>
 <p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p><h2><a name=common.prepend_to_lua_path><code>common.prepend_to_lua_path(path_str: string)</code></a>
 </h2>

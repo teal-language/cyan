@@ -16,8 +16,8 @@ local sandbox <const> = {
 
 global jit: any
 
-function Sandbox:run(max_instructions: number): boolean, string
-   max_instructions = max_instructions or 1e6
+function Sandbox:run(max_instructions: integer): boolean, string
+   max_instructions = max_instructions or 1000000
    local t = coroutine.create(self._fn)
 
    local instructions = 0

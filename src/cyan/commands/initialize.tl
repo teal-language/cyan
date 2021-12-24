@@ -60,7 +60,7 @@ local function exec(args: command.Args): integer
 
    local indent <const> = "   "
    local config_content <const> = { "return {\n" }
-   local function ins(indentation: number, s: string, ...: any)
+   local function ins(indentation: integer, s: string, ...: any)
       table.insert(config_content, indent:rep(indentation))
       table.insert(config_content, string.format(s, ...))
    end

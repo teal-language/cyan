@@ -17,7 +17,7 @@ local sandbox = {
 
 
 function Sandbox:run(max_instructions)
-   max_instructions = max_instructions or 1e6
+   max_instructions = max_instructions or 1000000
    local t = coroutine.create(self._fn)
 
    local instructions = 0

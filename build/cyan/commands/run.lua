@@ -63,7 +63,7 @@ local function run(args, loaded_config)
       chunk(_tl_table_unpack(arg))
    end)
 
-   local ok, err = box:run(1e9)
+   local ok, err = box:run(1000000000)
    if ok then
       return 0
    else
