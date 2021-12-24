@@ -254,6 +254,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p))
             end
+            table.insert(strs, "\nhint: use `cyan build --prune` to automatically delete these files")
             log.warn("Unexpected files in build directory:", table.unpack(strs))
          end
       end
