@@ -80,4 +80,16 @@ describe("check command", function()
          exit_code = 1,
       })
    end)
+
+   it("should properly report syntax errors", function()
+      util.run_mock_project(finally, {
+         cmd = "check",
+         args = { "foo.tl" },
+         dir_structure = {
+            ["foo.tl"] = [[print(1 != 2)]]
+         },
+         cmd_output_match = [[syntax error]],
+         exit_code = 1,
+      })
+   end)
 end)

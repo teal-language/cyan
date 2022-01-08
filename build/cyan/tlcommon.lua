@@ -38,6 +38,9 @@ local common = {
 }
 
 local lex_cache = {}
+
+
+
 function common.lex_file(path)
    if not lex_cache[path] then
       local src, read_err = fs.read(path)
@@ -53,22 +56,48 @@ end
 
 local parse_program = tl.parse_program
 local parse_cache = {}
+
+local function invalid_tokens_to_errs(fname, tks)
+   local errs = {}
+   for i, tk in ipairs(tks) do
+      errs[i] = {
+         x = tk.x,
+         y = tk.y,
+         msg = "Invalid token: `" .. tk.tk .. "`",
+         filename = fname,
+      }
+      if tk.tk == "!" then
+         errs[i].msg = errs[i].msg .. " (hint: Lua and Teal use `not` and `~=` instead of `!` and `!=`)"
+      end
+   end
+   return errs
+end
+
+
+
 function common.parse_file(path)
    if not parse_cache[path] then
       local tks, lex_errs, f_err = common.lex_file(path)
-      if lex_errs or f_err then
-         return nil, f_err or "Error lexing"
+      if f_err then
+         return nil, f_err
       end
 
-      local errs = {}
-      local _, ast, reqs = parse_program(tks, errs, path)
+      if lex_errs then
+         parse_cache[path] = {
+            tks = tks,
+            errs = invalid_tokens_to_errs(path, lex_errs),
+         }
+      else
+         local errs = {}
+         local _, ast, reqs = parse_program(tks, errs, path)
 
-      parse_cache[path] = {
-         tks = tks,
-         ast = ast,
-         reqs = reqs,
-         errs = errs,
-      }
+         parse_cache[path] = {
+            tks = tks,
+            ast = ast,
+            reqs = reqs,
+            errs = errs,
+         }
+      end
    end
    return parse_cache[path]
 end

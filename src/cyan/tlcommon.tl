@@ -38,6 +38,9 @@ local common <const> = {
 }
 
 local lex_cache <const>: {string:{{Token}, {Token}}} = {}
+
+---@desc
+--- reads a file, calls `tl.lex` on its contents, caches and returns the results
 function common.lex_file(path: string): {Token}, {Token}, string
    if not lex_cache[path] then
       local src <const>, read_err <const> = fs.read(path)
@@ -53,22 +56,48 @@ end
 
 local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): integer, Node, {string}
 local parse_cache <const>: {string:ParseResult} = {}
+
+local function invalid_tokens_to_errs(fname: string, tks: {Token}): {tl.Error}
+   local errs <const> = {}
+   for i, tk in ipairs(tks) do
+      errs[i] = {
+         x = tk.x,
+         y = tk.y,
+         msg = "Invalid token: `" .. tk.tk .. "`",
+         filename = fname,
+      }
+      if tk.tk == "!" then
+         errs[i].msg = errs[i].msg .. " (hint: Lua and Teal use `not` and `~=` instead of `!` and `!=`)"
+      end
+   end
+   return errs
+end
+
+---@desc
+--- calls `lex_file`, parses the token stream, caches and returns the results
 function common.parse_file(path: string): ParseResult, string
    if not parse_cache[path] then
       local tks <const>, lex_errs <const>, f_err <const> = common.lex_file(path)
-      if lex_errs as string or f_err then
-         return nil, f_err or "Error lexing"
+      if f_err then
+         return nil, f_err
       end
 
-      local errs <const>: {tl.Error} = {}
-      local _, ast <const>, reqs <const> = parse_program(tks, errs, path)
+      if lex_errs then
+         parse_cache[path] = {
+            tks = tks,
+            errs = invalid_tokens_to_errs(path, lex_errs),
+         }
+      else
+         local errs <const>: {tl.Error} = {}
+         local _, ast <const>, reqs <const> = parse_program(tks, errs, path)
 
-      parse_cache[path] = {
-         tks = tks,
-         ast = ast,
-         reqs = reqs,
-         errs = errs,
-      }
+         parse_cache[path] = {
+            tks = tks,
+            ast = ast,
+            reqs = reqs,
+            errs = errs,
+         }
+      end
    end
    return parse_cache[path]
 end
