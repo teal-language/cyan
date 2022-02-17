@@ -114,13 +114,13 @@ end
 ---
 --- For example `make_error_header("foo.tl", 10, "foo error")` would produce
 --- something like `10 foo errors in foo.tl` with `10` and `foo.tl` highlighted
-function common.make_error_header(file: string, num_errors: integer, category: string): string
+function common.make_error_header(file: string, num_errors: integer, category: string): cs.ColorString
    return cs.new(
       cs.colors.emphasis, tostring(num_errors),
       " ", category, (num_errors ~= 1 and "s" or ""), {0},
       " in ",
       cs.colors.file, file, {0}
-   ):tostring()
+   )
 end
 
 local highlights_by_kind <const>: {string:{integer}} = {

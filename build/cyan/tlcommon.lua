@@ -119,8 +119,8 @@ function common.make_error_header(file, num_errors, category)
    cs.colors.emphasis, tostring(num_errors),
    " ", category, (num_errors ~= 1 and "s" or ""), { 0 },
    " in ",
-   cs.colors.file, file, { 0 }):
-   tostring()
+   cs.colors.file, file, { 0 })
+
 end
 
 local highlights_by_kind = {
