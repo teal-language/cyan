@@ -253,7 +253,7 @@ Without exposing a type, it is _extremely hard_ for users of the api to interact
 local type Mapper = function<A, B>({A}): {B}
 
 -- good
-local type Mapper = function<Value, Mapped>({Value}): Mapped
+local type Mapper = function<Value, Mapped>({Value}): {Mapped}
 ```
 
 ### Working Around the Type System
@@ -383,7 +383,8 @@ end
 ## Compiling
 This project has a `Makefile`. Use it.
  - `make`: use `tl gen --check` to compile each source file
- - `make bootstrap`: `make`, then see if `cyan` can compile itself properly, then run the test suite
+ - `make bootstrap`: `make`, then see if `cyan` can compile itself properly
+ - `make test`: run the test suite
 
 There are additional binaries in the `bin` folder that don't get installed and are just used for development.
  - `local-cyan`: use `tl.loader()` to compile `cyan` on the fly - use this for more rapid development and small tweaks
