@@ -47,7 +47,7 @@ local function report_dep_errors(env, source_dir)
 end
 
 local function build(args, loaded_config, starting_dir)
-   if not loaded_config then
+   if not loaded_config.loaded_from then
       log.err(config.filename, " not found")
       return 1
    end

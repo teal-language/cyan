@@ -47,7 +47,7 @@ local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
 end
 
 local function build(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
-   if not loaded_config then
+   if not loaded_config.loaded_from then
       log.err(config.filename, " not found")
       return 1
    end
