@@ -133,24 +133,25 @@ if common.report_config_errors(config_errors, config_warnings) then
    os.exit(1)
 end
 
-if loaded_config then
-   command.merge_args_into_config(loaded_config, args)
+if not loaded_config then
+   loaded_config = {}
+end
+command.merge_args_into_config(loaded_config, args)
 
-   if loaded_config.scripts then
-      for fname, hooks in pairs(loaded_config.scripts) do
-         for hook in ivalues(hooks) do
-            if hook:find(command.running.name .. ":", 1, true) then
-               local ok, res = script.load(fname, hooks)
-               if not ok then
-                  if type(res) == "string" then
-                     log.err("Could not load script: ", res)
-                  else
-                     common.report_result(res, loaded_config);
-                  end
-                  os.exit(1)
+if loaded_config.scripts then
+   for fname, hooks in pairs(loaded_config.scripts) do
+      for hook in ivalues(hooks) do
+         if hook:find(command.running.name .. ":", 1, true) then
+            local ok, res = script.load(fname, hooks)
+            if not ok then
+               if type(res) == "string" then
+                  log.err("Could not load script: ", res)
+               else
+                  common.report_result(res, loaded_config);
                end
-               break
+               os.exit(1)
             end
+            break
          end
       end
    end
