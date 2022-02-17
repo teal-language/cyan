@@ -2,6 +2,12 @@
 ---@brief
 --- Object oriented path management
 
+-- TODO:
+--   The purpose of this library really needs to be honed in to only the
+--   handling of _lexical_ paths and path traversal, as well as more support
+--   for handling relative path operations (things like path.new '../foo/bar')
+--   don't currently work
+
 local lfs <const> = require("lfs")
 
 local util <const> = require("cyan.util")
