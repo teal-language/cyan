@@ -43,6 +43,7 @@ local function command_exec(should_compile)
       local env, env_err = common.init_env_from_config(loaded_config)
       if not env then
          log.err("Could not initialize Teal environment:\n", env_err)
+         return 1
       end
 
       local exit = 0
