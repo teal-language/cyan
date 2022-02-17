@@ -194,7 +194,11 @@ function config.load(): Config, {string}, {string}
       return nil, {"file returned nil"}, {}
    end
 
-   return config.is_config(maybe_config)
+   local cfg <const>, errs <const>, warnings <const> = config.is_config(maybe_config)
+   if cfg then
+      cfg.loaded_from = fs.cwd() .. config.filename
+   end
+   return cfg, errs, warnings
 end
 
 return config
