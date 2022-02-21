@@ -81,6 +81,7 @@ h2 {
 <br><a href=index.html#Path:mk_parent_dirs>Path:mk_parent_dirs</a>
 <br><a href=index.html#Path:mkdir>Path:mkdir</a>
 <br><a href=index.html#Path:mod_time>Path:mod_time</a>
+<br><a href=index.html#Path:normalize>Path:normalize</a>
 <br><a href=index.html#Path:prepend>Path:prepend</a>
 <br><a href=index.html#Path:relative_to>Path:relative_to</a>
 <br><a href=index.html#Path:remove_leading>Path:remove_leading</a>
@@ -129,7 +130,9 @@ h2 {
 <br><a href=index.html#ParseResult>ParseResult</a>
 <br><a href=index.html#common.init_env_from_config>common.init_env_from_config</a>
 <br><a href=index.html#common.init_teal_env>common.init_teal_env</a>
+<br><a href=index.html#common.lex_file>common.lex_file</a>
 <br><a href=index.html#common.make_error_header>common.make_error_header</a>
+<br><a href=index.html#common.parse_file>common.parse_file</a>
 <br><a href=index.html#common.prepend_to_lua_path>common.prepend_to_lua_path</a>
 <br><a href=index.html#common.report_config_errors>common.report_config_errors</a>
 <br><a href=index.html#common.report_env_results>common.report_env_results</a>
@@ -208,13 +211,13 @@ h2 {
 </h2>
 <p>Try to load <code>tlconfig.lua</code> in the current directory</p><h1><a name=cyan.fs.path>cyan.fs.path</a>
 </h1>
-<p>Object oriented path management</p><h2><a name=Path.eq><code>Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean</code></a>
+<p>Object oriented lexical path management</p><h2><a name=Path.eq><code>Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boolean</code></a>
 </h2>
 <p>Check if two paths are equal</p><p>This function is used for the __eq metamethod with use_os_sep as false</p><h2><a name=Path:ancestors><code>Path:ancestors(): function(): Path</code></a>
 </h2>
 <p>Iterate over the leading folders in a path</p><p>ex: <code>path.new(<code>"foo/bar/baz/bat"</code>):ancestors()</code> will construct <code>Path</code> objects from <code>"foo"</code>, <code>"foo/bar"</code>, <code>"foo/bar/baz"</code></p><h2><a name=Path:append><code>Path:append(other: string | Path)</code></a>
 </h2>
-<p>Mutate the given <code>Path</code> by appending another path to it</p><h2><a name=Path:copy><code>Path:copy(): Path</code></a>
+<p>Mutate the given <code>Path</code> by appending another path to it</p><p>Traversals in the <code>other</code> path will be normalized</p><p><pre> local p = path.new <code>"foo/bar"</code><br> p:append <code>"../baz"</code><br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre></p><h2><a name=Path:copy><code>Path:copy(): Path</code></a>
 </h2>
 <p>Create a copy of the given path</p><h2><a name=Path:exists><code>Path:exists(): boolean</code></a>
 </h2>
@@ -236,11 +239,13 @@ h2 {
 </h2>
 <p>Attempt to create a directory at the given path, creating the parent directories if needed. Can be seen as an equivalent to <code>mkdir -p</code></p><h2><a name=Path:mod_time><code>Path:mod_time(): integer</code></a>
 </h2>
-<p>Get the <code>"modification"</code> attribute of a file</p><h2><a name=Path:prepend><code>Path:prepend(other: string | Path)</code></a>
+<p>Get the <code>"modification"</code> attribute of a file</p><h2><a name=Path:normalize><code>Path:normalize()</code></a>
 </h2>
-<p>Mutate the given <code>Path</code> by prepending another path to it</p><h2><a name=Path:relative_to><code>Path:relative_to(other: Path): string</code></a>
+<p>Modify path in place to remove any traversals that it can</p><p><pre> local p = path.new <code>"foo/bar/../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre></p><p>if a traversal can't be removed it will remain <pre> local p = path.new <code>"../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"../baz"</code>)<br> </pre></p><h2><a name=Path:prepend><code>Path:prepend(other: string | Path)</code></a>
 </h2>
-<p>Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory</p><p>Returns an actual path since path objects cannot contain <code>'..'</code></p><p>for example: <code>path.new(<code>"/foo/bar/baz"</code>):relative_to(path.new(<code>"/foo/bat"</code>)) == <code>"../bar/baz"</code></code></p><h2><a name=Path:remove_leading><code>Path:remove_leading(p: string | Path)</code></a>
+<p>Mutate the given <code>Path</code> by prepending another path to it</p><h2><a name=Path:relative_to><code>Path:relative_to(other: Path): Path</code></a>
+</h2>
+<p>Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory</p><p>for example: <code>path.new(<code>"/foo/bar/baz"</code>):relative_to(path.new(<code>"/foo/bat"</code>)) == path.new <code>"../bar/baz"</code></code></p><h2><a name=Path:remove_leading><code>Path:remove_leading(p: string | Path)</code></a>
 </h2>
 <p>Mutate the given path by removing the leading parts from the given path</p><p>Will error if you attempt to mix absolute and non-absolute paths</p><h2><a name=Path:to_real_path><code>Path:to_real_path(): string</code></a>
 </h2>
@@ -251,7 +256,7 @@ h2 {
 <pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>end</pre>
 <p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p><h2><a name=path.ensure><code>path.ensure(s: string | Path, use_os_sep: boolean): Path</code></a>
 </h2>
-<p>Ensures <code>s</code> is a Path</p><h2><a name=path.new><code>path.new(s: string, use_os_sep: boolean): Path</code></a>
+<p>Ensures <code>s</code> is a Path.</p><p>If s is a string, parse it into a path otherwise return s unmodified</p><h2><a name=path.new><code>path.new(s: string, use_os_sep: boolean): Path</code></a>
 </h2>
 <p>The <code>Path</code> constructor</p><p>By default uses <code>'/'</code> as a path separator</p><h1><a name=cyan.fs>cyan.fs</a>
 </h1>
@@ -329,9 +334,13 @@ h2 {
 </h2>
 <p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p><h2><a name=common.init_teal_env><code>common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string</code></a>
 </h2>
-<p>Initialize a strict Teal environment</p><h2><a name=common.make_error_header><code>common.make_error_header(file: string, num_errors: integer, category: string): string</code></a>
+<p>Initialize a strict Teal environment</p><h2><a name=common.lex_file><code>common.lex_file(path: string): {Token}, {Token}, string</code></a>
 </h2>
-<p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p><h2><a name=common.prepend_to_lua_path><code>common.prepend_to_lua_path(path_str: string)</code></a>
+<p>reads a file, calls <code>tl.lex</code> on its contents, caches and returns the results</p><h2><a name=common.make_error_header><code>common.make_error_header(file: string, num_errors: integer, category: string): cs.ColorString</code></a>
+</h2>
+<p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p><h2><a name=common.parse_file><code>common.parse_file(path: string): ParseResult, string</code></a>
+</h2>
+<p>calls <code>lex_file</code>, parses the token stream, caches and returns the results</p><h2><a name=common.prepend_to_lua_path><code>common.prepend_to_lua_path(path_str: string)</code></a>
 </h2>
 <p>Prepend the given string to package.path and package.cpath.</p><p>Correctly adds ?.lua and ?/init.lua to the path</p><h2><a name=common.report_config_errors><code>common.report_config_errors(errs: {string}, warnings: {string}): boolean</code></a>
 </h2>

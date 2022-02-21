@@ -11,7 +11,7 @@ BOOTSTRAP3= bin/bootstrap --no-script
 build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@
 
-default: build/cyan/fs build/cyan/commands $(LUA)
+default: build/cyan/fs build/cyan/commands $(LUA) docs rockspec
 
 build/cyan/fs:
 	mkdir -p $@
@@ -42,7 +42,13 @@ bootstrap: default
 test: default
 	busted
 
-docs: default
-	cyan run scripts/docgen.tl
+docs: docs/index.html
+rockspec: cyan-dev-1.rockspec
+
+docs/index.html: $(SRC)
+	./bin/cyan run scripts/docgen.tl
+
+cyan-dev-1.rockspec: $(SRC)
+	./bin/cyan run scripts/gen_rockspec.tl
 
 .PHONY: clean

@@ -28,6 +28,7 @@ local query <const> = teal_parser:query[[
 
 local todo <const> = log.create_logger(
    io.stderr,
+   "normal",
    cs.highlight(cs.colors.teal, "Todo"),
    cs.highlight(cs.colors.teal, "...")
 )
