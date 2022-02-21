@@ -157,6 +157,8 @@ if loaded_config.scripts then
    end
 end
 
+log.debug("path.new '../..': ", require"cyan.fs.path".new '../..')
+
 local ok <const>, res <const> = xpcall(function()
    exit = cmd.exec(args, loaded_config, starting_dir)
 end, debug.traceback as function()) as (boolean, string)

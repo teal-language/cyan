@@ -96,7 +96,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    log.debug("Built dependency graph")
 
    local function display_filename(f: fs.Path): cs.ColorString
-      return cs.highlight(cs.colors.file, f:relative_to(starting_dir))
+      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring())
    end
 
    local function get_output_name(src: fs.Path): fs.Path
@@ -234,7 +234,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
                local file <const> = build_dir .. p
                local disp <const> = display_filename(file)
                local real <const> = file:relative_to(fs.cwd())
-               local ok <const>, err <const> = os.remove(real)
+               local ok <const>, err <const> = os.remove(real:to_real_path())
                if ok then
                   log.info("Pruned file ", disp)
                else

@@ -2,12 +2,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-
-
-
-
-
-
 local lfs = require("lfs")
 
 local util = require("cyan.util")
@@ -57,10 +51,10 @@ local function parse_string_path(s, use_os_sep)
    local new = {}
    for chunk in split(s, sep, true) do
       if chunk == ".." then
-         if #new > 0 then
+         if #new > 0 and new[#new] ~= ".." then
             table.remove(new)
          else
-            return nil
+            table.insert(new, chunk)
          end
       elseif chunk ~= "." then
          table.insert(new, chunk)
@@ -69,15 +63,21 @@ local function parse_string_path(s, use_os_sep)
    return new
 end
 
+local function setmt(p)
+   return setmetatable(p, PathMt)
+end
+
 
 
 
 
 function path.new(s, use_os_sep)
    if not s then return nil end
-   local new = parse_string_path(s, use_os_sep)
-   return setmetatable(new, PathMt)
+   return setmt(parse_string_path(s, use_os_sep))
 end
+
+
+
 
 
 
@@ -104,8 +104,33 @@ end
 
 local function append_to_path(p, other)
    for chunk in chunks(other) do
-      if chunk ~= "." then
+      if chunk == ".." then
+         table.remove(p)
+      elseif chunk ~= "." then
          table.insert(p, chunk)
+      end
+   end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function Path:normalize()
+   for i = #self, 1, -1 do
+      if self[i] == ".." then
+         table.remove(self, i)
       end
    end
 end
@@ -147,6 +172,14 @@ end
 
 
 
+
+
+
+
+
+
+
+
 function Path:append(other)
    local p = type(other) == "string" and path.new(other) or other
    if p:is_absolute() then
@@ -175,7 +208,7 @@ function Path:copy()
    for i = 1, #self do
       new[i] = self[i]
    end
-   return setmetatable(new, PathMt)
+   return setmt(new)
 end
 
 
@@ -193,7 +226,7 @@ function Path:ancestors()
       for i = 1, idx do
          p[i] = self[i]
       end
-      return setmetatable(p, PathMt)
+      return setmt(p)
    end
 end
 
@@ -278,7 +311,7 @@ PathMt.__concat = function(a, b)
    append_to_path(new, a)
    append_to_path(new, b)
 
-   return setmetatable(new, PathMt)
+   return setmt(new)
 end
 
 
@@ -419,8 +452,6 @@ end
 
 
 
-
-
 function Path:relative_to(other)
    local a, b = self:copy(), other:copy()
    if xor(a:is_absolute(), b:is_absolute()) then
@@ -453,7 +484,7 @@ function Path:relative_to(other)
    for i = idx + 1, a_len do
       table.insert(ret, a[i])
    end
-   return table.concat(ret, path.separator)
+   return setmt(ret)
 end
 
 

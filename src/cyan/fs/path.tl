@@ -1,12 +1,6 @@
 
 ---@brief
---- Object oriented path management
-
--- TODO:
---   The purpose of this library really needs to be honed in to only the
---   handling of _lexical_ paths and path traversal, as well as more support
---   for handling relative path operations (things like path.new '../foo/bar')
---   don't currently work
+--- Object oriented lexical path management
 
 local lfs <const> = require("lfs")
 
@@ -57,10 +51,10 @@ local function parse_string_path(s: string, use_os_sep: boolean): {string}
    local new: {string} = {}
    for chunk in split(s, sep, true) do
       if chunk == ".." then
-         if #new > 0 then
+         if #new > 0 and new[#new] ~= ".." then
             table.remove(new)
          else
-            return nil
+            table.insert(new, chunk)
          end
       elseif chunk ~= "." then
          table.insert(new, chunk)
@@ -69,18 +63,24 @@ local function parse_string_path(s: string, use_os_sep: boolean): {string}
    return new
 end
 
+local function setmt(p: {string}): Path
+   return setmetatable(p as Path, PathMt)
+end
+
 ---@desc
 --- The `Path` constructor
 ---
 --- By default uses '/' as a path separator
 function path.new(s: string, use_os_sep: boolean): Path
    if not s then return nil end
-   local new: Path = parse_string_path(s, use_os_sep)
-   return setmetatable(new, PathMt)
+   return setmt(parse_string_path(s, use_os_sep))
 end
 
 ---@desc
---- Ensures `s` is a Path
+--- Ensures `s` is a Path.
+---
+--- If s is a string, parse it into a path
+--- otherwise return s unmodified
 function path.ensure(s: string | Path, use_os_sep: boolean): Path
    if s is string then
       return path.new(s, use_os_sep)
@@ -104,8 +104,33 @@ end
 
 local function append_to_path(p: Path, other: Path | string)
    for chunk in chunks(other) do
-      if chunk ~= "." then
+      if chunk == ".." then
+         table.remove(p)
+      elseif chunk ~= "." then
          table.insert(p, chunk)
+      end
+   end
+end
+
+---@desc
+--- Modify path in place to remove any traversals that it can
+---
+---@@code
+--- local p = path.new "foo/bar/../baz"
+--- p:normalize()
+--- assert(p == path.new "foo/baz")
+---@@end
+---
+--- if a traversal can't be removed it will remain
+---@@code
+--- local p = path.new "../baz"
+--- p:normalize()
+--- assert(p == path.new "../baz")
+---@@end
+function Path:normalize()
+   for i = #self, 1, -1 do
+      if self[i] == ".." then
+         table.remove(self, i)
       end
    end
 end
@@ -147,6 +172,14 @@ end
 
 ---@desc
 --- Mutate the given `Path` by appending another path to it
+---
+--- Traversals in the `other` path will be normalized
+---
+---@@code
+--- local p = path.new "foo/bar"
+--- p:append "../baz"
+--- assert(p == path.new "foo/baz")
+---@@end
 function Path:append(other: string | Path)
    local p = other is string and path.new(other) or other as Path
    if p:is_absolute() then
@@ -175,7 +208,7 @@ function Path:copy(): Path
    for i = 1, #self do
       new[i] = self[i]
    end
-   return setmetatable(new, PathMt)
+   return setmt(new)
 end
 
 ---@desc
@@ -193,7 +226,7 @@ function Path:ancestors(): function(): Path
       for i = 1, idx do
          p[i] = self[i]
       end
-      return setmetatable(p, PathMt)
+      return setmt(p)
    end
 end
 
@@ -278,7 +311,7 @@ PathMt.__concat = function(a: Path | string, b: Path | string): Path
    append_to_path(new, a)
    append_to_path(new, b)
 
-   return setmetatable(new, PathMt)
+   return setmt(new)
 end
 
 ---@desc
@@ -418,10 +451,8 @@ end
 --- Expresses a path in terms of another path.
 --- If any relative paths are given, they are treated as though they are in the current directory
 ---
---- Returns an actual path since path objects cannot contain '..'
----
---- for example: `path.new("/foo/bar/baz"):relative_to(path.new("/foo/bat")) == "../bar/baz"`
-function Path:relative_to(other: Path): string
+--- for example: `path.new("/foo/bar/baz"):relative_to(path.new("/foo/bat")) == path.new "../bar/baz"`
+function Path:relative_to(other: Path): Path
    local a, b: Path, Path = self:copy(), other:copy()
    if xor(a:is_absolute(), b:is_absolute()) then
       if not a:is_absolute() then
@@ -453,7 +484,7 @@ function Path:relative_to(other: Path): string
    for i = idx + 1, a_len do
       table.insert(ret, a[i])
    end
-   return table.concat(ret, path.separator)
+   return setmt(ret)
 end
 
 ---@desc

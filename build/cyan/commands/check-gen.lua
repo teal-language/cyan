@@ -51,7 +51,7 @@ local function command_exec(should_compile)
       local current_dir = fs.cwd()
       local to_write = {}
       local function process_file(path)
-         local disp_file = cs.new(cs.colors.file, path:relative_to(starting_dir), { 0 })
+         local disp_file = cs.new(cs.colors.file, path:relative_to(starting_dir):tostring(), { 0 })
          if not path:is_file() then
             log.err(disp_file, " is not a file")
             exit = 1
@@ -60,7 +60,7 @@ local function command_exec(should_compile)
 
          local real_path = path:to_real_path()
          local outfile = get_output_filename(path)
-         local disp_outfile = cs.new(cs.colors.file, outfile:relative_to(starting_dir), { 0 })
+         local disp_outfile = cs.new(cs.colors.file, outfile:relative_to(starting_dir):tostring(), { 0 })
 
          local parsed, perr = common.parse_file(real_path)
          if not parsed then

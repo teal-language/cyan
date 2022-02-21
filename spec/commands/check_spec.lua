@@ -92,4 +92,14 @@ describe("check command", function()
          exit_code = 1,
       })
    end)
+
+   it("should work with a relative path in the parent directory", function()
+      util.do_in(util.write_tmp_dir(finally, {
+         ["foo.tl"] = [[local _: integer = 1]],
+         bar = {},
+      }), function()
+         local out = util.run_command("cd bar && " .. util.cyan_cmd("check", "../foo.tl") .. " 2>&1")
+         assert.match("Type checked", out)
+      end)
+   end)
 end)

@@ -189,7 +189,7 @@ local function unchecked_insert(dag, f, in_dir)
       local search_result = common.search_module(mod_name, true)
       if search_result then
          if in_dir and search_result:is_absolute() and search_result:is_in(in_dir) then
-            search_result = fs.path.new(search_result:relative_to(in_dir))
+            search_result = search_result:relative_to(in_dir)
             assert(not search_result:is_absolute())
          end
          n.modules[mod_name] = search_result
