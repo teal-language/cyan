@@ -64,6 +64,14 @@ function fs.read(p: string): string, string
    return read_cache[p]
 end
 
+---@desc
+--- Gets line `n` of a file.
+---
+--- if the file is less than `n` lines, returns `nil`
+---
+--- if there was an error opening the file, returns `nil`, err
+---
+--- Uses `fs.read()` internally, which caches reads
 function fs.get_line(p: string, n: integer): string, string
    local content <const>, err <const> = fs.read(p)
    if err then
@@ -81,6 +89,8 @@ end
 
 ---@desc
 --- Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
+---
+--- For information on path patterns, see the `Path:match()` method
 function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
    include = include or {}
    exclude = exclude or {}
@@ -112,14 +122,16 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
 end
 
 ---@desc
---- Split a path on its extension
+--- Split a path on its extension. Forces the extension to be lowercase.
 ---
---- the `ndots` argument lets you specify how many dots the extension can have
+--- the `ndots` argument lets you specify the upper limit of how many dots the
+--- extension can have
 ---
 --- ex:
 ---@@code
 --- fs.extension_split("foo.d.tl") => "foo.d", ".tl"
 --- fs.extension_split("foo.d.tl", 2) => "foo", ".d.tl"
+--- fs.extension_split("foo.D.TL", 2) => "foo", ".d.tl"
 ---@@end
 function fs.extension_split(p: Path | string, ndots: integer): string, string
    if not p then
@@ -146,7 +158,8 @@ end
 ---@desc
 --- Search for a file in the parent directories of the given path. Returns the path of the file found.
 ---
---- e.g. if `file.txt` is in `/foo/bar`, then `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == "/foo/bar/file.txt"`
+--- e.g. if `file.txt` is in `/foo/bar`, then
+--- `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == path.new "/foo/bar/file.txt"`
 function fs.search_parent_dirs(start_path: string | Path, fname: string): Path
    local p <const> = ensure(start_path, true)
 
@@ -165,4 +178,3 @@ function fs.search_parent_dirs(start_path: string | Path, fname: string): Path
 end
 
 return fs
-

@@ -96,6 +96,7 @@ h2 {
 <br><a href=index.html#fs.cwd>fs.cwd</a>
 <br><a href=index.html#fs.dir>fs.dir</a>
 <br><a href=index.html#fs.extension_split>fs.extension_split</a>
+<br><a href=index.html#fs.get_line>fs.get_line</a>
 <br><a href=index.html#fs.path_concat>fs.path_concat</a>
 <br><a href=index.html#fs.read>fs.read</a>
 <br><a href=index.html#fs.scan_dir>fs.scan_dir</a>
@@ -268,15 +269,17 @@ h2 {
 </h2>
 <p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p><h2><a name=fs.extension_split><code>fs.extension_split(p: Path | string, ndots: integer): string, string</code></a>
 </h2>
-<p>Split a path on its extension</p><p>the <code>ndots</code> argument lets you specify how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p><h2><a name=fs.path_concat><code>fs.path_concat(a: string, b: string): string</code></a>
+<p>Split a path on its extension. Forces the extension to be lowercase.</p><p>the <code>ndots</code> argument lets you specify the upper limit of how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> fs.extension_split(<code>"foo.D.TL"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p><h2><a name=fs.get_line><code>fs.get_line(p: string, n: integer): string, string</code></a>
+</h2>
+<p>Gets line <code>n</code> of a file.</p><p>if the file is less than <code>n</code> lines, returns <code>nil</code></p><p>if there was an error opening the file, returns <code>nil</code>, err</p><p>Uses <code>fs.read()</code> internally, which caches reads</p><h2><a name=fs.path_concat><code>fs.path_concat(a: string, b: string): string</code></a>
 </h2>
 <p>Concatenate two strings using the os path separator</p><h2><a name=fs.read><code>fs.read(p: string): string, string</code></a>
 </h2>
 <p>Open a file, read it, close the file, return the contents or <code>nil</code> and an error if it couldn't be opened</p><p>Additionally caches results so multiple locations can read the same file for minimal cost. There is currently no way to clear out this cache.</p><h2><a name=fs.scan_dir><code>fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path</code></a>
 </h2>
-<p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><h2><a name=fs.search_parent_dirs><code>fs.search_parent_dirs(start_path: string | Path, fname: string): Path</code></a>
+<p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><p>For information on path patterns, see the <code>Path:match()</code> method</p><h2><a name=fs.search_parent_dirs><code>fs.search_parent_dirs(start_path: string | Path, fname: string): Path</code></a>
 </h2>
-<p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == <code>"/foo/bar/file.txt"</code></code></p><h1><a name=cyan.graph>cyan.graph</a>
+<p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == path.new <code>"/foo/bar/file.txt"</code></code></p><h1><a name=cyan.graph>cyan.graph</a>
 </h1>
 <p>A utility for building directed acyclic graphs of Teal source files</p><p>This is the main driver behind the <code>build</code> command</p><h2><a name=Dag:find><code>Dag:find(fstr: string | fs.Path): Node</code></a>
 </h2>

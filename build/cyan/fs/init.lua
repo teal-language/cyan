@@ -64,6 +64,14 @@ function fs.read(p)
    return read_cache[p]
 end
 
+
+
+
+
+
+
+
+
 function fs.get_line(p, n)
    local content, err = fs.read(p)
    if err then
@@ -78,6 +86,8 @@ function fs.get_line(p, n)
       l = l + 1
    end
 end
+
+
 
 
 
@@ -121,6 +131,8 @@ end
 
 
 
+
+
 function fs.extension_split(p, ndots)
    if not p then
       return nil
@@ -142,6 +154,7 @@ end
 function fs.path_concat(a, b)
    return a .. path.separator .. b
 end
+
 
 
 
