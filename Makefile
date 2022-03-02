@@ -18,7 +18,7 @@ build/cyan/fs:
 build/cyan/commands:
 	mkdir -p $@
 
-all: clean default
+all: clean default test docs rockspec
 
 clean:
 	rm -rf build tmp
