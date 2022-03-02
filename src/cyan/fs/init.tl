@@ -13,11 +13,7 @@ local fs <const> = {
    Path = Path,
 }
 
-local function to_path(s: string | Path, use_os_sep: boolean): Path
-   return s is string
-      and assert(path.new(s, use_os_sep))
-      or s
-end
+local ensure <const> = path.ensure
 
 ---@desc
 --- Get the current working directory as an `fs.Path`
@@ -28,7 +24,7 @@ end
 ---@desc
 --- Change the current directory to `p`
 function fs.chdir(p: string | Path): boolean, string
-   return lfs.chdir(to_path(p):to_real_path())
+   return lfs.chdir(ensure(p):to_real_path())
 end
 
 ---@desc
@@ -37,7 +33,7 @@ end
 --- By default, will not include paths that start with '.'
 function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
    local iter <const>, data <const> = lfs.dir(
-      to_path(dir):to_real_path()
+      ensure(dir):to_real_path()
    ) as (function(any): (string), any)
    return function(): Path
       local p: string
@@ -89,7 +85,7 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
    include = include or {}
    exclude = exclude or {}
    local function dir_iter(_d: string | Path)
-      local d <const> = to_path(_d)
+      local d <const> = ensure(_d)
       for p in fs.dir(d) do
          -- dont bother putting "./foo", just do "foo"
          local full <const> = #d > 0 and d .. p
@@ -152,7 +148,7 @@ end
 ---
 --- e.g. if `file.txt` is in `/foo/bar`, then `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == "/foo/bar/file.txt"`
 function fs.search_parent_dirs(start_path: string | Path, fname: string): Path
-   local p <const> = to_path(start_path, true)
+   local p <const> = ensure(start_path, true)
 
    local in_spath <const> = p .. fname
    if in_spath:exists() then

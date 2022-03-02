@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string
 
 
 
@@ -13,11 +13,7 @@ local fs = {
    Path = Path,
 }
 
-local function to_path(s, use_os_sep)
-   return type(s) == "string" and
-   assert(path.new(s, use_os_sep)) or
-   s
-end
+local ensure = path.ensure
 
 
 
@@ -28,7 +24,7 @@ end
 
 
 function fs.chdir(p)
-   return lfs.chdir(to_path(p):to_real_path())
+   return lfs.chdir(ensure(p):to_real_path())
 end
 
 
@@ -37,7 +33,7 @@ end
 
 function fs.dir(dir, include_dotfiles)
    local iter, data = lfs.dir(
-   to_path(dir):to_real_path())
+   ensure(dir):to_real_path())
 
    return function()
       local p
@@ -89,7 +85,7 @@ function fs.scan_dir(dir, include, exclude)
    include = include or {}
    exclude = exclude or {}
    local function dir_iter(_d)
-      local d = to_path(_d)
+      local d = ensure(_d)
       for p in fs.dir(d) do
 
          local full = #d > 0 and d .. p or
@@ -152,7 +148,7 @@ end
 
 
 function fs.search_parent_dirs(start_path, fname)
-   local p = to_path(start_path, true)
+   local p = ensure(start_path, true)
 
    local in_spath = p .. fname
    if in_spath:exists() then
