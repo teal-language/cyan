@@ -8,7 +8,9 @@ return {
    gen_compat = "required",
 
    scripts = {
-      ["scripts/gen_rockspec.tl"] = { "build:post" },
-      ["scripts/docgen.tl"] = { "build:post" },
+      ["build:post"] = {
+         "scripts/gen_rockspec.tl",
+         "scripts/docgen.tl",
+      }
    },
 }

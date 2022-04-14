@@ -125,7 +125,8 @@ h2 {
 <br><a href=index.html#script.disable>script.disable</a>
 <br><a href=index.html#script.emit_hook>script.emit_hook</a>
 <br><a href=index.html#script.emitter>script.emitter</a>
-<br><a href=index.html#script.load>script.load</a>
+<br><a href=index.html#script.ensure_loaded_for_command>script.ensure_loaded_for_command</a>
+<br><a href=index.html#script.register>script.register</a>
 </p>
 </td><td valign=top><p><a href=index.html#cyan.tlcommon>cyan.tlcommon</a>
 <br><a href=index.html#ParseResult>ParseResult</a>
@@ -326,9 +327,11 @@ h2 {
 </h2>
 <p>Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error</p><h2><a name=script.emitter><code>script.emitter(name: string, ...: any): function(): fs.Path, boolean, string</code></a>
 </h2>
-<p>Emit a hook to run all loaded scripts that run on the given hook. Returns an iterator that will run the next script when called and returns the path to the script, whether the script succeeded, and an error message if it didn't</p><h2><a name=script.load><code>script.load(path: string, flags: {string}): boolean, string | tl.Result</code></a>
+<p>Emit a hook to load and run all registered scripts that run on the given hook.</p><p>This function will assert that <code>ensure_loaded_for_command</code> was called before.</p><p>Returns an iterator that will run the next script when called and returns the path to the script, whether the script was loaded and ran with no errors, and an error message if it didn't</p><h2><a name=script.ensure_loaded_for_command><code>script.ensure_loaded_for_command(name: string): boolean, string | tl.Result</code></a>
 </h2>
-<p>Loads a file as a lua/teal script and caches it with the given flags to be run when <code>script.emit_hook</code> is called</p><p>This is called by the cli driver to load the scripts found in the config file with the relevant hooks</p><h1><a name=cyan.tlcommon>cyan.tlcommon</a>
+<p>Attempts to load each script that the given command may need</p><h2><a name=script.register><code>script.register(path: string, command_name: string, hooks: string | {string})</code></a>
+</h2>
+<p>Registers a file path as a lua/teal script to execute for the given hook(s) when <code>script.emit_hook</code> is called</p><p>This is called by the cli driver to register the scripts found in the config file with the relevant hooks</p><p>Note: this function does not attempt to actually load the file. Scripts are loaded all at once via <code>ensure_loaded_for_command</code></p><h1><a name=cyan.tlcommon>cyan.tlcommon</a>
 </h1>
 <p>Common things needed by most commands in addition to wrappers around the tl api, since it isn't super stable</p><h2><a name=ParseResult><code>type ParseResult</code></a>
 </h2>

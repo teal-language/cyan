@@ -227,12 +227,12 @@ describe("build command", function()
    end)
    describe("script hooks", function()
       it("should emit a build:pre hook before doing any actions", function()
-         util.run_mock_project(finally, {
+         util.run_mock_project(function() end, {
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
                   scripts = {
-                     ["foo.lua"] = { "build:pre" }
+                     ["build:pre"] = { "foo.lua" }
                   },
                } ]],
                ["foo.lua"] = [[print"foo"]],

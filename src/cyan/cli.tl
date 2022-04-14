@@ -139,22 +139,27 @@ end
 command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
-   for fname, hooks in pairs(loaded_config.scripts) do
-      for hook in ivalues(hooks) do
-         if hook:find(command.running.name .. ":", 1, true) then
-            local ok <const>, res <const> = script.load(fname, hooks)
-            if not ok then
-               if res is string then
-                  log.err("Could not load script: ", res)
-               else
-                  common.report_result(res, loaded_config);
-               end
-               os.exit(1)
-            end
-            break
+   for hook, filenames in pairs(loaded_config.scripts) do
+      local s <const>, e <const> = hook:find(command.running.name .. ":", 1, true)
+      if s == 1 and e == #command.running.name + 1 then
+         for f in ivalues(filenames) do
+            script.register(f, command.running.name, hook:sub(e + 1))
          end
       end
    end
+end
+
+do
+   local ok <const>, err <const> = script.ensure_loaded_for_command(command.running.name)
+   if not ok then
+      if err is tl.Result then
+         common.report_result(err, loaded_config)
+      else
+         log.err("Could not load script: ", err)
+      end
+      os.exit(1)
+   end
+   log.debug("loaded scripts for command: ", command.running.name)
 end
 
 local ok <const>, res <const> = xpcall(function()
