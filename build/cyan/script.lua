@@ -11,20 +11,16 @@ local log = require("cyan.log")
 local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
 
-local ivalues = util.tab.ivalues
-
-local Script = {}
-
-
-
-
+local ivalues, from, sort, keys =
+util.tab.ivalues, util.tab.from, util.tab.sort_in_place, util.tab.keys
 
 local script = {}
-local loaded = {}
+
+local Loaded = {}
 
 local function exec_wrapper(box)
-   return function()
-      local ok, err = box:run()
+   return function(name, ...)
+      local ok, err = box:run(nil, name, ...)
       if not ok then
          return nil, err
       end
@@ -39,53 +35,97 @@ local function exec_wrapper(box)
    end
 end
 
+local load_cache = {}
+local function load_script(path)
+   if not load_cache[path] then
+      log.extra("Loading script: ", cs.highlight(cs.colors.file, path))
+      local p = fs.path.new(path)
 
-
-
-
-
-
-function script.load(path, flags)
-   log.extra("Loading script: ", cs.highlight(cs.colors.file, path))
-   local p = fs.path.new(path)
-
-   local box, err
-   local _, ext = fs.extension_split(p)
-   if ext == ".tl" then
-      local result = tl.process(path)
-      if #result.syntax_errors > 0 or
-         #result.type_errors > 0 then
-         return nil, result
+      local box, err
+      local _, ext = fs.extension_split(p)
+      if ext == ".tl" then
+         local result, proc_err = tl.process(path)
+         if not result then
+            return nil, proc_err
+         end
+         if #result.syntax_errors > 0 or
+            #result.type_errors > 0 then
+            return nil, result
+         end
+         box, err = sandbox.from_string(tl.pretty_print_ast(result.ast), path, _G)
+      else
+         box, err = sandbox.from_file(path, _G)
       end
-      box, err = sandbox.from_string(tl.pretty_print_ast(result.ast), path, _G)
-   else
-      box, err = sandbox.from_file(path, _G)
+      if not box then
+         return nil, err
+      end
+      load_cache[path] = exec_wrapper(box)
    end
-   if not box then
-      return nil, err
-   end
+   return load_cache[path]
+end
 
-   local set = {}
-   for v in ivalues(flags) do
-      set[v] = true
-   end
 
-   table.insert(loaded, {
-      exec = exec_wrapper(box),
-      run_on = set,
-      source = p,
-   })
-   return true
+
+
+
+
+
+
+
+local registered = {}
+
+
+
+
+
+
+
+
+
+
+function script.register(path, command_name, hooks)
+   assert(command_name)
+   assert(hooks)
+   if not registered[command_name] then
+      registered[command_name] = {}
+   end
+   local reg = registered[command_name]
+   for hook in ivalues(type(hooks) == "string" and { hooks } or hooks) do
+      if not reg[hook] then
+         reg[hook] = {}
+      end
+      table.insert(reg[hook], path)
+   end
 end
 
 local function list_contains_string(list, str)
-   for val in ivalues(list) do
+   for val in ivalues(assert(list)) do
       if val == str then
          return true
       end
    end
    return false
 end
+
+
+
+function script.ensure_loaded_for_command(name)
+   local sorted_names = sort(from(keys(registered[name] or {})))
+   for hook in ivalues(sorted_names) do
+      for path in ivalues(registered[name][hook] or {}) do
+         local loaded, err = load_script(path)
+         if not loaded then
+            return false, err
+         end
+      end
+   end
+   return true
+end
+
+
+
+
+
 
 
 
@@ -98,18 +138,18 @@ function script.emitter(name, ...)
    list_contains_string(command.running.script_hooks, name),
    "Command '" .. command.running.name .. "' emitted an unregistered hook: '" .. tostring(name) .. "'")
 
-   name = command.running.name .. ":" .. name
+   local full = command.running.name .. ":" .. name
    local args = { n = select("#", ...), ... }
    return coroutine.wrap(function()
-      for loaded_script in ivalues(loaded) do
-         if loaded_script.run_on[name] then
-            local res, err = loaded_script.exec(name, _tl_table_unpack(args, 1, args.n))
-            coroutine.yield(
-            loaded_script.source:copy(),
-            res == 0,
-            err)
+      local paths = (registered[command.running.name] or {})[name]
+      for path in ivalues(paths or {}) do
+         local loaded = assert(load_cache[path], "Internal error, script was not preloaded before execution")
+         local res, err = loaded(full, _tl_table_unpack(args, 1, args.n))
+         coroutine.yield(
+         fs.path.new(path),
+         res == 0,
+         err)
 
-         end
       end
    end)
 end
@@ -136,7 +176,8 @@ end
 function script.disable()
    script.emit_hook = function() return true end
    script.emitter = function() end
-   script.load = function() return true end
+   script.ensure_loaded_for_command = function() return true end
+   script.register = function() end
 end
 
 return script
