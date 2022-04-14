@@ -18,12 +18,12 @@ build/cyan/fs:
 build/cyan/commands:
 	mkdir -p $@
 
-all: clean default test docs rockspec
+all: clean bootstrap docs rockspec test
 
 clean:
 	rm -rf build tmp docs/index.html cyan-dev-1.rockspec
 
-bootstrap: default
+bootstrap: build/cyan/fs build/cyan/commands $(LUA)
 	@echo "Initial build"
 	$(BOOTSTRAP1) build
 	@echo "Replacing code"
