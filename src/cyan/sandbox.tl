@@ -16,7 +16,7 @@ local sandbox <const> = {
 
 global jit: any
 
-function Sandbox:run(max_instructions: integer): boolean, string
+function Sandbox:run(max_instructions: integer, ...: any): boolean, string
    max_instructions = max_instructions or 1000000
    local t = coroutine.create(self._fn)
 
@@ -34,7 +34,7 @@ function Sandbox:run(max_instructions: integer): boolean, string
       end
    end, "", 1000)
 
-   local res = { coroutine.resume(t) }
+   local res = { coroutine.resume(t, ...) }
    if res[1] then
       table.remove(res, 1)
       self._result = res
