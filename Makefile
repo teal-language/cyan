@@ -21,7 +21,7 @@ build/cyan/commands:
 all: clean default test docs rockspec
 
 clean:
-	rm -rf build tmp
+	rm -rf build tmp docs/index.html cyan-dev-1.rockspec
 
 bootstrap: default
 	@echo "Initial build"
