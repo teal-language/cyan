@@ -35,6 +35,8 @@ local Config = {}
 
 
 
+
+
 local config = {
    Config = Config,
 
@@ -63,14 +65,10 @@ local function get_array_type(val, default)
    if #ts == 0 then
       ts[1] = default
    end
-   return "{" .. table.concat(ts, "|") .. "}"
+   return "{" .. table.concat(ts, " | ") .. "}"
 end
 
 local function get_map_type(val, default_key, default_value)
-   if type(val) ~= "table" then
-      return type(val)
-   end
-
    local key_types = get_types_in_array(from(keys(val)))
    if #key_types == 0 then
       key_types[1] = default_key
@@ -81,7 +79,7 @@ local function get_map_type(val, default_key, default_value)
    if #val_types == 0 then
       val_types[1] = default_value
    end
-   return "{" .. table.concat(key_types, "|") .. ":" .. table.concat(val_types, "|") .. "}"
+   return table.concat(key_types, " | "), table.concat(val_types, " | ")
 end
 
 
@@ -101,7 +99,7 @@ function config.is_config(c)
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string:{string}}",
+      scripts = "{string : {string : (string | {string}) }}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true },
@@ -118,6 +116,41 @@ function config.is_config(c)
          if type(v) ~= "table" then
             table.insert(errs, "Expected externals to be a table, got " .. type(v))
          end
+      elseif k == "scripts" then
+
+
+         if type(v) ~= "table" then
+            table.insert(errs, "Expected scripts to be {string : {string : string | {string}}}, got " .. type(v))
+         end
+
+         for script_key, value in pairs(v) do
+            if not (type(script_key) == "string") then
+               table.insert(errs, "Expected scripts to be {string : {string : string | {string}}}, got non-string key: " .. tostring(script_key))
+               break
+            end
+            if not (type(value) == "table") then
+               table.insert(errs, "Expected scripts to be {string : {string : string | {string}}}, got {string : " .. tostring(type(value)) .. "}")
+               break
+            end
+            local key_type, value_type = get_map_type(value, "string", "string | {string}")
+            if key_type ~= "string" or
+               not (
+               value_type == "string" or
+               value_type == "{string}" or
+               value_type == "string | {string}") then
+
+
+               table.insert(
+               errs,
+               "Expected scripts to be {string: {string : string | {string}}}, got {string : {" ..
+               key_type ..
+               " : " ..
+               value_type ..
+               "}}")
+
+               break
+            end
+         end
       else
          local valid = valid_keys[k]
          if not valid then
@@ -127,9 +160,7 @@ function config.is_config(c)
                table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sort(from(keys(valid))), ", "))
             end
          else
-            local vtype = valid:find(":") and
-            get_map_type(v, valid:match("^{(.*):(.*)}$")) or
-            get_array_type(v, valid:match("^{(.*)}$"))
+            local vtype = get_array_type(v, valid:match("^{(.*)}$"))
 
             if vtype ~= valid then
                table.insert(errs, string.format("Expected %s to be a %s, got %s", k, valid, vtype))
