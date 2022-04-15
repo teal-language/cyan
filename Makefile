@@ -11,7 +11,8 @@ BOOTSTRAP3= bin/bootstrap --no-script
 build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@
 
-default: build/cyan/fs build/cyan/commands $(LUA) docs rockspec
+default: cyan docs rockspec
+cyan: build/cyan/fs build/cyan/commands $(LUA)
 
 build/cyan/fs:
 	mkdir -p $@

@@ -139,21 +139,13 @@ end
 command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
-   for hook, filenames in pairs(loaded_config.scripts) do
-      local s <const>, e <const> = hook:find(command.running.name .. ":", 1, true)
-      if s == 1 and e == #command.running.name + 1 then
-         for f in ivalues(filenames) do
-            script.register(f, command.running.name, hook:sub(e + 1))
-         end
-      elseif not hook:find(":") then
-         log.warn(
-            "In config: '",
-            hook,
-            "' does not look like a command hook.",
-            (hook:match("%.tl$") or hook:match("%.lua$"))
-               and "\n   (hint: This looks like a file, hooks are the keys to the 'scripts' config entry and filenames are the values)"
-               or ""
-         )
+   for hook, filenames in pairs(loaded_config.scripts[command.running.name] or {}) do
+      if filenames is string then
+         filenames = { filenames }
+      end
+      for f in ivalues(filenames as {string}) do
+         log.debug("registering file '", f, "' for ", command.running.name, ":", hook)
+         script.register(f, command.running.name, hook)
       end
    end
 end

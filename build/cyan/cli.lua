@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall
 
 
 
@@ -139,21 +139,13 @@ end
 command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
-   for hook, filenames in pairs(loaded_config.scripts) do
-      local s, e = hook:find(command.running.name .. ":", 1, true)
-      if s == 1 and e == #command.running.name + 1 then
-         for f in ivalues(filenames) do
-            script.register(f, command.running.name, hook:sub(e + 1))
-         end
-      elseif not hook:find(":") then
-         log.warn(
-         "In config: '",
-         hook,
-         "' does not look like a command hook.",
-         (hook:match("%.tl$") or hook:match("%.lua$")) and
-         "\n   (hint: This looks like a file, hooks are the keys to the 'scripts' config entry and filenames are the values)" or
-         "")
-
+   for hook, filenames in pairs(loaded_config.scripts[command.running.name] or {}) do
+      if type(filenames) == "string" then
+         filenames = { filenames }
+      end
+      for f in ivalues(filenames) do
+         log.debug("registering file '", f, "' for ", command.running.name, ":", hook)
+         script.register(f, command.running.name, hook)
       end
    end
 end
