@@ -145,6 +145,15 @@ if loaded_config.scripts then
          for f in ivalues(filenames) do
             script.register(f, command.running.name, hook:sub(e + 1))
          end
+      elseif not hook:find(":") then
+         log.warn(
+         "In config: '",
+         hook,
+         "' does not look like a command hook.",
+         (hook:match("%.tl$") or hook:match("%.lua$")) and
+         "\n   (hint: This looks like a file, hooks are the keys to the 'scripts' config entry and filenames are the values)" or
+         "")
+
       end
    end
 end
