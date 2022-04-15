@@ -4,7 +4,7 @@ describe("--no-script", function()
    it("should not run any scripts when provided", function()
       util.run_mock_project(finally, {
          dir_structure = {
-            [util.configfile] = [[return { scripts = { ["foo.lua"] = { "build:post" } } }]],
+            [util.configfile] = [[return { scripts = { ["build:post"] = { "foo.lua" } } }]],
             ["foo.lua"] = [[print("hello!")]],
             ["bar.tl"] = [[]]
          },

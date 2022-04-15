@@ -247,9 +247,7 @@ describe("build command", function()
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
-                  scripts = {
-                     ["foo.lua"] = { "build:post" }
-                  },
+                  scripts = { ["build:post"] = { "foo.lua" } },
                   source_dir = "src",
                   build_dir = "build",
                } ]],
@@ -271,9 +269,7 @@ describe("build command", function()
             cmd = "build",
             dir_structure = {
                [util.configfile] = [[ return {
-                  scripts = {
-                     ["foo.lua"] = { "build:post" }
-                  },
+                  scripts = { ["build:post"] = { "foo.lua" } },
                } ]],
                ["foo.lua"] = [[print"after"]],
             },
