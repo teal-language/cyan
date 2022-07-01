@@ -93,6 +93,7 @@ h2 {
 </p>
 <p><a href=index.html#cyan.fs>cyan.fs</a>
 <br><a href=index.html#fs.chdir>fs.chdir</a>
+<br><a href=index.html#fs.copy>fs.copy</a>
 <br><a href=index.html#fs.cwd>fs.cwd</a>
 <br><a href=index.html#fs.dir>fs.dir</a>
 <br><a href=index.html#fs.extension_split>fs.extension_split</a>
@@ -264,7 +265,9 @@ h2 {
 </h1>
 <p>Filesystem and path management</p><h2><a name=fs.chdir><code>fs.chdir(p: string | Path): boolean, string</code></a>
 </h2>
-<p>Change the current directory to <code>p</code></p><h2><a name=fs.cwd><code>fs.cwd(): Path</code></a>
+<p>Change the current directory to <code>p</code></p><h2><a name=fs.copy><code>fs.copy(source: string | Path, dest: string | Path): boolean, string</code></a>
+</h2>
+<p>Copy a file</p><p>uses <code>fs.read</code> internally to get and cache the contents of <code>source</code></p><h2><a name=fs.cwd><code>fs.cwd(): Path</code></a>
 </h2>
 <p>Get the current working directory as an <code>fs.Path</code></p><h2><a name=fs.dir><code>fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path</code></a>
 </h2>

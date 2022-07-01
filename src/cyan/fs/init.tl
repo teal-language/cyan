@@ -177,4 +177,25 @@ function fs.search_parent_dirs(start_path: string | Path, fname: string): Path
    end
 end
 
+---@desc
+--- Copy a file
+---
+--- uses `fs.read` internally to get and cache the contents of `source`
+function fs.copy(source: string | Path, dest: string | Path): boolean, string
+   local source_path <const> = ensure(source, true)
+   local dest_path <const> = ensure(dest, true)
+
+   local source_contents <const>, read_err <const> = fs.read(source_path:to_real_path())
+   if not source_contents then
+      return false, read_err
+   end
+   local fh <const>, open_err <const> = io.open(dest_path:to_real_path(), "r")
+   if not fh then
+      return false, open_err
+   end
+   fh:write(source_contents)
+   fh:close()
+   return true
+end
+
 return fs
