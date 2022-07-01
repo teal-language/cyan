@@ -177,4 +177,25 @@ function fs.search_parent_dirs(start_path, fname)
    end
 end
 
+
+
+
+
+function fs.copy(source, dest)
+   local source_path = ensure(source, true)
+   local dest_path = ensure(dest, true)
+
+   local source_contents, read_err = fs.read(source_path:to_real_path())
+   if not source_contents then
+      return false, read_err
+   end
+   local fh, open_err = io.open(dest_path:to_real_path(), "r")
+   if not fh then
+      return false, open_err
+   end
+   fh:write(source_contents)
+   fh:close()
+   return true
+end
+
 return fs
