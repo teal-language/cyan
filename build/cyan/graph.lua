@@ -174,11 +174,7 @@ local function unchecked_insert(dag, f, in_dir)
 
       return
    end
-   local _, ext = fs.extension_split(f, 2)
-   if ext ~= ".tl" then
 
-      return
-   end
    local res = common.parse_file(real_path)
    if not res then return end
    local n = make_node(f)
@@ -267,7 +263,7 @@ function graph.scan_dir(dir, include, exclude)
    dir = fs.path.ensure(dir)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
-      if ext == ".tl" then
+      if ext == ".tl" or ext == ".lua" then
          unchecked_insert(d, dir .. p, dir)
       end
    end

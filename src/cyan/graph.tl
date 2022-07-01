@@ -174,11 +174,7 @@ local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
       -- We already have this in the graph
       return
    end
-   local _, ext <const> = fs.extension_split(f, 2)
-   if ext ~= ".tl" then
-      -- we dont care about non Teal stuff
-      return
-   end
+
    local res <const> = common.parse_file(real_path)
    if not res then return end
    local n <const>: Node = make_node(f)
@@ -267,7 +263,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
    dir = fs.path.ensure(dir)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
-      if ext == ".tl" then
+      if ext == ".tl" or ext == ".lua" then
          unchecked_insert(d, dir .. p, dir)
       end
    end
