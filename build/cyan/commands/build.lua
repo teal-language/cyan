@@ -103,8 +103,10 @@ local function build(args, loaded_config, starting_dir)
       local out = src:copy()
       out:remove_leading(source_dir)
       out:prepend(build_dir)
-      local base = fs.extension_split(out[#out])
-      out[#out] = base .. ".lua"
+      local base, ext = fs.extension_split(out[#out])
+      if ext == ".tl" then
+         out[#out] = base .. ".lua"
+      end
       return out
    end
 
