@@ -225,7 +225,7 @@ describe("build command", function()
          cmd_output_match = [[Unexpected files in build directory]],
       })
    end)
-   it("#f should copy lua files from the source directory to the build directory", function()
+   it("should copy lua files from the source directory to the build directory", function()
       util.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {

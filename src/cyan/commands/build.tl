@@ -81,7 +81,10 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
 
    local include <const> = loaded_config.include or {}
-   local exclude <const> = loaded_config.exclude or {}
+   local exclude <const> = loaded_config.exclude and { table.unpack(loaded_config.exclude) } or {}
+   if source_dir == starting_dir then
+      table.insert(exclude, "tlconfig.lua")
+   end
 
    local dag <const>, cycles <const> = graph.scan_dir(source_dir, include, exclude)
    if not dag then
