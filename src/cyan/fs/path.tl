@@ -343,14 +343,17 @@ function Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boole
       return true
    end
 
-   local pa <const> = a is string and parse_string_path(a, use_os_sep) or a as Path
-   local pb <const> = b is string and parse_string_path(b, use_os_sep) or b as Path
+   local pa <const> = a is string and path.new(a, use_os_sep) or (a as Path):copy()
+   local pb <const> = b is string and path.new(b, use_os_sep) or (b as Path):copy()
 
-   if rawlen(pa) ~= rawlen(pb) then
+   pa:to_absolute()
+   pb:to_absolute()
+
+   if rawlen(pa as {string}) ~= rawlen(pb as {string}) then
       return false
    end
 
-   for i = 1, rawlen(pa) do
+   for i = 1, rawlen(pa as {string}) do
       if rawget(pa, i) ~= rawget(pb, i) then
          return false
       end
