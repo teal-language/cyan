@@ -85,6 +85,7 @@ h2 {
 <br><a href=index.html#Path:prepend>Path:prepend</a>
 <br><a href=index.html#Path:relative_to>Path:relative_to</a>
 <br><a href=index.html#Path:remove_leading>Path:remove_leading</a>
+<br><a href=index.html#Path:to_absolute>Path:to_absolute</a>
 <br><a href=index.html#Path:to_real_path>Path:to_real_path</a>
 <br><a href=index.html#Path:tostring>Path:tostring</a>
 <br><a href=index.html#Path>Path</a>
@@ -250,7 +251,9 @@ h2 {
 </h2>
 <p>Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory</p><p>for example: <code>path.new(<code>"/foo/bar/baz"</code>):relative_to(path.new(<code>"/foo/bat"</code>)) == path.new <code>"../bar/baz"</code></code></p><h2><a name=Path:remove_leading><code>Path:remove_leading(p: string | Path)</code></a>
 </h2>
-<p>Mutate the given path by removing the leading parts from the given path</p><p>Will error if you attempt to mix absolute and non-absolute paths</p><h2><a name=Path:to_real_path><code>Path:to_real_path(): string</code></a>
+<p>Mutate the given path by removing the leading parts from the given path</p><p>Will error if you attempt to mix absolute and non-absolute paths</p><h2><a name=Path:to_absolute><code>Path:to_absolute()</code></a>
+</h2>
+<p>Modify a path in place to become an absolute path</p><p>When the path is already absolute, does nothing</p><p>Otherwise, prepends the current directory</p><h2><a name=Path:to_real_path><code>Path:to_real_path(): string</code></a>
 </h2>
 <p>Convert a <code>Path</code> to a string describing a real path</p><h2><a name=Path:tostring><code>Path:tostring(): string</code></a>
 </h2>

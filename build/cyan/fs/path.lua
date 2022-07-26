@@ -194,11 +194,25 @@ function Path:prepend(other)
    if self:is_absolute() then
       error("Attempt to prepend to absolute path", 2)
    end
-   local i = 1
-   for chunk in chunks(other) do
-      table.insert(self, i, chunk)
-      i = i + 1
+   other = path.ensure(other)
+   local other_len = #other
+   table.move(self, 1, #self, other_len + 1)
+   for i = 1, other_len do
+      self[i] = other[i]
    end
+end
+
+
+
+
+
+
+
+function Path:to_absolute()
+   if self:is_absolute() then
+      return
+   end
+   self:prepend(lfs.currentdir())
 end
 
 
@@ -329,8 +343,11 @@ function Path.eq(a, b, use_os_sep)
       return true
    end
 
-   local pa = type(a) == "string" and parse_string_path(a, use_os_sep) or a
-   local pb = type(b) == "string" and parse_string_path(b, use_os_sep) or b
+   local pa = type(a) == "string" and path.new(a, use_os_sep) or (a):copy()
+   local pb = type(b) == "string" and path.new(b, use_os_sep) or (b):copy()
+
+   pa:to_absolute()
+   pb:to_absolute()
 
    if rawlen(pa) ~= rawlen(pb) then
       return false
