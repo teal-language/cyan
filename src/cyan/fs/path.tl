@@ -194,10 +194,14 @@ function Path:prepend(other: string | Path)
    if self:is_absolute() then
       error("Attempt to prepend to absolute path", 2)
    end
-   local i = 1
-   for chunk in chunks(other) do
-      table.insert(self, i, chunk)
-      i = i + 1
+   other = path.ensure(other)
+   local other_len <const> = #other
+   table.move(self, 1, #self, other_len + 1)
+   for i = 1, other_len do
+      self[i] = other[i]
+   end
+end
+
    end
 end
 
