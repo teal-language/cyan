@@ -202,7 +202,17 @@ function Path:prepend(other: string | Path)
    end
 end
 
+---@desc
+--- Modify a path in place to become an absolute path
+---
+--- When the path is already absolute, does nothing
+---
+--- Otherwise, prepends the current directory
+function Path:to_absolute()
+   if self:is_absolute() then
+      return
    end
+   self:prepend(lfs.currentdir())
 end
 
 ---@desc
