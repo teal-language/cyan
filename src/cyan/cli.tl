@@ -63,6 +63,9 @@ parser:mutex(
          end)
 )
 
+parser:option("-s --source-dir", "Override the source directory.")
+parser:option("-b --build-dir", "Override the build directory.")
+
 parser:command_target("command")
 
 command.new{

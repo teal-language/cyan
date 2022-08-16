@@ -358,5 +358,35 @@ describe("build command", function()
          })
       end)
    end)
+   describe("--source-dir", function()
+      it("should override the directory with the source files in it", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            args = { "--source-dir", "other" },
+            dir_structure = {
+               [util.configfile] = [[return { source_dir = "src" }]],
+               src = {},
+               other = { ["foo.tl"] = "return 2" },
+            },
+            exit_code = 0,
+            generated_files = { "foo.lua" },
+         })
+      end)
+   end)
+   describe("--build-dir", function()
+      it("should override the directory with the generated files in it", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            args = { "--build-dir", "other" },
+            dir_structure = {
+               [util.configfile] = [[return { source_dir = "src" }]],
+               src = { ["foo.tl"] = "return 2" },
+               build = {},
+               other = {},
+            },
+            exit_code = 0,
+            generated_files = { other = { "foo.lua" } },
+         })
+      end)
+   end)
 end)
-
