@@ -16,7 +16,7 @@ util.tab.ivalues, util.tab.from, util.tab.sort_in_place, util.tab.keys
 
 local script = {}
 
-local Loaded = {}
+
 
 local function exec_wrapper(box)
    return function(name, ...)
