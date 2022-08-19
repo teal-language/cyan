@@ -182,7 +182,8 @@ local function unchecked_insert(dag, f, in_dir)
 
    for mod_name in ivalues(res.reqs) do
 
-      local search_result = common.search_module(mod_name, true)
+
+      local search_result = common.search_module(mod_name)
       if search_result then
          if in_dir and search_result:is_absolute() and search_result:is_in(in_dir) then
             search_result = search_result:relative_to(in_dir)

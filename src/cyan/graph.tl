@@ -181,8 +181,9 @@ local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
    dag._nodes_by_filename[real_path] = n
 
    for mod_name in ivalues(res.reqs) do
-      -- TODO: should we search for .d.tl files?
-      local search_result = common.search_module(mod_name, true)
+      -- We don't search for .d.tl files here because we don't want to generate
+      -- anything for them
+      local search_result = common.search_module(mod_name)
       if search_result then
          if in_dir and search_result:is_absolute() and search_result:is_in(in_dir) then
             search_result = search_result:relative_to(in_dir)
@@ -222,7 +223,7 @@ end
 ---@desc
 --- Inserts a file and its dependencies into a graph
 ---
---- Ignores absolute paths and non `.tl` files
+--- Ignores absolute paths and non `.tl` or `.lua` files
 ---
 --- If in_dir is provided, dependencies of the given file will not be added to
 --- the graph unless they are inside of the given dir

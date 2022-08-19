@@ -292,7 +292,7 @@ h2 {
 </h2>
 <p>Find a node in the graph with the given path name</p><h2><a name=Dag:insert_file><code>Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path): boolean, {string}</code></a>
 </h2>
-<p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><p>Returns <code>false</code> if inserting the file introduced a circular dependency along with a list of the filenames in the cycle</p><h2><a name=Dag:mark_each><code>Dag:mark_each(predicate: function(fs.Path): boolean)</code></a>
+<p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> or <code>.lua</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><p>Returns <code>false</code> if inserting the file introduced a circular dependency along with a list of the filenames in the cycle</p><h2><a name=Dag:mark_each><code>Dag:mark_each(predicate: function(fs.Path): boolean)</code></a>
 </h2>
 <p>For each node in the graph, if <code>predicate</code> returns true for that input path, the node is marked for compilation, and that node's children are marked for type checking</p><h2><a name=Dag:marked_nodes><code>Dag:marked_nodes(m: Node.Mark): function(): Node</code></a>
 </h2>

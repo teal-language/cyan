@@ -242,6 +242,23 @@ describe("build command", function()
          },
       })
    end)
+   it("should NOT copy .d.tl files from the source directory to the build directory", function()
+      util.run_mock_project(finally, {
+         cmd = "build",
+         dir_structure = {
+            [util.configfile] = [[return { build_dir = "build", source_dir = "src", include_dir = { "src" } }]],
+            build = {},
+            src = {
+               ["a.tl"] = [[require "b"]],
+               ["b.d.tl"] = [[]],
+            }
+         },
+         exit_code = 0,
+         generated_files = {
+            build = { "a.lua" },
+         },
+      })
+   end)
    describe("script hooks", function()
       it("should emit a build:pre hook before doing any actions", function()
          util.run_mock_project(function() end, {
