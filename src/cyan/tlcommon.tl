@@ -316,9 +316,9 @@ function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: t
    return tl.init_env(false, gen_compat, gen_target, {env_def})
 end
 
-local pretty_print_ast <const> = tl.pretty_print_ast as function(Node): string
-function common.compile_ast(ast: Node): string
-   return pretty_print_ast(ast)
+local pretty_print_ast <const> = tl.pretty_print_ast as function(Node, tl.TargetMode): (string, string)
+function common.compile_ast(ast: Node, mode: tl.TargetMode): string, string
+   return pretty_print_ast(ast, mode)
 end
 
 ---@desc

@@ -76,6 +76,8 @@ local function command_exec(should_compile)
          local result = common.type_check_ast(parsed.ast, {
             filename = real_path,
             env = env,
+            gen_compat = loaded_config.gen_compat,
+            gen_target = loaded_config.gen_target,
          })
          if common.result_has_errors(result, loaded_config) then
             exit = 1
@@ -115,9 +117,15 @@ local function command_exec(should_compile)
          for _, data in ipairs(to_write) do
             local fh, err = io.open(data.outfile:to_real_path(), "w")
             if fh then
-               fh:write(common.compile_ast(data.output_ast))
-               fh:close()
-               log.info("Wrote ", data.disp_outfile)
+               local generated, gen_err = common.compile_ast(data.output_ast, loaded_config.gen_target)
+               if generated then
+                  fh:write(common.compile_ast(data.output_ast, loaded_config.gen_target))
+                  fh:close()
+                  log.info("Wrote ", data.disp_outfile)
+               else
+                  log.err("Error when generating lua for ", data.disp_outfile, "\n", gen_err)
+                  exit = 1
+               end
             else
                log.err("Unable to write to ", data.disp_outfile, "\n", err)
                exit = 1

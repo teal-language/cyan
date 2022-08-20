@@ -317,8 +317,8 @@ function common.init_teal_env(gen_compat, gen_target, env_def)
 end
 
 local pretty_print_ast = tl.pretty_print_ast
-function common.compile_ast(ast)
-   return pretty_print_ast(ast)
+function common.compile_ast(ast, mode)
+   return pretty_print_ast(ast, mode)
 end
 
 

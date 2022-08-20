@@ -201,9 +201,15 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          log.err("Error opening file ", display_filename(n.output), ": ", err)
          exit = 1
       else
-         fh:write(common.compile_ast(ast))
-         fh:close()
-         log.info("Wrote ", display_filename(n.output))
+         local generated <const>, gen_err <const> = common.compile_ast(ast, loaded_config.gen_target)
+         if generated then
+            fh:write(generated)
+            fh:close()
+            log.info("Wrote ", display_filename(n.output))
+         else
+            log.err("Error when generating lua for ", display_filename(n.output), "\n", gen_err)
+            exit = 1
+         end
       end
    end
 

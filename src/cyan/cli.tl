@@ -49,7 +49,7 @@ parser:option("--gen-compat", "Generate compatibility code for targeting differe
       :defmode("a")
 
 parser:option("--gen-target", "Minimum targeted Lua version for generated code.")
-      :choices({ "5.1", "5.3" })
+      :choices({ "5.1", "5.3", "5.4" })
 
 parser:flag("--no-script", "Do not run any scripts.")
       :action(script.disable)
