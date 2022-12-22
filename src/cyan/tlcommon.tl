@@ -268,8 +268,15 @@ end
 ---@desc
 --- Logs all the syntax errors, warnings, type errors, etc. from a `tl.Result` with proper colors
 ---
---- Returns if there were any warnings or unknowns. May return `true` even if some warnings were reported
+--- Returns false if there were any errors. This includs warnings that were
+--- promoted to errors and doesn't include warnings that were not promoted to
+--- errors.
 function common.report_result(r: tl.Result, c: config.Config): boolean
+   if r.syntax_errors and #r.syntax_errors > 0 then
+      common.report_errors(log.err, r.syntax_errors, r.filename, "syntax error")
+      return false
+   end
+
    c = c or {}
    local warning_error <const> = set(c.warning_error or {})
    local disabled_warnings <const> = set(c.disable_warnings or {})

@@ -269,7 +269,14 @@ end
 
 
 
+
+
 function common.report_result(r, c)
+   if r.syntax_errors and #r.syntax_errors > 0 then
+      common.report_errors(log.err, r.syntax_errors, r.filename, "syntax error")
+      return false
+   end
+
    c = c or {}
    local warning_error = set(c.warning_error or {})
    local disabled_warnings = set(c.disable_warnings or {})
