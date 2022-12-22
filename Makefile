@@ -46,10 +46,10 @@ test: default
 docs: docs/index.html
 rockspec: cyan-dev-1.rockspec
 
-docs/index.html: $(SRC)
+docs/index.html: $(SRC) scripts/docgen.tl doc-template.html
 	./bin/cyan run scripts/docgen.tl
 
-cyan-dev-1.rockspec: $(SRC)
+cyan-dev-1.rockspec: $(SRC) scripts/gen_rockspec.tl
 	./bin/cyan run scripts/gen_rockspec.tl
 
 .PHONY: clean
