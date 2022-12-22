@@ -116,8 +116,17 @@ h2 {
 <br><a href=index.html#graph.scan_dir>graph.scan_dir</a>
 </p>
 </td><td valign=top><p><a href=index.html#cyan.log>cyan.log</a>
+<br><a href=index.html#Logger:cont>Logger:cont</a>
+<br><a href=index.html#Logger:cont_nonl>Logger:cont_nonl</a>
+<br><a href=index.html#Logger:format>Logger:format</a>
+<br><a href=index.html#Logger:format_nonl>Logger:format_nonl</a>
+<br><a href=index.html#Logger:nonl>Logger:nonl</a>
+<br><a href=index.html#Logger:should_log>Logger:should_log</a>
+<br><a href=index.html#Logger>Logger</a>
 <br><a href=index.html#Verbosity>Verbosity</a>
 <br><a href=index.html#create_logger>create_logger</a>
+<br><a href=index.html#log.set_prefix_padding>log.set_prefix_padding</a>
+<br><a href=index.html#log.set_verbosity>log.set_verbosity</a>
 </p>
 <p><a href=index.html#cyan.meta>cyan.meta</a>
 <br></p>
@@ -310,7 +319,22 @@ h2 {
 </h2>
 <p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p><h1><a name=cyan.log>cyan.log</a>
 </h1>
-<p>Console logging utils, not to be confused with log files</p><p>Each logging function has the same signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): function(...: any)<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>ColorString</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>ColorString</code>) it will not be handled.</p><h2><a name=Verbosity><code>type Verbosity</code></a>
+<p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn<code>'t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a '</code>...'. Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): Logger<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>ColorString</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>ColorString</code>) it will not be handled.</p><h2><a name=Logger:cont><code>Logger:cont(...: any)</code></a>
+</h2>
+<p>Log only using the continuation prefix.</p><h2><a name=Logger:cont_nonl><code>Logger:cont_nonl(...: any)</code></a>
+</h2>
+<p>Log only using the continuation prefix, but don't put a newline at the end.</p><h2><a name=Logger:format><code>Logger:format(fmt: string, ...: any)</code></a>
+</h2>
+<p>Call <code>string.format</code> with the given arguments and log that.</p><h2><a name=Logger:format_nonl><code>Logger:format_nonl(fmt: string, ...: any)</code></a>
+</h2>
+<p>Call <code>string.format</code> with the given arguments and log that, without a new line.</p><h2><a name=Logger:nonl><code>Logger:nonl(...: any)</code></a>
+</h2>
+<p>Same as calling the logger, but don't put a newline at the end</p><h2><a name=Logger:should_log><code>Logger:should_log(): boolean</code></a>
+</h2>
+<p>Returns whether the current verbosity is less than or equal to this loggers verbosity threshold.</p><h2><a name=Logger><code>type Logger</code></a>
+</h2>
+<pre>record Logger<br>   metamethod __call: function(...: any)<br>end</pre>
+<p>The data needed for a logger to do its job.</p><h2><a name=Verbosity><code>type Verbosity</code></a>
 </h2>
 <pre>enum Verbosity<br>   "quiet"<br>   "normal"<br>   "extra"<br>   "debug"<br>end </pre>
 <p>The thresholds for loggers to actually write their output</p><h2><a name=create_logger><code>create_logger(
@@ -319,9 +343,13 @@ h2 {
    prefix: string | cs.ColorString,
    cont: string | cs.ColorString,
    inspector: function(any): string
-): function(...: any)</code></a>
+): Logger</code></a>
 </h2>
-<p>Creates a logging function as described above</p><h1><a name=cyan.meta>cyan.meta</a>
+<p>Creates a Logger as described above</p><h2><a name=log.set_prefix_padding><code>log.set_prefix_padding(padding: integer)</code></a>
+</h2>
+<p>Globally set the padding of the prefixes of loggers.</p><h2><a name=log.set_verbosity><code>log.set_verbosity(level: Verbosity)</code></a>
+</h2>
+<p>Globally set the verbosity of the logging module.</p><h1><a name=cyan.meta>cyan.meta</a>
 </h1>
 <p>Meta information about Cyan itself</p><h1><a name=cyan.sandbox>cyan.sandbox</a>
 </h1>
@@ -358,7 +386,7 @@ h2 {
 </h2>
 <p>use <code>log.warn</code> and <code>log.err</code> to report errors and warnings from <code>config.load</code></p><h2><a name=common.report_env_results><code>common.report_env_results(env: tl.Env, cfg: config.Config): boolean</code></a>
 </h2>
-<p>Report all errors from a tl.Env</p><p>Returns false when errors were reported</p><h2><a name=common.report_errors><code>common.report_errors(logfn: function(...: any), errs: {tl.Error}, file: string, category: string)</code></a>
+<p>Report all errors from a tl.Env</p><p>Returns false when errors were reported</p><h2><a name=common.report_errors><code>common.report_errors(logger: log.Logger, errs: {tl.Error}, file: string, category: string)</code></a>
 </h2>
 <p>Logs an array of errors with nice colors and a header generated by <code>make_error_header</code></p><h2><a name=common.report_result><code>common.report_result(r: tl.Result, c: config.Config): boolean</code></a>
 </h2>

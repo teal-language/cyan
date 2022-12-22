@@ -2,14 +2,15 @@
 ---@brief
 --- Console logging utils, not to be confused with log files
 ---
---- Each logging function has the same signature of `function(...: any)`, and
+--- Each logger object has the same `__call` signature of `function(...: any)`, and
 --- by default the following are provided:
 ---
 ---@@table Name     | Stream | Description
 ---        `info`   | stdout | General info, should be seen as the default, silenced by --quiet
+---        `extra`  | stdout | Extra info that isn't strictly necessary, enabled via -v extra, silenced by --quiet
 ---        `warn`   | stderr | Used to display warnings, silenced by --quiet
 ---        `err`    | stderr | Used to display errors
----        `debug`  | stderr | Used for debugging, uses the inspect module (if it is found) to print its arguments
+---        `debug`  | stderr | Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug
 ---@@end
 ---
 --- You may notice that these are nicely padded and after the first line the
@@ -22,11 +23,12 @@
 ---    prefix: string | ColorString,
 ---    cont: string | ColorString,
 ---    inspector: function(any): string
---- ): function(...: any)
+--- ): Logger
 ---@@end
 --- to automatically generate formatted output. `cont` defaults to `"..."` and
 --- `inspector` defaults to `tostring`. Prefixes will be padded to 10 characters
---- wide, so your logging may look off from the default if your prefix is longer.
+--- wide by default, so your logging may look off from the default if your
+--- prefix is longer.
 ---
 --- Additionally, loggers will try to detect whether or not to display colors.
 --- This is only handled with the `ColorString` type to avoid the many pitfalls of
@@ -64,6 +66,7 @@ local verbosity_to_int <const>: {Verbosity:integer} = {
 }
 
 local verbosity: Verbosity = "normal"
+local prefix_padding: integer = 10
 
 local inspect: function(any): string
 do
@@ -89,8 +92,6 @@ do
    end
 end
 
-local max_prefix_len <const> = 10
-
 local as_fd <const>: {FILE:integer} = {
    [io.stdin] = 0,
    [io.stdout] = 1,
@@ -101,6 +102,7 @@ local ttys <const> = {}
 local function is_a_tty(fd: integer): boolean
    if ttys[fd] == nil then
       if not fd then return false end
+      -- TODO: how annoying would it be to ship a small C module that just exports isatty (_isatty on windows)?
       local ok <const>, exit <const>, signal <const> = os.execute(("test -t %d"):format(fd))
       ttys[fd] = (ok and exit == "exit") and signal == 0 or false
    end
@@ -123,40 +125,128 @@ local function sanitizer(stream: FILE): function(any): any
 end
 
 ---@desc
---- Creates a logging function as described above
+--- The data needed for a logger to do its job.
+local record Logger
+   stream: FILE
+   verbosity_threshold: Verbosity
+   prefix: string | cs.ColorString
+   continuation: string | cs.ColorString
+   inspector: function(any): string
+
+   metamethod __call: function(...: any)
+end
+
+---@desc
+--- Returns whether the current verbosity is less than or equal to this
+--- loggers verbosity threshold.
+function Logger:should_log(): boolean
+   local threshold <const> = self.verbosity_threshold and verbosity_to_int[self.verbosity_threshold] or -math.huge
+   return verbosity_to_int[verbosity] >= threshold
+end
+
+local function do_log(
+   stream: FILE,
+   initial_prefix: string | cs.ColorString,
+   continuation_prefix: string | cs.ColorString,
+   inspector: function(any): (string),
+   ...: any
+)
+   local sanitize <const> = sanitizer(stream)
+
+   local prefix <const> = tostring(sanitize(str.pad_left(initial_prefix as string, prefix_padding)))
+   local continuation = tostring(sanitize(str.pad_left(continuation_prefix and continuation_prefix as string, prefix_padding)))
+
+   stream:write(prefix, " ")
+
+   for i = 1, select("#", ...) do
+      local val <const> = inspector(sanitize((select(i, ...))))
+      local lns <const> = tab.from(str.split(val, "\n", true))
+      for j, ln in ipairs(lns) do
+         stream:write(ln)
+         if j < #lns then
+            stream:write("\n", continuation, " ")
+         end
+      end
+   end
+end
+
+---@desc
+--- Log only using the continuation prefix, but don't put a newline at the end.
+function Logger:cont_nonl(...: any)
+   if not self:should_log() then return end
+   do_log(
+      self.stream,
+      self.continuation,
+      self.continuation,
+      self.inspector,
+      ...
+   )
+end
+
+---@desc
+--- Log only using the continuation prefix.
+function Logger:cont(...: any)
+   if not self:should_log() then return end
+   self:cont_nonl(...)
+   self.stream:write("\n")
+end
+
+---@desc
+--- Same as calling the logger, but don't put a newline at the end
+function Logger:nonl(...: any)
+   if not self:should_log() then return end
+   do_log(
+      self.stream,
+      self.prefix,
+      self.continuation,
+      self.inspector,
+      ...
+   )
+end
+
+---@desc
+--- Call `string.format` with the given arguments and log that.
+function Logger:format(fmt: string, ...: any)
+   self(fmt:format(...))
+end
+
+---@desc
+--- Call `string.format` with the given arguments and log that, without a new line.
+function Logger:format_nonl(fmt: string, ...: any)
+   self:nonl(fmt:format(...))
+end
+
+local logger_metatable <const>: metatable<Logger> = {
+   __call = function(self: Logger, ...: any)
+      if not self:should_log() then return end
+      self:nonl(...)
+      self.stream:write("\n")
+   end,
+   __index = Logger,
+}
+
+Logger.stream = io.stdout
+Logger.prefix = "???"
+Logger.continuation = "..."
+Logger.inspector = tostring
+
+---@desc
+--- Creates a Logger as described above
 local function create_logger(
    stream: FILE,
    verbosity_threshold: Verbosity,
    prefix: string | cs.ColorString,
    cont: string | cs.ColorString,
    inspector: function(any): string
-): function(...: any)
-   inspector = inspector or tostring
-   local prefix_len <const> = (prefix as string):len()
-   prefix = prefix and (prefix as string) .. " " or ""
-   cont = cont and (cont as string) .. " " or "... "
-   local sanitize <const> = sanitizer(stream)
-   local threshold <const> = verbosity_threshold and verbosity_to_int[verbosity_threshold] or -math.huge
-   return function(...: any)
-      if verbosity_to_int[verbosity] < threshold then return end
-
-      stream:write(tostring(sanitize(str.pad_left(prefix, max_prefix_len))))
-      for i = 1, select("#", ...) do
-         local val <const> = inspector(sanitize((select(i, ...))))
-         local lns <const> = tab.from(str.split(val, "\n", true))
-         for j, ln in ipairs(lns) do
-            stream:write(ln)
-            if j < #lns then
-               stream:write("\n", prefix_len > 0 and tostring(sanitize(str.pad_left(cont, max_prefix_len))) or "")
-            end
-         end
-      end
-      stream:write("\n")
-   end
-end
-
-local function set_verbosity(level: Verbosity)
-   verbosity = level
+): Logger
+   local result: Logger = {
+      stream = stream,
+      verbosity_threshold = verbosity_threshold,
+      prefix = prefix,
+      continuation = cont,
+      inspector = inspector,
+   }
+   return setmetatable(result, logger_metatable)
 end
 
 local log <const> = {
@@ -192,9 +282,24 @@ local log <const> = {
       cs.highlight(cs.colors.teal, "...")
    ),
    create_logger = create_logger,
-   set_verbosity = set_verbosity,
    verbosities = verbosities,
    Verbosity = Verbosity,
+   Logger = Logger,
 }
+
+---@desc
+--- Globally set the verbosity of the logging module.
+function log.set_verbosity(level: Verbosity)
+   verbosity = level
+end
+
+---@desc
+--- Globally set the padding of the prefixes of loggers.
+function log.set_prefix_padding(padding: integer)
+   if padding < 0 then
+      return
+   end
+   prefix_padding = padding
+end
 
 return log

@@ -242,8 +242,8 @@ end
 
 
 
-function common.report_errors(logfn, errs, file, category)
-   logfn(
+function common.report_errors(logger, errs, file, category)
+   logger(
    common.make_error_header(file, #errs, category),
    "\n",
    _tl_table_unpack(util.tab.intersperse(map(errs, prettify_error), "\n\n")))
@@ -289,9 +289,9 @@ function common.report_result(r, c)
       return not disabled_warnings[w.tag]
    end)
 
-   local function report(logfn, arr, category)
+   local function report(logger, arr, category)
       if arr and #arr > 0 then
-         common.report_errors(logfn, arr, r.filename, category)
+         common.report_errors(logger, arr, r.filename, category)
          return false
       else
          return true

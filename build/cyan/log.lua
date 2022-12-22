@@ -34,6 +34,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+
+
 local util = require("cyan.util")
 local cs = require("cyan.colorstring")
 local tab = util.tab
@@ -64,6 +66,7 @@ local verbosity_to_int = {
 }
 
 local verbosity = "normal"
+local prefix_padding = 10
 
 local inspect
 do
@@ -89,8 +92,6 @@ do
    end
 end
 
-local max_prefix_len = 10
-
 local as_fd = {
    [io.stdin] = 0,
    [io.stdout] = 1,
@@ -101,6 +102,7 @@ local ttys = {}
 local function is_a_tty(fd)
    if ttys[fd] == nil then
       if not fd then return false end
+
       local ok, exit, signal = os.execute(("test -t %d"):format(fd))
       ttys[fd] = (ok and exit == "exit") and signal == 0 or false
    end
@@ -124,6 +126,112 @@ end
 
 
 
+local Logger = {}
+
+
+
+
+
+
+
+
+
+
+
+
+function Logger:should_log()
+   local threshold = self.verbosity_threshold and verbosity_to_int[self.verbosity_threshold] or -math.huge
+   return verbosity_to_int[verbosity] >= threshold
+end
+
+local function do_log(
+   stream,
+   initial_prefix,
+   continuation_prefix,
+   inspector,
+   ...)
+
+   local sanitize = sanitizer(stream)
+
+   local prefix = tostring(sanitize(str.pad_left(initial_prefix, prefix_padding)))
+   local continuation = tostring(sanitize(str.pad_left(continuation_prefix and continuation_prefix, prefix_padding)))
+
+   stream:write(prefix, " ")
+
+   for i = 1, select("#", ...) do
+      local val = inspector(sanitize((select(i, ...))))
+      local lns = tab.from(str.split(val, "\n", true))
+      for j, ln in ipairs(lns) do
+         stream:write(ln)
+         if j < #lns then
+            stream:write("\n", continuation, " ")
+         end
+      end
+   end
+end
+
+
+
+function Logger:cont_nonl(...)
+   if not self:should_log() then return end
+   do_log(
+   self.stream,
+   self.continuation,
+   self.continuation,
+   self.inspector,
+   ...)
+
+end
+
+
+
+function Logger:cont(...)
+   if not self:should_log() then return end
+   self:cont_nonl(...)
+   self.stream:write("\n")
+end
+
+
+
+function Logger:nonl(...)
+   if not self:should_log() then return end
+   do_log(
+   self.stream,
+   self.prefix,
+   self.continuation,
+   self.inspector,
+   ...)
+
+end
+
+
+
+function Logger:format(fmt, ...)
+   self(fmt:format(...))
+end
+
+
+
+function Logger:format_nonl(fmt, ...)
+   self:nonl(fmt:format(...))
+end
+
+local logger_metatable = {
+   __call = function(self, ...)
+      if not self:should_log() then return end
+      self:nonl(...)
+      self.stream:write("\n")
+   end,
+   __index = Logger,
+}
+
+Logger.stream = io.stdout
+Logger.prefix = "???"
+Logger.continuation = "..."
+Logger.inspector = tostring
+
+
+
 local function create_logger(
    stream,
    verbosity_threshold,
@@ -131,32 +239,14 @@ local function create_logger(
    cont,
    inspector)
 
-   inspector = inspector or tostring
-   local prefix_len = (prefix):len()
-   prefix = prefix and (prefix) .. " " or ""
-   cont = cont and (cont) .. " " or "... "
-   local sanitize = sanitizer(stream)
-   local threshold = verbosity_threshold and verbosity_to_int[verbosity_threshold] or -math.huge
-   return function(...)
-      if verbosity_to_int[verbosity] < threshold then return end
-
-      stream:write(tostring(sanitize(str.pad_left(prefix, max_prefix_len))))
-      for i = 1, select("#", ...) do
-         local val = inspector(sanitize((select(i, ...))))
-         local lns = tab.from(str.split(val, "\n", true))
-         for j, ln in ipairs(lns) do
-            stream:write(ln)
-            if j < #lns then
-               stream:write("\n", prefix_len > 0 and tostring(sanitize(str.pad_left(cont, max_prefix_len))) or "")
-            end
-         end
-      end
-      stream:write("\n")
-   end
-end
-
-local function set_verbosity(level)
-   verbosity = level
+   local result = {
+      stream = stream,
+      verbosity_threshold = verbosity_threshold,
+      prefix = prefix,
+      continuation = cont,
+      inspector = inspector,
+   }
+   return setmetatable(result, logger_metatable)
 end
 
 local log = {
@@ -192,9 +282,24 @@ local log = {
    cs.highlight(cs.colors.teal, "...")),
 
    create_logger = create_logger,
-   set_verbosity = set_verbosity,
    verbosities = verbosities,
    Verbosity = Verbosity,
+   Logger = Logger,
 }
+
+
+
+function log.set_verbosity(level)
+   verbosity = level
+end
+
+
+
+function log.set_prefix_padding(padding)
+   if padding < 0 then
+      return
+   end
+   prefix_padding = padding
+end
 
 return log
