@@ -25,6 +25,9 @@ if not has_teal_parser then
    return
 end
 
+local template_file <const> = fs.path.new("doc-template.html")
+local template <const> = assert(fs.read(template_file:to_real_path()))
+
 local docfile <const> = fs.path.new("docs/index.html")
 local type Emitter = function(prefix: {string}, object: ts.Node, output: {string}): string
 
@@ -63,16 +66,16 @@ local function tag_wrapper(name: string): function(string | TagTree, {string:str
       return content as TagTree
    end
 end
-local h1 <const> = tag_wrapper "h1"
+local _h1 <const> = tag_wrapper "h1"
 local h2 <const> = tag_wrapper "h2"
-local _h3 <const> = tag_wrapper "h3"
+local h3 <const> = tag_wrapper "h3"
 local _h4 <const> = tag_wrapper "h4"
 local pre <const> = tag_wrapper "pre"
 local p <const> = tag_wrapper "p"
 local a <const> = tag_wrapper "a"
 local br <const> = "<br>"
 local function doc_header(content: string | TagTree, name: string): TagTree
-   return h2(a({ "<code>", content, "</code>" }, { name = name }))
+   return h3(a({ "<code>", content, "</code>" }, { name = name }))
 end
 
 local emit: {string:Emitter} = setmetatable({}, {
@@ -94,7 +97,6 @@ local emit: {string:Emitter} = setmetatable({}, {
    end,
 })
 
-local href_prefix <const> = docfile[#docfile]
 local function escape(str: string): string
    return (str:gsub("\n\n", br)
               :gsub("`(.-)`", "<code>%1</code>")
@@ -120,7 +122,7 @@ emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string
                       sig:child_by_field_name("arguments"):source(),
                       (ret and ": " .. ret:source() or "") },
                     name),
-         escape(table.concat(prefix))
+         p { escape(table.concat(prefix)) }
       }
    )
    return name
@@ -137,6 +139,7 @@ emit["enum_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
       table.insert(entries, child:source())
    end
 
+
    table.insert(
       out,
       html {
@@ -145,7 +148,7 @@ emit["enum_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
                table.concat(entries, br .. "   "),
                br,
                "end " },
-         escape(table.concat(prefix)),
+         p { escape(table.concat(prefix)) }
       }
    )
 
@@ -197,7 +200,7 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
                  table.concat(merge_list(meta, fields), br .. "   "),
                  br,
                 "end" },
-         escape(table.concat(prefix))
+         p { escape(table.concat(prefix)) }
       }
    )
    return obj_name
@@ -323,7 +326,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
       if d.kind == "desc" then
          local name <const> = emit[node_kind](d.content, d.obj, sections)
          table.insert(table_of_contents, html {
-            a (name, { href = ("%s#%s"):format(href_prefix, name)}),
+            a (name, { href = ("#%s"):format(name) }),
          })
       elseif d.kind == "brief" then
          if brief then
@@ -346,10 +349,10 @@ local function gen_docs(filename: string, module_name: string): string, {string}
    if #sections > 0 or brief as boolean then
       table.sort(sections)
       local res: {string | TagTree} = {
-         h1 (a (module_name, { name = module_name })),
+         h2 (a (module_name, { name = module_name })),
       }
       if brief then
-         table.insert(res, brief)
+         table.insert(res, p(brief))
       end
       table.insert(sections, 1, html (res))
       table.sort(table_of_contents)
@@ -366,7 +369,7 @@ for path in fs.scan_dir("src", {"cyan/**/*"}) do
    if docs then
       info("Processed ", cs.highlight(cs.colors.file, path:tostring()))
       table.insert(table_of_contents, html {
-         p { a (mod, { href = ("%s#%s"):format(href_prefix, mod)}),
+         p { a (mod, { href = ("#%s"):format(mod), class = "module-name" }),
              br,
              table.concat(toc, br) }
       })
@@ -374,61 +377,40 @@ for path in fs.scan_dir("src", {"cyan/**/*"}) do
    end
 end
 table.sort(table_of_contents)
-for i = #table_of_contents, 1, -1 do
-   if i % 4 == 1 then
-      table.insert(table_of_contents, i, "</td><td valign=top>")
+
+local columns <const> = 3
+local modules_per_column <const> = math.floor(#table_of_contents / columns)
+
+do
+   local j = 0
+   for i = #table_of_contents, 1, -1 do
+      j = j + 1
+      if j == modules_per_column then
+         table.insert(table_of_contents, i, "</td><td valign=top>")
+         j = 0
+      end
    end
 end
 table.insert(table_of_contents, "</td></tr>")
 table.sort(output)
-local fh <const> = assert(io.open(docfile:to_real_path(), "w"))
-fh:write[[
-<!DOCTYPE html>
-<html lang="en">
-<meta charset="utf-8"/>
-<style>
-html {
-   background-color: #16191a;
-}
-body {
-   background-color: #181a1b;
-   margin: auto;
-   max-width: 70em;
-   width: 90%;
-   padding: 32px;
-   font-family: Helvetica, Arial, sans-serif;
-   color: #e8e6e3;
-}
-a {
-   text-decoration: none;
-   color: #3391ff;
-   padding: 3px 3px 3px 3px;
-}
-a:link:hover {
-   background-color: #25282A;
-   border-radius: 4px;
-}
-h1 {
-   color: #117dee;
-}
-h1::before {
-   content: "\2756";
-   padding-right: 0.5em;
-}
-h2 {
-   color: #117dee;
-}
-</style>
-<body>
-]]
-fh:write(
-   html { h1 "Api Documentation",
-          p "This documentation is autogenerated and may be incomplete",
-          br,
-          h1 "Index",
-          "<table width='100%'><tbody>", table_of_contents, "</tbody></table>" }
+
+local final_table_of_contents <const> = table.concat(table_of_contents)
+local final_output <const> = table.concat(output)
+
+local final_blob <const> = template:gsub(
+   "<!%-%-([%w ]+)%-%->",
+   function(match: string): string
+      if match == "TABLE OF CONTENTS" then
+         return final_table_of_contents
+      elseif match == "CONTENTS" then
+         return final_output
+      end
+
+      return match
+   end
 )
-fh:write(table.concat(output))
-fh:write[[</body></html>]]
+
+local fh <const> = assert(io.open(docfile:to_real_path(), "w"))
+fh:write(final_blob)
 fh:close()
 info("Wrote ", cs.highlight(cs.colors.file, docfile:to_real_path()))
