@@ -162,7 +162,7 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    assertf(body, "record_body is nil for %s", tostring(n))
 
    for c in body:named_children() do
-      if c:type() == "record_entry" then
+      if c:type() == "field" then
          local key = c:child_by_field_name("key")
          local is_string = false
          if not key then
