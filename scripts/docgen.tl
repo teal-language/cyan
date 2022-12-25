@@ -260,9 +260,9 @@ local function gen_docs(filename: string, module_name: string): string, {string}
             if sub then
                if sub == "end" then
                   if current_state == "table" then
-                     ins("</table>")
+                     ins("</table><p>")
                   elseif current_state == "code" then
-                     ins("</pre>")
+                     ins("</pre><p>")
                   end
                   current_state = nil
                elseif current_state then
@@ -270,7 +270,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
                else
                   current_state = sub
                   if current_state == "table" then
-                     ins("<table>")
+                     ins("</p><table>")
                      local row <const> = { "<tr>" }
                      for col in rest:gmatch("[^|]+") do
                         table.insert(row, "<th>" .. col .. "</th>")
@@ -278,7 +278,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
                      table.insert(row, "</tr>")
                      ins(table.concat(row))
                   elseif current_state == "code" then
-                     ins("<pre>")
+                     ins("</p><pre>")
                   end
                end
             else

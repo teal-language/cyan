@@ -57,11 +57,11 @@ This documentation is auto-generated and may be incomplete.
 <h1>Table of Contents</h1>
 
 <table width='100%'><tbody><td>
-<p><a class=module-name href=#cyan.ansi>cyan.ansi</a>
+<p><a href=#cyan.ansi class=module-name>cyan.ansi</a>
 <br></p>
-<p><a class=module-name href=#cyan.cli>cyan.cli</a>
+<p><a href=#cyan.cli class=module-name>cyan.cli</a>
 <br></p>
-<p><a class=module-name href=#cyan.colorstring>cyan.colorstring</a>
+<p><a href=#cyan.colorstring class=module-name>cyan.colorstring</a>
 <br><a href=#ColorString:len>ColorString:len</a>
 <br><a href=#ColorString:surround>ColorString:surround</a>
 <br><a href=#ColorString:to_raw>ColorString:to_raw</a>
@@ -72,20 +72,32 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#colorstring.rgb_bg>colorstring.rgb_bg</a>
 <br><a href=#colorstring.rgb_fg>colorstring.rgb_fg</a>
 </p>
-<p><a class=module-name href=#cyan.command>cyan.command</a>
+<p><a href=#cyan.command class=module-name>cyan.command</a>
 <br><a href=#Command>Command</a>
 <br><a href=#command.get>command.get</a>
 <br><a href=#command.merge_args_into_config>command.merge_args_into_config</a>
 <br><a href=#command.new>command.new</a>
 <br><a href=#command.register_all>command.register_all</a>
 </p>
-<p><a class=module-name href=#cyan.config>cyan.config</a>
+<p><a href=#cyan.config class=module-name>cyan.config</a>
 <br><a href=#Config>Config</a>
 <br><a href=#config.find>config.find</a>
 <br><a href=#config.is_config>config.is_config</a>
 <br><a href=#config.load>config.load</a>
 </p>
-<p><a class=module-name href=#cyan.fs.path>cyan.fs.path</a>
+<p><a href=#cyan.fs class=module-name>cyan.fs</a>
+<br><a href=#fs.chdir>fs.chdir</a>
+<br><a href=#fs.copy>fs.copy</a>
+<br><a href=#fs.cwd>fs.cwd</a>
+<br><a href=#fs.dir>fs.dir</a>
+<br><a href=#fs.extension_split>fs.extension_split</a>
+<br><a href=#fs.get_line>fs.get_line</a>
+<br><a href=#fs.path_concat>fs.path_concat</a>
+<br><a href=#fs.read>fs.read</a>
+<br><a href=#fs.scan_dir>fs.scan_dir</a>
+<br><a href=#fs.search_parent_dirs>fs.search_parent_dirs</a>
+</p>
+</td><td valign=top><p><a href=#cyan.fs.path class=module-name>cyan.fs.path</a>
 <br><a href=#Path.eq>Path.eq</a>
 <br><a href=#Path:ancestors>Path:ancestors</a>
 <br><a href=#Path:append>Path:append</a>
@@ -111,19 +123,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#path.ensure>path.ensure</a>
 <br><a href=#path.new>path.new</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.fs>cyan.fs</a>
-<br><a href=#fs.chdir>fs.chdir</a>
-<br><a href=#fs.copy>fs.copy</a>
-<br><a href=#fs.cwd>fs.cwd</a>
-<br><a href=#fs.dir>fs.dir</a>
-<br><a href=#fs.extension_split>fs.extension_split</a>
-<br><a href=#fs.get_line>fs.get_line</a>
-<br><a href=#fs.path_concat>fs.path_concat</a>
-<br><a href=#fs.read>fs.read</a>
-<br><a href=#fs.scan_dir>fs.scan_dir</a>
-<br><a href=#fs.search_parent_dirs>fs.search_parent_dirs</a>
-</p>
-<p><a class=module-name href=#cyan.graph>cyan.graph</a>
+<p><a href=#cyan.graph class=module-name>cyan.graph</a>
 <br><a href=#Dag:find>Dag:find</a>
 <br><a href=#Dag:insert_file>Dag:insert_file</a>
 <br><a href=#Dag:mark_each>Dag:mark_each</a>
@@ -134,7 +134,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#graph.empty>graph.empty</a>
 <br><a href=#graph.scan_dir>graph.scan_dir</a>
 </p>
-<p><a class=module-name href=#cyan.log>cyan.log</a>
+<p><a href=#cyan.log class=module-name>cyan.log</a>
 <br><a href=#Logger:cont>Logger:cont</a>
 <br><a href=#Logger:cont_nonl>Logger:cont_nonl</a>
 <br><a href=#Logger:format>Logger:format</a>
@@ -147,18 +147,18 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#log.set_prefix_padding>log.set_prefix_padding</a>
 <br><a href=#log.set_verbosity>log.set_verbosity</a>
 </p>
-<p><a class=module-name href=#cyan.meta>cyan.meta</a>
+<p><a href=#cyan.meta class=module-name>cyan.meta</a>
 <br></p>
-</td><td valign=top><p><a class=module-name href=#cyan.sandbox>cyan.sandbox</a>
+</td><td valign=top><p><a href=#cyan.sandbox class=module-name>cyan.sandbox</a>
 <br></p>
-<p><a class=module-name href=#cyan.script>cyan.script</a>
+<p><a href=#cyan.script class=module-name>cyan.script</a>
 <br><a href=#script.disable>script.disable</a>
 <br><a href=#script.emit_hook>script.emit_hook</a>
 <br><a href=#script.emitter>script.emitter</a>
 <br><a href=#script.ensure_loaded_for_command>script.ensure_loaded_for_command</a>
 <br><a href=#script.register>script.register</a>
 </p>
-<p><a class=module-name href=#cyan.tlcommon>cyan.tlcommon</a>
+<p><a href=#cyan.tlcommon class=module-name>cyan.tlcommon</a>
 <br><a href=#ParseResult>ParseResult</a>
 <br><a href=#common.init_env_from_config>common.init_env_from_config</a>
 <br><a href=#common.init_teal_env>common.init_teal_env</a>
@@ -174,7 +174,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#common.search_module>common.search_module</a>
 <br><a href=#common.type_check_ast>common.type_check_ast</a>
 </p>
-<p><a class=module-name href=#cyan.util>cyan.util</a>
+<p><a href=#cyan.util class=module-name>cyan.util</a>
 <br><a href=#str.esc>str.esc</a>
 <br><a href=#str.pad_left>str.pad_left</a>
 <br><a href=#str.split>str.split</a>
@@ -278,7 +278,7 @@ This documentation is auto-generated and may be incomplete.
 <p><p>Iterate over the leading folders in a path</p><p>ex: <code>path.new(<code>"foo/bar/baz/bat"</code>):ancestors()</code> will construct <code>Path</code> objects from <code>"foo"</code>, <code>"foo/bar"</code>, <code>"foo/bar/baz"</code></p></p>
 <h3><a name=Path:append><code>Path:append(other: string | Path)</code></a>
 </h3>
-<p><p>Mutate the given <code>Path</code> by appending another path to it</p><p>Traversals in the <code>other</code> path will be normalized</p><p><pre> local p = path.new <code>"foo/bar"</code><br> p:append <code>"../baz"</code><br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre></p></p>
+<p><p>Mutate the given <code>Path</code> by appending another path to it</p><p>Traversals in the <code>other</code> path will be normalized</p><p></p><pre> local p = path.new <code>"foo/bar"</code><br> p:append <code>"../baz"</code><br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre><p></p></p>
 <h3><a name=Path:copy><code>Path:copy(): Path</code></a>
 </h3>
 <p><p>Create a copy of the given path</p></p>
@@ -314,7 +314,7 @@ This documentation is auto-generated and may be incomplete.
 <p><p>Get the <code>"modification"</code> attribute of a file</p></p>
 <h3><a name=Path:normalize><code>Path:normalize()</code></a>
 </h3>
-<p><p>Modify path in place to remove any traversals that it can</p><p><pre> local p = path.new <code>"foo/bar/../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre></p><p>if a traversal can't be removed it will remain <pre> local p = path.new <code>"../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"../baz"</code>)<br> </pre></p></p>
+<p><p>Modify path in place to remove any traversals that it can</p><p></p><pre> local p = path.new <code>"foo/bar/../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre><p></p><p>if a traversal can't be removed it will remain </p><pre> local p = path.new <code>"../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"../baz"</code>)<br> </pre><p></p></p>
 <h3><a name=Path:prepend><code>Path:prepend(other: string | Path)</code></a>
 </h3>
 <p><p>Mutate the given <code>Path</code> by prepending another path to it</p></p>
@@ -360,7 +360,7 @@ This documentation is auto-generated and may be incomplete.
 <p><p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p></p>
 <h3><a name=fs.extension_split><code>fs.extension_split(p: Path | string, ndots: integer): string, string</code></a>
 </h3>
-<p><p>Split a path on its extension. Forces the extension to be lowercase.</p><p>the <code>ndots</code> argument lets you specify the upper limit of how many dots the extension can have</p><p>ex: <pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> fs.extension_split(<code>"foo.D.TL"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre></p></p>
+<p><p>Split a path on its extension. Forces the extension to be lowercase.</p><p>the <code>ndots</code> argument lets you specify the upper limit of how many dots the extension can have</p><p>ex: </p><pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> fs.extension_split(<code>"foo.D.TL"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre><p></p></p>
 <h3><a name=fs.get_line><code>fs.get_line(p: string, n: integer): string, string</code></a>
 </h3>
 <p><p>Gets line <code>n</code> of a file.</p><p>if the file is less than <code>n</code> lines, returns <code>nil</code></p><p>if there was an error opening the file, returns <code>nil</code>, err</p><p>Uses <code>fs.read()</code> internally, which caches reads</p></p>
@@ -410,7 +410,7 @@ This documentation is auto-generated and may be incomplete.
 <p><p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p></p>
 <h2><a name=cyan.log>cyan.log</a>
 </h2>
-<p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn<code>'t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a '</code>...'. Another function is provided, <code>create_logger</code>,</p><p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): Logger<br> </pre> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>ColorString</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>ColorString</code>) it will not be handled.</p></p>
+<p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p></p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn't strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table><p></p></p>
 <h3><a name=Logger:cont><code>Logger:cont(...: any)</code></a>
 </h3>
 <p><p>Log only using the continuation prefix.</p></p>
