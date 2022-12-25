@@ -4,7 +4,7 @@ local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
-local merge_list <const> = util.tab.merge_list
+local keys <const>, merge_list <const> = util.tab.keys, util.tab.merge_list
 
 local info = log.create_logger(
    io.stdout,
@@ -56,8 +56,10 @@ local function tag_wrapper(name: string): function(string | TagTree, {string:str
       end
       local start = { "<", name }
       if attrs then
-         for k, v in pairs(attrs) do
-            table.insert(start, (" %s=%s"):format(k, v))
+         local attr_keys <const> = util.tab.from(keys(attrs))
+         table.sort(attr_keys)
+         for _, key in ipairs(attr_keys) do
+            table.insert(start, (" %s=%s"):format(key, attrs[key]))
          end
       end
       table.insert(start, ">")
