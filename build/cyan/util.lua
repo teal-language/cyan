@@ -127,7 +127,7 @@ function tab.merge_list(a, b)
    for _, v in ipairs(b) do
       table.insert(new_list, v)
    end
-   return a
+   return new_list
 end
 
 
