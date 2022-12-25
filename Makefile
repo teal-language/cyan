@@ -46,7 +46,7 @@ test: default
 docs: docs/index.html
 rockspec: cyan-dev-1.rockspec
 
-docs/index.html: $(SRC) scripts/docgen.tl doc-template.html
+docs/index.html: $(SRC) cyan scripts/docgen.tl doc-template.html
 	./bin/cyan run scripts/docgen.tl
 
 cyan-dev-1.rockspec: $(SRC) scripts/gen_rockspec.tl

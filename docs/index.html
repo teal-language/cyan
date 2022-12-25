@@ -1,67 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-	<meta charset="utf-8"/>
-	<style>
-		html {
-			background-color: #16191a;
-		}
+<meta charset="utf-8"/>
+<style>
+html {
+	background-color: #16191a;
+}
 
-		body {
-			background-color: #18191c;
-			margin: 2em auto;
-			width: 80%;
-			max-width: 80%;
-			padding: 32px;
-			font-family: Helvetica, Arial, sans-serif;
-			color: #e8e6e3;
-			border: solid #afafcf 1px;
-			border-radius: 2em;
-		}
+body {
+	background-color: #18191c;
+	margin: 2em auto;
+	width: 80%;
+	max-width: 80%;
+	padding: 32px;
+	font-family: Helvetica, Arial, sans-serif;
+	color: #e8e6e3;
+	border: solid #afafcf 1px;
+	border-radius: 2em;
+}
 
-		a {
-			color: #3391ff;
-			text-decoration: none;
-			padding: 3px 3px 3px 3px;
-		}
+a {
+	color: #3391ff;
+	text-decoration: none;
+	padding: 3px 3px 3px 3px;
+}
 
-		a:link:hover {
-			color: #7095ff;
-			background-color: #25282A;
-			border-radius: 4px;
-		}
+a:link:hover {
+	color: #7095ff;
+	background-color: #25282A;
+	border-radius: 4px;
+}
 
-		h2::before {
-			content: "\2756";
-			padding-right: 0.5em;
-		}
+h2::before {
+	content: "\2756";
+	padding-right: 0.5em;
+}
 
-		h1, h2, h3, h4, h5, h6 {
-			color: #117dee;
-			font-family: Verdana, Geneva, sans-serif;
-		}
+h1, h2, h3, h4, h5, h6 {
+	color: #117dee;
+	font-family: Verdana, Geneva, sans-serif;
+}
 
-		p, pre, table {
-			padding-left: 2%;
-		}
+p, pre, table {
+	padding-left: 2%;
+}
 
-		.module-name:before { content: "\2756 "; }
-		.module-name { font-weight: bold; }
-	</style>
+.module-name:before { content: "\2756 "; }
+.module-name { font-weight: bold; }
+</style>
 
-	<body>
-		<h1>Cyan API Documentation</h1>
-		<p>
-		This documentation is auto-generated and may be incomplete.
-		</p>
+<body>
+<h1>Cyan API Documentation</h1>
+<p>
+This documentation is auto-generated and may be incomplete.
+</p>
 
-		<h1>Table of Contents</h1>
+<h1>Table of Contents</h1>
 
-		<table width='100%'><tbody>
-		<p><a class=module-name href=#cyan.ansi>cyan.ansi</a>
+<table width='100%'><tbody><td>
+<p><a class=module-name href=#cyan.ansi>cyan.ansi</a>
 <br></p>
 <p><a class=module-name href=#cyan.cli>cyan.cli</a>
 <br></p>
-</td><td valign=top><p><a class=module-name href=#cyan.colorstring>cyan.colorstring</a>
+<p><a class=module-name href=#cyan.colorstring>cyan.colorstring</a>
 <br><a href=#ColorString:len>ColorString:len</a>
 <br><a href=#ColorString:surround>ColorString:surround</a>
 <br><a href=#ColorString:to_raw>ColorString:to_raw</a>
@@ -192,10 +192,10 @@
 <br><a href=#tab.sort_in_place>tab.sort_in_place</a>
 <br><a href=#tab.values>tab.values</a>
 </p>
-</td></tr>
-		</tbody></table>
+</td>
+</td></tbody></table>
 
-		<h2><a name=cyan.ansi>cyan.ansi</a>
+<h2><a name=cyan.ansi>cyan.ansi</a>
 </h2>
 <p><p>A small utility library for grabbing the ANSI escapes for colors and such</p></p>
 <h2><a name=cyan.cli>cyan.cli</a>
@@ -218,7 +218,7 @@
 <p><p>Converts a <code>Colorstring</code> to a regular string with the correct ANSI escapes</p></p>
 <h3><a name=ColorString><code>type ColorString</code></a>
 </h3>
-<pre>record ColorString<br>   metamethod __len: function(ColorString): integer<br>   metamethod __concat: function(ColorString | string, ColorString | string): ColorString<br>end</pre>
+<pre>record ColorString<br>   metamethod __len: function(ColorString): integer<br>   metamethod __concat: function(ColorString | string, ColorString | string): ColorString<br>   content: {string | {integer}}<br>   len: function(ColorString): integer<br>   tostring: function(ColorString): string<br>end</pre>
 <p><p>The main object that this library consumes and produces. It basically implements the <code>'string'</code> interface and can be used wherever a string is.</p><p>Colors are described as arrays of numbers that directly correspond to ANSI escape sequences</p></p>
 <h3><a name=colorstring.highlight><code>colorstring.highlight(hl: {integer}, str: string): ColorString</code></a>
 </h3>
@@ -237,7 +237,7 @@
 <p><p>The common interface for commands to implement</p></p>
 <h3><a name=Command><code>type Command</code></a>
 </h3>
-<pre>record Command<br>   <br>end</pre>
+<pre>record Command<br>   name: string<br>   description: string<br>   argparse: function(argparse.Command)<br>   script_hooks: {string}<br>   exec: CommandFn<br>end</pre>
 <p><p>The interface</p></p>
 <h3><a name=command.get><code>command.get(name: string): Command</code></a>
 </h3>
@@ -256,7 +256,7 @@
 <p><p>Config loading API</p></p>
 <h3><a name=Config><code>type Config</code></a>
 </h3>
-<pre>record Config<br>   <br>end</pre>
+<pre>record Config<br>   loaded_from: fs.Path<br>   build_dir: string<br>   source_dir: string<br>   include: {string}<br>   exclude: {string}<br>   global_env_def: string<br>   include_dir: {string}<br>   module_name: string<br>   scripts: {string:{string:string|{string}}}<br>   gen_compat: tl.CompatMode<br>   gen_target: tl.TargetMode<br>   disable_warnings: {tl.WarningKind}<br>   warning_error: {tl.WarningKind}<br>   externals: {string:any}<br>end</pre>
 <p><p>The config data</p></p>
 <h3><a name=config.find><code>config.find(): fs.Path</code></a>
 </h3>
@@ -335,7 +335,7 @@
 <p><p>Convert a path to a string. Always uses <code>'/'</code> as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use <code>Path:to_real_path()</code></p><p>Used for the __tostring metamethod</p></p>
 <h3><a name=Path><code>type Path</code></a>
 </h3>
-<pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>end</pre>
+<pre>record Path<br>   metamethod __concat: function(Path | string, Path | string): Path<br>   metamethod __eq: function(Path | string, Path | string): boolean<br>   {string}<br>end</pre>
 <p><p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p></p>
 <h3><a name=path.ensure><code>path.ensure(s: string | Path, use_os_sep: boolean): Path</code></a>
 </h3>
@@ -400,7 +400,7 @@
 <p><p>The graph object</p></p>
 <h3><a name=Node><code>type Node</code></a>
 </h3>
-<pre>record Node<br>   <br>end</pre>
+<pre>record Node<br>   input: fs.Path<br>   output: fs.Path<br>   modules: {string:fs.Path}<br>   mark: Mark<br>   dependents: {Node:boolean}<br>end</pre>
 <p><p>The nodes that are stored in the graph</p></p>
 <h3><a name=graph.empty><code>graph.empty(): Dag</code></a>
 </h3>
@@ -431,7 +431,7 @@
 <p><p>Returns whether the current verbosity is less than or equal to this loggers verbosity threshold.</p></p>
 <h3><a name=Logger><code>type Logger</code></a>
 </h3>
-<pre>record Logger<br>   metamethod __call: function(...: any)<br>end</pre>
+<pre>record Logger<br>   metamethod __call: function(...: any)<br>   stream: FILE<br>   verbosity_threshold: Verbosity<br>   prefix: string | cs.ColorString<br>   continuation: string | cs.ColorString<br>   inspector: function(any): string<br>end</pre>
 <p><p>The data needed for a logger to do its job.</p></p>
 <h3><a name=Verbosity><code>type Verbosity</code></a>
 </h3>
@@ -481,7 +481,7 @@
 <p><p>Common things needed by most commands in addition to wrappers around the tl api, since it isn't super stable</p></p>
 <h3><a name=ParseResult><code>type ParseResult</code></a>
 </h3>
-<pre>record ParseResult<br>   <br>end</pre>
+<pre>record ParseResult<br>   tks: {Token}<br>   ast: Node<br>   reqs: {string}<br>   errs: {tl.Error}<br>end</pre>
 <p><p>The result from parsing source code including the tokens, ast, calls to require, and errors</p></p>
 <h3><a name=common.init_env_from_config><code>common.init_env_from_config(cfg: config.Config): tl.Env, string</code></a>
 </h3>
@@ -574,5 +574,5 @@
 </h3>
 <p><p>Iterate over the values of a map</p></p>
 
-	</body>
+</body>
 </html>

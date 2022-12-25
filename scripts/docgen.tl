@@ -361,6 +361,8 @@ local function gen_docs(filename: string, module_name: string): string, {string}
 end
 
 local table_of_contents <const> = {}
+local table_of_contents_line_count <const>: {integer} = {}
+local total_lines = 0
 local output <const> = {}
 for path in fs.scan_dir("src", {"cyan/**/*"}) do
    local file <const> = ("src" .. path):to_real_path()
@@ -373,25 +375,28 @@ for path in fs.scan_dir("src", {"cyan/**/*"}) do
              br,
              table.concat(toc, br) }
       })
+      table.insert(table_of_contents_line_count, #toc)
+      total_lines = total_lines + #toc
       table.insert(output, docs)
    end
 end
 table.sort(table_of_contents)
 
 local columns <const> = 3
-local modules_per_column <const> = math.floor(#table_of_contents / columns)
+local new_column_threshold <const> = math.floor(total_lines / columns)
 
 do
-   local j = 0
+   local rows = 0
    for i = #table_of_contents, 1, -1 do
-      j = j + 1
-      if j == modules_per_column then
+      rows = rows + table_of_contents_line_count[i]
+      if rows >= new_column_threshold then
          table.insert(table_of_contents, i, "</td><td valign=top>")
-         j = 0
+         rows = 0
       end
    end
 end
-table.insert(table_of_contents, "</td></tr>")
+
+table.insert(table_of_contents, "</td>")
 table.sort(output)
 
 local final_table_of_contents <const> = table.concat(table_of_contents)
