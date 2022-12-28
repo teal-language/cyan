@@ -108,7 +108,14 @@ end
 local html_escape_map <const> = {
    ["<"] = "&lt;",
    [">"] = "&gt;",
+   ["'"] = "&apos;",
+   ['"'] = "&quot;",
+   ['&'] = "&amp;",
 }
+
+local function escape_html_chars(str: string): string, integer
+   return str:gsub("[<>'\"&]", html_escape_map)
+end
 
 emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string}): string
    local sig <const> = n:child_by_field_name("signature")
@@ -120,7 +127,7 @@ emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string
       out,
       html {
          doc_header({ name,
-                      typeargs and typeargs:source():gsub("[<>]", html_escape_map) or "",
+                      typeargs and escape_html_chars(typeargs:source()) or "",
                       sig:child_by_field_name("arguments"):source(),
                       (ret and ": " .. ret:source() or "") },
                     name),
@@ -293,7 +300,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
                if current_state == "table" then
                   local row = { "<tr>" }
                   for col in line:gmatch("[^|]+") do
-                     table.insert(row, "<td>" .. col .. "</td>")
+                     table.insert(row, "<td>" .. escape_html_chars(col) .. "</td>")
                   end
                   table.insert(row, "</tr>")
                   ins(table.concat(row))
