@@ -4,7 +4,7 @@ local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
-local keys <const>, merge_list <const> = util.tab.keys, util.tab.merge_list
+local keys <const> = util.tab.keys
 
 local info = log.create_logger(
    io.stdout,
@@ -170,7 +170,7 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    local body <const> = n:child_by_field_name("record_body")
    assertf(body, "record_body is nil for %s", tostring(n))
 
-   local has_private_fields = false
+   local private_fields <const> = {}
 
    for c in body:named_children() do
       if c:type() == "field" then
@@ -181,16 +181,14 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
             is_string = true
          end
 
-         if key:source():sub(1, 1) == "_" then
-            has_private_fields = true
-         else
-            local t = c:child_by_field_name("type")
-            table.insert(
-               fields,
-               (is_string and "[%s]" or "%s"):format(key:source())
-                  .. ": " .. t:source()
-            )
-         end
+         -- FIXME: properly parse out the key when it is a string
+         local is_private <const> = key:source():sub(1, 1) == "_" or is_string and key:source():sub(2, 2) == "_"
+         local t = c:child_by_field_name("type")
+         table.insert(
+            is_private and private_fields or fields,
+            (is_string and "[%s]" or "%s"):format(key:source())
+               .. ": " .. t:source()
+         )
       elseif c:type() == "metamethod" then
          table.insert(
             meta,
@@ -205,19 +203,37 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
       end
    end
 
-   if has_private_fields then
-      table.insert(fields, "-- ... private fields ...")
+   local obj_name <const> = n:child_by_field_name("name"):source()
+
+   local pre_contents <const> = { "record ", obj_name }
+
+   if #fields > 0 then
+      table.insert(pre_contents, br .. "   " .. table.concat(fields, br .. "   "))
    end
 
-   local obj_name <const> = n:child_by_field_name("name"):source()
+   if #meta > 0 then
+      if #fields > 0 then
+         table.insert(pre_contents, br)
+      end
+      table.insert(pre_contents, br .. "   " .. table.concat(meta, br .. "   "))
+   end
+
+   if #private_fields > 0 then
+      if #fields > 0 or #meta > 0 then
+         table.insert(pre_contents, br)
+      end
+      table.insert(pre_contents, br .. "   <details><summary class=\"private-field-comment\">-- private fields</summary>" .. br .. "   ")
+      table.insert(pre_contents, table.concat(private_fields, br .. "   "))
+      table.insert(pre_contents, "</details>")
+   end
+
+   table.insert(pre_contents, br .. "end")
+
    table.insert(
       out,
       html {
          doc_header ({"type ", obj_name}, obj_name),
-         pre  { "record ", obj_name, br, "   ",
-                 table.concat(merge_list(meta, fields), br .. "   "),
-                 br,
-                "end" },
+         pre (pre_contents),
          p { escape(table.concat(prefix)) }
       }
    )
