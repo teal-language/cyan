@@ -170,6 +170,8 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    local body <const> = n:child_by_field_name("record_body")
    assertf(body, "record_body is nil for %s", tostring(n))
 
+   local has_private_fields = false
+
    for c in body:named_children() do
       if c:type() == "field" then
          local key = c:child_by_field_name("key")
@@ -179,7 +181,9 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
             is_string = true
          end
 
-         if key:source():sub(1, 1) ~= "_" then
+         if key:source():sub(1, 1) == "_" then
+            has_private_fields = true
+         else
             local t = c:child_by_field_name("type")
             table.insert(
                fields,
@@ -200,6 +204,11 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
          )
       end
    end
+
+   if has_private_fields then
+      table.insert(fields, "-- ... private fields ...")
+   end
+
    local obj_name <const> = n:child_by_field_name("name"):source()
    table.insert(
       out,
