@@ -1,14 +1,19 @@
-
 name: test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
 
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
-        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit" ]
+        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit"]
 
     runs-on: ubuntu-latest
 
