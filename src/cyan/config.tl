@@ -157,7 +157,10 @@ function config.is_config(c: any): Config, {string}, {string}
             table.insert(warnings, string.format("Unknown key '%s'", k))
          elseif valid is {string:boolean} then
             if not valid[v as string] then
-               table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sort(from(keys(valid))), ", "))
+               -- TODO(tl bug): inlining this call produces this error?
+               -- src/cyan/config.tl:161:117: argument 1: in map key: got string | number, expected string
+               local sorted <const> = sort(from(keys(valid)))
+               table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sorted, ", "))
             end
          else
             local vtype <const> = get_array_type(v, valid:match("^{(.*)}$"))

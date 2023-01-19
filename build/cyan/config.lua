@@ -157,7 +157,10 @@ function config.is_config(c)
             table.insert(warnings, string.format("Unknown key '%s'", k))
          elseif type(valid) == "table" then
             if not valid[v] then
-               table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sort(from(keys(valid))), ", "))
+
+
+               local sorted = sort(from(keys(valid)))
+               table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sorted, ", "))
             end
          else
             local vtype = get_array_type(v, valid:match("^{(.*)}$"))

@@ -37,41 +37,25 @@ local common <const> = {
    ParseResult = ParseResult,
 }
 
-local lex_cache <const>: {string:{{Token}, {Token}}} = {}
+local lex_cache <const>: {string:{{Token}, {tl.Error}}} = {}
 
 ---@desc
 --- reads a file, calls `tl.lex` on its contents, caches and returns the results
-function common.lex_file(path: string): {Token}, {Token}, string
+function common.lex_file(path: string): {Token}, {tl.Error}, string
    if not lex_cache[path] then
       local src <const>, read_err <const> = fs.read(path)
       if not src then
          return nil, nil, read_err
       end
-      local tks <const>, errs <const> = tl.lex(src) as ({Token}, {Token})
+      local tks <const>, errs <const> = tl.lex(src, path) as ({Token}, {tl.Error})
       lex_cache[path] = {tks, errs}
       return tks, errs
    end
    return lex_cache[path][1], lex_cache[path][2]
 end
 
-local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): integer, Node, {string}
+local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): (Node, {string})
 local parse_cache <const>: {string:ParseResult} = {}
-
-local function invalid_tokens_to_errs(fname: string, tks: {Token}): {tl.Error}
-   local errs <const> = {}
-   for i, tk in ipairs(tks) do
-      errs[i] = {
-         x = tk.x,
-         y = tk.y,
-         msg = "Invalid token: `" .. tk.tk .. "`",
-         filename = fname,
-      }
-      if tk.tk == "!" then
-         errs[i].msg = errs[i].msg .. " (hint: Lua and Teal use `not` and `~=` instead of `!` and `!=`)"
-      end
-   end
-   return errs
-end
 
 ---@desc
 --- calls `lex_file`, parses the token stream, caches and returns the results
@@ -82,14 +66,14 @@ function common.parse_file(path: string): ParseResult, string
          return nil, f_err
       end
 
-      if lex_errs then
+      if #lex_errs > 0 then
          parse_cache[path] = {
             tks = tks,
-            errs = invalid_tokens_to_errs(path, lex_errs),
+            errs = lex_errs,
          }
       else
          local errs <const>: {tl.Error} = {}
-         local _, ast <const>, reqs <const> = parse_program(tks, errs, path)
+         local ast <const>, reqs <const> = parse_program(tks, errs, path)
 
          parse_cache[path] = {
             tks = tks,
@@ -102,10 +86,10 @@ function common.parse_file(path: string): ParseResult, string
    return parse_cache[path]
 end
 
-local type_check = tl.type_check as function(Node, tl.TypeCheckOptions): tl.Result
+local type_check <const> = tl.type_check as function(Node, tl.TypeCheckOptions): (tl.Result, string)
 ---@desc
 --- Just type checks an ast
-function common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result
+function common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result, string
    return type_check(ast, opts)
 end
 

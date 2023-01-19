@@ -142,26 +142,37 @@ local function build(args, loaded_config, starting_dir)
    local to_write = {}
    local function process_node(n, compile)
       local path = n.input:to_real_path()
+      local disp_path = display_filename(n.input)
       local out = get_output_name(n.input)
       n.output = out
-      local parsed = common.parse_file(path)
+      local parsed, parse_err = common.parse_file(path)
+      if not parsed then
+         log.err("Could not parse ", disp_path, ":\n   ", parse_err)
+         exit = 1
+         return
+      end
       if #parsed.errs > 0 then
          common.report_errors(log.err, parsed.errs, path, "syntax error")
          exit = 1
          return
       end
 
-      local result = common.type_check_ast(parsed.ast, {
+      local result, check_ast_err = common.type_check_ast(parsed.ast, {
          filename = path,
          env = env,
       })
+      if not result then
+         log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
+         exit = 1
+         return
+      end
 
       if not common.report_result(result, loaded_config) then
          exit = 1
          return
       end
 
-      log.info("Type checked ", display_filename(n.input))
+      log.info("Type checked ", disp_path)
       if compile then
          local ok, err = n.output:mk_parent_dirs()
          if ok then

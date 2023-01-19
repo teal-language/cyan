@@ -142,26 +142,37 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    local to_write <const> = {}
    local function process_node(n: graph.Node, compile: boolean)
       local path <const> = n.input:to_real_path()
+      local disp_path <const> = display_filename(n.input)
       local out <const> = get_output_name(n.input)
       n.output = out
-      local parsed <const> = common.parse_file(path)
+      local parsed <const>, parse_err <const> = common.parse_file(path)
+      if not parsed then
+         log.err("Could not parse ", disp_path, ":\n   ", parse_err)
+         exit =1
+         return
+      end
       if #parsed.errs > 0 then
          common.report_errors(log.err, parsed.errs, path, "syntax error")
          exit = 1
          return
       end
 
-      local result <const> = common.type_check_ast(parsed.ast, {
+      local result <const>, check_ast_err <const> = common.type_check_ast(parsed.ast, {
          filename = path,
          env = env,
       })
+      if not result then
+         log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
+         exit = 1
+         return
+      end
 
       if not common.report_result(result, loaded_config) then
          exit = 1
          return
       end
 
-      log.info("Type checked ", display_filename(n.input))
+      log.info("Type checked ", disp_path)
       if compile then
          local ok <const>, err <const> = n.output:mk_parent_dirs()
          if ok then

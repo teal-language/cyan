@@ -90,7 +90,8 @@ function script.register(path: string, command_name: string, hooks: string | {st
       registered[command_name] = {}
    end
    local reg <const> = registered[command_name]
-   for hook in ivalues(hooks is string and {hooks} or hooks) do
+   -- TODO(tl bug)
+   for hook in ivalues((hooks is string and {hooks} or hooks) as {string}) do
       if not reg[hook] then
          reg[hook] = {}
       end

@@ -180,7 +180,7 @@ local function unchecked_insert(dag, f, in_dir)
    local n = make_node(f)
    dag._nodes_by_filename[real_path] = n
 
-   for mod_name in ivalues(res.reqs) do
+   for mod_name in ivalues(res.reqs or {}) do
 
 
       local search_result = common.search_module(mod_name)
@@ -265,7 +265,7 @@ function graph.scan_dir(dir, include, exclude)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" or ext == ".lua" then
-         unchecked_insert(d, dir .. p, dir)
+         unchecked_insert(d, (dir) .. p, dir)
       end
    end
 

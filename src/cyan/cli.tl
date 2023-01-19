@@ -31,7 +31,7 @@ parser:option("-I --include-dir", "Prepend this directory to the module search p
       :argname("<directory>")
       :count("*")
 
-local warnings <const>: {string} = sort(from(keys(tl.warning_kinds)))
+local warnings <const>: {string} = sort(from(keys(tl.warning_kinds))) as {string}
 table.insert(warnings, "all")
 parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings")
       :argname("<warning>")

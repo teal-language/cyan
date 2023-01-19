@@ -180,7 +180,7 @@ local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
    local n <const>: Node = make_node(f)
    dag._nodes_by_filename[real_path] = n
 
-   for mod_name in ivalues(res.reqs) do
+   for mod_name in ivalues(res.reqs or {}) do
       -- We don't search for .d.tl files here because we don't want to generate
       -- anything for them
       local search_result = common.search_module(mod_name)
@@ -265,7 +265,7 @@ function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {stri
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" or ext == ".lua" then
-         unchecked_insert(d, dir .. p, dir)
+         unchecked_insert(d, (dir as fs.Path) .. p, dir as fs.Path)
       end
    end
 

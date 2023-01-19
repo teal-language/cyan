@@ -69,16 +69,22 @@ local function command_exec(should_compile)
             return
          end
          if #parsed.errs > 0 then
+            log.debug(parsed.errs, "\n", real_path)
             common.report_errors(log.err, parsed.errs, real_path, "syntax error")
             exit = 1
             return
          end
-         local result = common.type_check_ast(parsed.ast, {
+         local result, err = common.type_check_ast(parsed.ast, {
             filename = real_path,
             env = env,
             gen_compat = loaded_config.gen_compat,
             gen_target = loaded_config.gen_target,
          })
+         if not result then
+            log.err("Could not type check ", disp_file, ":\n   ", err)
+            exit = 1
+            return
+         end
          if common.result_has_errors(result, loaded_config) then
             exit = 1
             return

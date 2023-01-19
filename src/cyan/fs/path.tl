@@ -198,7 +198,7 @@ function Path:prepend(other: string | Path)
    local other_len <const> = #other
    table.move(self, 1, #self, other_len + 1)
    for i = 1, other_len do
-      self[i] = other[i]
+      self[i] = (other as Path)[i]
    end
 end
 
