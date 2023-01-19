@@ -283,8 +283,9 @@ function common.report_result(r: tl.Result, c: config.Config): boolean
    end
 
    report(log.warn, warnings, "warning")
-   return report(log.err, werrors, "warning error")
-      and report(log.err, r.type_errors, "type error")
+   local warning_errs <const> = report(log.err, werrors, "warning error")
+   local type_errs <const> = report(log.err, r.type_errors, "type error")
+   return warning_errs and type_errs
 end
 
 ---@desc
