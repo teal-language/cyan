@@ -21,6 +21,7 @@ This file describes the layout of your project by returning a table with the fol
 | `warning_error`    | `--werror`           | `{tl.WarningKind}`  | Promote the provided warnings to errors |
 |                    | `-q` `--quiet`       |                     | Do not print info to stdout. Errors may still be printed to stderr |
 |                    | `-v` `--verbosity`   | one of `quiet`, `normal`, `extra`, `debug` |  Determines how much logging is done |
+| `dont_prune`       |                      | `{string}`          | Don't prune the given list of file [patterns](#Patterns) when running `build --prune` and don't warn when just running `build` |
 
 ## Patterns
 
