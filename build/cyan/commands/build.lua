@@ -242,7 +242,11 @@ local function build(args, loaded_config, starting_dir)
       local unexpected_files = {}
       for p in fs.scan_dir(build_dir) do
          log.debug("checking if ", p:tostring(), " is expected...")
-         if expected_files[p:tostring()] then
+         local full = build_dir .. p
+         local _, ignore_patt = full:match_any(loaded_config.dont_prune or {})
+         if ignore_patt then
+            log.debug("   yes (ignored by pattern ", ignore_patt, ")")
+         elseif expected_files[p:tostring()] then
             log.debug("   yes")
          else
             log.debug("   no")

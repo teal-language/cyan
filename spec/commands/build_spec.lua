@@ -406,4 +406,20 @@ describe("build command", function()
          })
       end)
    end)
+   describe("#tlconfig ignore_files", function()
+      it("should not warn about ignored files in the build directory", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            args = {},
+            dir_structure = {
+               [util.configfile] = [[return { source_dir = "src", build_dir = "build", dont_prune = { "build/to-ignore.txt" } }]],
+               src = {},
+               build = { ["to-ignore.txt"] = "hi" },
+            },
+            exit_code = 0,
+            generated_files = { build = { "foo.lua" } },
+            cmd_output_not_match = "%-%-prune",
+         })
+      end)
+   end)
 end)

@@ -24,6 +24,8 @@ local record Config
    include_dir: {string}
    module_name: string
 
+   dont_prune: {string}
+
    -- { Command Name -> { Hook Name -> File(s) } }
    scripts: {string:{string:string|{string}}}
 
@@ -97,12 +99,14 @@ function config.is_config(c: any): Config, {string}, {string}
       include = "{string}",
       exclude = "{string}",
 
+      dont_prune = "{string}",
+
       include_dir = "{string}",
       global_env_def = "string",
       scripts = "{string : {string : (string | {string}) }}",
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
-      gen_target = { ["5.1"] = true, ["5.3"] = true },
+      gen_target = { ["5.1"] = true, ["5.3"] = true, ["5.4"] = true },
 
       disable_warnings = "{string}",
       warning_error = "{string}",
