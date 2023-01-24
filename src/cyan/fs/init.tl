@@ -91,9 +91,21 @@ end
 --- Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
 ---
 --- For information on path patterns, see the `Path:match()` method
-function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): function(): Path
+function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}, include_directories: boolean): function(): Path
    include = include or {}
    exclude = exclude or {}
+   local function matches(to_match: Path): boolean
+      local inc: number = nil
+      if #include > 0 then
+         inc = to_match:match_any(include)
+      else
+         inc = 0
+      end
+      if inc and #exclude > 0 then
+         return not to_match:match_any(exclude)
+      end
+      return inc ~= nil
+   end
    local function dir_iter(_d: string | Path)
       local d <const> = ensure(_d)
       for p in fs.dir(d) do
@@ -103,16 +115,12 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}): 
          local to_match <const> = full:copy()
          to_match:remove_leading(dir)
          if full:is_directory() then
+            if include_directories and matches(to_match) then
+               coroutine.yield(to_match)
+            end
             dir_iter(full)
          else
-            local inc: boolean | number = true
-            if #include > 0 then
-               inc = to_match:match_any(include)
-            end
-            if inc and #exclude > 0 then
-               inc = not to_match:match_any(exclude)
-            end
-            if inc then
+            if matches(to_match) then
                coroutine.yield(to_match)
             end
          end
