@@ -98,8 +98,8 @@ local function build(args, loaded_config, starting_dir)
 
    log.debug("Built dependency graph")
 
-   local function display_filename(f)
-      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring())
+   local function display_filename(f, trailing_slash)
+      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
    end
 
    local function get_output_name(src)
@@ -237,10 +237,14 @@ local function build(args, loaded_config, starting_dir)
          local p = get_output_name(n.input)
          p:remove_leading(build_dir)
          expected_files[p:tostring()] = true
+         for ancestor in p:ancestors() do
+            expected_files[ancestor:tostring()] = true
+         end
       end
 
       local unexpected_files = {}
-      for p in fs.scan_dir(build_dir) do
+      local unexpected_directories = {}
+      for p in fs.scan_dir(build_dir, nil, nil, true) do
          log.debug("checking if ", p:tostring(), " is expected...")
          local full = build_dir .. p
          local _, ignore_patt = full:match_any(loaded_config.dont_prune or {})
@@ -250,28 +254,40 @@ local function build(args, loaded_config, starting_dir)
             log.debug("   yes")
          else
             log.debug("   no")
-            table.insert(unexpected_files, p)
+            local full = build_dir .. p
+            table.insert(full:is_directory() and unexpected_directories or unexpected_files, p)
          end
       end
 
-      if #unexpected_files > 0 then
+      if #unexpected_files > 0 or #unexpected_directories > 0 then
          if args.prune then
-            for _, p in ipairs(unexpected_files) do
+            local cwd = fs.cwd()
+            local function prune(p, kind)
                local file = build_dir .. p
                local disp = display_filename(file)
-               local real = file:relative_to(fs.cwd())
+               local real = file:relative_to(cwd)
                local ok, err = os.remove(real:to_real_path())
                if ok then
-                  log.info("Pruned file ", disp)
+                  log.info("Pruned ", kind, " ", disp)
                else
-                  log.err("Unable to prune file '", disp, "': ", err)
+                  log.err("Unable to prune ", kind, " '", disp, "': ", err)
                end
+            end
+            for _, p in ipairs(unexpected_files) do
+               prune(p, "file")
+            end
+            for _, p in ipairs(unexpected_directories) do
+               prune(p, "directory")
             end
          else
             local strs = {}
             for _, p in ipairs(unexpected_files) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p))
+            end
+            for _, p in ipairs(unexpected_directories) do
+               table.insert(strs, "\n   ")
+               table.insert(strs, display_filename(p, true))
             end
             table.insert(strs, "\nhint: use `cyan build --prune` to automatically delete these files")
             log.warn("Unexpected files in build directory:", _tl_table_unpack(strs))
