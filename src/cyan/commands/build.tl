@@ -98,8 +98,8 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
 
    log.debug("Built dependency graph")
 
-   local function display_filename(f: fs.Path): cs.ColorString
-      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring())
+   local function display_filename(f: fs.Path, trailing_slash: boolean): cs.ColorString
+      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
    end
 
    local function get_output_name(src: fs.Path): fs.Path
@@ -148,7 +148,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       local parsed <const>, parse_err <const> = common.parse_file(path)
       if not parsed then
          log.err("Could not parse ", disp_path, ":\n   ", parse_err)
-         exit =1
+         exit = 1
          return
       end
       if #parsed.errs > 0 then
@@ -237,37 +237,53 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          local p = get_output_name(n.input)
          p:remove_leading(build_dir)
          expected_files[p:tostring()] = true
+         for ancestor in p:ancestors() do
+            expected_files[ancestor:tostring()] = true
+         end
       end
 
       local unexpected_files <const>: {fs.Path} = {}
-      for p in fs.scan_dir(build_dir) do
+      local unexpected_directories <const>: {fs.Path} = {}
+      for p in fs.scan_dir(build_dir, nil, nil, true) do
          log.debug("checking if ", p:tostring(), " is expected...")
          if expected_files[p:tostring()] then
             log.debug("   yes")
          else
             log.debug("   no")
-            table.insert(unexpected_files, p)
+            local full <const> = build_dir .. p
+            table.insert(full:is_directory() and unexpected_directories or unexpected_files, p)
          end
       end
 
-      if #unexpected_files > 0 then
+      if #unexpected_files > 0 or #unexpected_directories > 0 then
          if args.prune then
-            for _, p in ipairs(unexpected_files) do
+            local cwd <const> = fs.cwd()
+            local function prune(p: fs.Path, kind: string)
                local file <const> = build_dir .. p
                local disp <const> = display_filename(file)
-               local real <const> = file:relative_to(fs.cwd())
+               local real <const> = file:relative_to(cwd)
                local ok <const>, err <const> = os.remove(real:to_real_path())
                if ok then
-                  log.info("Pruned file ", disp)
+                  log.info("Pruned ", kind, " ", disp)
                else
-                  log.err("Unable to prune file '", disp, "': ", err)
+                  log.err("Unable to prune ", kind, " '", disp, "': ", err)
                end
+            end
+            for _, p in ipairs(unexpected_files) do
+               prune(p, "file")
+            end
+            for _, p in ipairs(unexpected_directories) do
+               prune(p, "directory")
             end
          else
             local strs <const>: {string | cs.ColorString} = {}
             for _, p in ipairs(unexpected_files) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p))
+            end
+            for _, p in ipairs(unexpected_directories) do
+               table.insert(strs, "\n   ")
+               table.insert(strs, display_filename(p, true))
             end
             table.insert(strs, "\nhint: use `cyan build --prune` to automatically delete these files")
             log.warn("Unexpected files in build directory:", table.unpack(strs))

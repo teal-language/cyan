@@ -374,6 +374,27 @@ describe("build command", function()
             },
          })
       end)
+      it("should delete unexpected directories from the build directory", function()
+         util.run_mock_project(finally, {
+            cmd = "build",
+            args = { "--prune" },
+            dir_structure = {
+               [util.configfile] = [[return { build_dir = "build" }]],
+               build = {
+                  foo = {
+                     ["foo.txt"] = [[]],
+                  },
+               },
+               ["bar.tl"] = [[print 'hello']],
+            },
+            exit_code = 0,
+            cmd_output_match_lines = {
+               "Type checked.*bar%.tl",
+               "Wrote.*bar%.lua",
+               "Pruned.*foo/foo%.txt",
+            },
+         })
+      end)
    end)
    describe("--source-dir", function()
       it("should override the directory with the source files in it", function()
