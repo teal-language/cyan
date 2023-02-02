@@ -214,7 +214,7 @@ local function build(args, loaded_config, starting_dir)
       else
          local generated, gen_err = common.compile_ast(ast, loaded_config.gen_target)
          if generated then
-            fh:write(generated)
+            fh:write(generated, "\n")
             fh:close()
             log.info("Wrote ", display_filename(n.output))
          else
@@ -254,7 +254,6 @@ local function build(args, loaded_config, starting_dir)
             log.debug("   yes")
          else
             log.debug("   no")
-            local full = build_dir .. p
             table.insert(full:is_directory() and unexpected_directories or unexpected_files, p)
          end
       end

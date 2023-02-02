@@ -125,7 +125,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
             if fh then
                local generated <const>, gen_err <const> = common.compile_ast(data.output_ast, loaded_config.gen_target)
                if generated then
-                  fh:write(common.compile_ast(data.output_ast, loaded_config.gen_target))
+                  fh:write(generated, "\n")
                   fh:close()
                   log.info("Wrote ", data.disp_outfile)
                else
