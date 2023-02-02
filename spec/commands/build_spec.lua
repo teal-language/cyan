@@ -434,7 +434,7 @@ describe("build command", function()
             args = {},
             dir_structure = {
                [util.configfile] = [[return { source_dir = "src", build_dir = "build", dont_prune = { "build/to-ignore.txt" } }]],
-               src = {},
+               src = { ["foo.tl"] = [[print "hey"]] },
                build = { ["to-ignore.txt"] = "hi" },
             },
             exit_code = 0,
@@ -442,5 +442,23 @@ describe("build command", function()
             cmd_output_not_match = "%-%-prune",
          })
       end)
+   end)
+   it("should not write lua files when source_dir == build_dir", function()
+      local foo_contents = [[
+-- comment
+print "hi"
+]]
+      util.run_mock_project(finally, {
+         cmd = "build",
+         args = {},
+         dir_structure = {
+            [util.configfile] = [[return { source_dir = "dir", build_dir = "dir" }]],
+            dir = {
+               ["foo.lua"] = foo_contents,
+            },
+         },
+         exit_code = 0,
+         cmd_output_not_match = "Wrote"
+      })
    end)
 end)

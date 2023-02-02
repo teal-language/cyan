@@ -85,6 +85,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    if source_dir == starting_dir then
       table.insert(exclude, "tlconfig.lua")
    end
+   local dont_write_lua_files <const> = source_dir == build_dir
 
    local dag <const>, cycles <const> = graph.scan_dir(source_dir, include, exclude)
    if not dag then
@@ -173,7 +174,8 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       end
 
       log.info("Type checked ", disp_path)
-      if compile then
+      local is_lua <const> = select(2, fs.extension_split(path)) == ".lua"
+      if compile and not (is_lua and dont_write_lua_files) then
          local ok <const>, err <const> = n.output:mk_parent_dirs()
          if ok then
             table.insert(to_write, {n, parsed.ast})
