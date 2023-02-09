@@ -7,6 +7,7 @@ local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
 local cs = require("cyan.colorstring")
+local event = require("cyan.event")
 local fs = require("cyan.fs")
 local graph = require("cyan.graph")
 local log = require("cyan.log")
@@ -173,7 +174,7 @@ local function build(args, loaded_config, starting_dir)
          return
       end
 
-      log.info("Type checked ", disp_path)
+      event.emit("type_checked_file", { file = path }, log.info)
       local is_lua = select(2, fs.extension_split(path)) == ".lua"
       if compile and not (is_lua and dont_write_lua_files) then
          local ok, err = n.output:mk_parent_dirs()
@@ -211,16 +212,16 @@ local function build(args, loaded_config, starting_dir)
       local n, ast = node_ast[1], node_ast[2]
       local fh, err = io.open(n.output:to_real_path(), "w")
       if not fh then
-         log.err("Error opening file ", display_filename(n.output), ": ", err)
+         event.emit("open_file_error", { file = n.output:to_real_path(), message = err }, log.err)
          exit = 1
       else
          local generated, gen_err = common.compile_ast(ast, loaded_config.gen_target)
          if generated then
             fh:write(generated, "\n")
             fh:close()
-            log.info("Wrote ", display_filename(n.output))
+            event.emit("wrote_file", { file = n.output:to_real_path() }, log.info)
          else
-            log.err("Error when generating lua for ", display_filename(n.output), "\n", gen_err)
+            event.emit("generate_lua_error", { file = n.output:to_real_path(), message = gen_err }, log.err)
             exit = 1
          end
       end
@@ -265,13 +266,12 @@ local function build(args, loaded_config, starting_dir)
             local cwd = fs.cwd()
             local function prune(p, kind)
                local file = build_dir .. p
-               local disp = display_filename(file)
                local real = file:relative_to(cwd)
                local ok, err = os.remove(real:to_real_path())
                if ok then
-                  log.info("Pruned ", kind, " ", disp)
+                  event.emit("pruned_file", { kind = kind, file = real:to_real_path() }, log.info)
                else
-                  log.err("Unable to prune ", kind, " '", disp, "': ", err)
+                  event.emit("pruned_file_error", { kind = kind, file = real:to_real_path(), message = err }, log.err)
                end
             end
             for _, p in ipairs(unexpected_files) do
@@ -313,4 +313,38 @@ command.new({
       cmd:flag("-p --prune", "Remove any unexpected files in the build directory.")
    end,
    script_hooks = { "pre", "post", "file_updated" },
+   events = {
+      type_checked_file = function(params)
+         return { log_format = "Type checked %(file filename)", parameters = params }
+      end,
+      wrote_file = function(params)
+         return { log_format = "Wrote %(file filename)", parameters = params }
+      end,
+      generate_lua_error = function(params)
+         return {
+            tag = "error",
+            log_format = "Error when generating lua for %(file filename)\n%(message)",
+            parameters = params,
+         }
+      end,
+      open_file_error = function(params)
+         return {
+            tag = "error",
+            log_format = "Error opening file %(file filename): %(message)",
+            parameters = params,
+         }
+      end,
+      pruned_file = function(params)
+         return {
+            log_format = "Pruned %(kind) %(file filename)",
+            parameters = params,
+         }
+      end,
+      pruned_file_error = function(params)
+         return {
+            log_format = "Unable to prune %(kind) %(file filename): %(message)",
+            parameters = params,
+         }
+      end,
+   },
 })
