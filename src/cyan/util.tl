@@ -173,6 +173,19 @@ function str.split(s: string, del: string, no_patt: boolean): function(): string
    end
 end
 
+function str.gfind(s: string, patt: string, no_magic: boolean): function(): integer, integer
+   local prev_idx = 0
+   return function(): integer, integer
+      prev_idx = prev_idx + 1
+      local a, b = s:find(patt, prev_idx, no_magic)
+      if not a then
+         return nil, nil
+      end
+      prev_idx = b + 1
+      return a, b
+   end
+end
+
 local function esc_char(c: string): string
    return "%" .. c
 end

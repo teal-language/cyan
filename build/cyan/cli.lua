@@ -5,6 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local argparse = require("argparse")
 local tl = require("tl")
 
+local event = require("cyan.event")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
@@ -18,6 +19,9 @@ util.tab.keys, util.tab.from, util.tab.sort_in_place, util.tab.ivalues
 
 local parser = argparse("cyan", "The Teal build system")
 parser:add_help(false)
+
+parser:flag("--structured-output", "Make all command output structured json rather than human readable"):
+action(function() event.set_structured(true) end)
 
 parser:option("-l --preload", "Execute the equivalent of require('modulename') before processing Teal files."):
 argname("<modulename>"):

@@ -9,6 +9,7 @@ local config <const> = require("cyan.config")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
+local type eventtypes = require("cyan.eventtypes")
 
 local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>
    = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains
@@ -21,6 +22,7 @@ local record Args
    gen_compat: tl.CompatMode
    gen_target: tl.TargetMode
    quiet: boolean
+   structured_output: boolean
    global_env_def: string
    verbosity: log.Verbosity
 
@@ -50,6 +52,7 @@ local record Command
    argparse: function(argparse.Command)
    script_hooks: {string}
    exec: CommandFn
+   events: {string:eventtypes.Handler}
 end
 local command <const> = {
    running: Command = nil,
