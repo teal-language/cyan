@@ -65,7 +65,7 @@ local verbosity_to_int <const>: {Verbosity:integer} = {
    debug = 3,
 }
 
-local verbosity: Verbosity = "normal"
+local current_verbosity: integer = verbosity_to_int.normal
 local prefix_padding: integer = 10
 
 local inspect: function(any): string
@@ -141,7 +141,7 @@ end
 --- loggers verbosity threshold.
 function Logger:should_log(): boolean
    local threshold <const> = self.verbosity_threshold and verbosity_to_int[self.verbosity_threshold] or -math.huge
-   return verbosity_to_int[verbosity] >= threshold
+   return current_verbosity >= threshold
 end
 
 local function do_log(
@@ -290,7 +290,11 @@ local log <const> = {
 ---@desc
 --- Globally set the verbosity of the logging module.
 function log.set_verbosity(level: Verbosity)
-   verbosity = level
+   current_verbosity = verbosity_to_int[level]
+end
+
+function log.disable()
+   current_verbosity = -1
 end
 
 ---@desc

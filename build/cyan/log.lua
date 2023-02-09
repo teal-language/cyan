@@ -65,7 +65,7 @@ local verbosity_to_int = {
    debug = 3,
 }
 
-local verbosity = "normal"
+local current_verbosity = verbosity_to_int.normal
 local prefix_padding = 10
 
 local inspect
@@ -141,7 +141,7 @@ local Logger = {}
 
 function Logger:should_log()
    local threshold = self.verbosity_threshold and verbosity_to_int[self.verbosity_threshold] or -math.huge
-   return verbosity_to_int[verbosity] >= threshold
+   return current_verbosity >= threshold
 end
 
 local function do_log(
@@ -290,7 +290,11 @@ local log = {
 
 
 function log.set_verbosity(level)
-   verbosity = level
+   current_verbosity = verbosity_to_int[level]
+end
+
+function log.disable()
+   current_verbosity = -1
 end
 
 
