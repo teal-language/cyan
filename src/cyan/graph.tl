@@ -127,14 +127,13 @@ function Dag:mark_each(predicate: function(fs.Path): boolean)
 end
 
 ---@desc
---- Iterate over every node with the given mark `m`. Iterates in order of most dependents to least
-function Dag:marked_nodes(m: Node.Mark): function(): Node
+--- Iterate over every node that has been marked, no matter what the mark is
+function Dag:marked_nodes(): function(): Node
    local iter = self:nodes()
    return function(): Node
       local n: Node
       repeat n = iter()
-      until not n
-         or n.mark == m
+      until not n or n.mark ~= nil
       return n
    end
 end

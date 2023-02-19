@@ -97,7 +97,19 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
    local exit = 0
 
-   log.debug("Built dependency graph")
+   if log.debug:should_log() then
+      log.debug("Built dependency graph")
+      for k, v in pairs(dag._nodes_by_filename) do
+         if not next(v.dependents) then
+            log.debug:cont("   ", k, " has no dependents")
+         else
+            log.debug:cont("   ", k, " has dependents:")
+            for dependent in pairs(v.dependents) do
+               log.debug:cont("      ", dependent.input:tostring())
+            end
+         end
+      end
+   end
 
    local function display_filename(f: fs.Path, trailing_slash: boolean): cs.ColorString
       return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
@@ -144,6 +156,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    local function process_node(n: graph.Node, compile: boolean)
       local path <const> = n.input:to_real_path()
       local disp_path <const> = display_filename(n.input)
+      log.debug("processing node of ", disp_path:tostring(), " for ", compile and "compilation" or "type check")
       local out <const> = get_output_name(n.input)
       n.output = out
       local parsed <const>, parse_err <const> = common.parse_file(path)
@@ -174,6 +187,10 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       end
 
       log.info("Type checked ", disp_path)
+      if args.check_only then
+         return
+      end
+
       local is_lua <const> = select(2, fs.extension_split(path)) == ".lua"
       if compile and not (is_lua and dont_write_lua_files) then
          local ok <const>, err <const> = n.output:mk_parent_dirs()
@@ -186,16 +203,8 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       end
    end
 
-   for n in dag:marked_nodes("typecheck") do
-      process_node(n, false)
-   end
-
-   if exit ~= 0 then
-      return exit
-   end
-
-   for n in dag:marked_nodes("compile") do
-      process_node(n, true)
+   for n in dag:marked_nodes() do
+      process_node(n, n.mark == "compile")
    end
 
    if exit ~= 0 then
