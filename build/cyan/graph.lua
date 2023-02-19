@@ -128,14 +128,13 @@ end
 
 
 
-function Dag:marked_nodes(m)
+function Dag:marked_nodes()
    local iter = self:nodes()
    return function()
       local n
       repeat n = iter()
-
-      until not n or
-n.mark == m; return n
+      until not n or n.mark ~= nil
+      return n
    end
 end
 

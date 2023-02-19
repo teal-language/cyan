@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 local argparse = require("argparse")
 local tl = require("tl")
@@ -97,7 +97,19 @@ local function build(args, loaded_config, starting_dir)
    end
    local exit = 0
 
-   log.debug("Built dependency graph")
+   if log.debug:should_log() then
+      log.debug("Built dependency graph")
+      for k, v in pairs(dag._nodes_by_filename) do
+         if not next(v.dependents) then
+            log.debug:cont("   ", k, " has no dependents")
+         else
+            log.debug:cont("   ", k, " has dependents:")
+            for dependent in pairs(v.dependents) do
+               log.debug:cont("      ", dependent.input:tostring())
+            end
+         end
+      end
+   end
 
    local function display_filename(f, trailing_slash)
       return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
@@ -144,6 +156,7 @@ local function build(args, loaded_config, starting_dir)
    local function process_node(n, compile)
       local path = n.input:to_real_path()
       local disp_path = display_filename(n.input)
+      log.debug("processing node of ", disp_path:tostring(), " for ", compile and "compilation" or "type check")
       local out = get_output_name(n.input)
       n.output = out
       local parsed, parse_err = common.parse_file(path)
@@ -174,6 +187,10 @@ local function build(args, loaded_config, starting_dir)
       end
 
       log.info("Type checked ", disp_path)
+      if args.check_only then
+         return
+      end
+
       local is_lua = select(2, fs.extension_split(path)) == ".lua"
       if compile and not (is_lua and dont_write_lua_files) then
          local ok, err = n.output:mk_parent_dirs()
@@ -186,16 +203,8 @@ local function build(args, loaded_config, starting_dir)
       end
    end
 
-   for n in dag:marked_nodes("typecheck") do
-      process_node(n, false)
-   end
-
-   if exit ~= 0 then
-      return exit
-   end
-
-   for n in dag:marked_nodes("compile") do
-      process_node(n, true)
+   for n in dag:marked_nodes() do
+      process_node(n, n.mark == "compile")
    end
 
    if exit ~= 0 then
