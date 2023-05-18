@@ -43,7 +43,8 @@ for path in fs.scan_dir(".", {"src/cyan/**/*"}) do
    local root <const> = teal_parser:parse_string(text):root()
    local todos <const>: {Todo} = {}
    for match in query:match(root) do
-      local node <const> = match.captures.c
+      local node <const> = match.captures.c as ts.Node
+      assert(node is ts.Node)
       table.insert(todos, {
          line = node:start_point().row,
          content = node:source():match("TODO%s*:?%s*(.*)"),
