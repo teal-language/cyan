@@ -11,7 +11,7 @@ return {
       build = {
          post = {
             "scripts/gen_rockspec.tl",
-            "scripts/docgen.tl",
+            "scripts/docgen.lua",
          },
       },
    },
