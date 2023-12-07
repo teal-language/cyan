@@ -241,9 +241,16 @@ emit["record_declaration"] = function(prefix, n, out)
 end
 
 local query = teal_parser:query([[
-   ((comment)+ @com
+   ((comment) @kind
+     . (comment)* @docs
      . (_) @obj
-     (#match? @com "^%-%-%-@%w+$")) ]])
+     (#match? @kind "^%-%-%-@%w+$")
+     (#is-not-comment? @obj)) ]]):
+with({
+   ["is-not-comment?"] = function(n)
+      return n:type() ~= "comment"
+   end,
+})
 
 
 
@@ -263,92 +270,85 @@ local function gen_docs(filename, module_name)
    local docs = {}
 
    for match in query:match(root) do
-      local caps = match.captures
-      local n = caps[match.capture_count]
-      local s = n:type()
-      if s ~= "comment" then
-
-
-
-         local obj = table.remove(caps, match.capture_count)
-         local kind_node = table.remove(caps, 1)
-         local kind = kind_node:source():match("^%-%-%-@(%w+)")
-         if kind == "nodoc" then
-            return
+      local kind_node = match.captures.kind
+      local kind = kind_node:source():match("^%-%-%-@(%w+)")
+      local comments = match.captures.docs or {}
+      local obj = match.captures.obj
+      if kind == "nodoc" then
+         return
+      end
+      local lines = {}
+      local content = {}
+      local current_state
+      local n_leading_spaces
+      local function ins(str)
+         if str:match("^%s*$") then return end
+         table.insert(content, str)
+      end
+      for i, v in ipairs(comments) do
+         local src = v:source()
+         if not src:match("^%-%-%-") then
+            break
          end
-         local lines = {}
-         local content = {}
-         local current_state
-         local n_leading_spaces
-         local function ins(str)
-            if str:match("^%s*$") then return end
-            table.insert(content, str)
-         end
-         for i, v in ipairs(caps) do
-            local src = v:source()
-            if not src:match("^%-%-%-") then
-               break
-            end
-            local sub, rest = src:match("^%-%-%-@@(%w+)(.*)%s*$")
+         local sub, rest = src:match("^%-%-%-@@(%w+)(.*)%s*$")
 
-            if sub then
-               if sub == "end" then
-                  if current_state == "table" then
-                     ins("</table><p>")
-                  elseif current_state == "code" then
-                     ins("</pre><p>")
-                  end
-                  current_state = nil
-               elseif current_state then
-                  error("Attempt to use @@" .. sub .. " inside of @@" .. current_state)
-               else
-                  current_state = sub
-                  if current_state == "table" then
-                     ins("</p><table>")
-                     local row = { "<tr>" }
-                     for col in rest:gmatch("[^|]+") do
-                        table.insert(row, "<th>" .. col .. "</th>")
-                     end
-                     table.insert(row, "</tr>")
-                     ins(table.concat(row))
-                  elseif current_state == "code" then
-                     ins("</p><pre>")
-                  end
-               end
-            else
-               local leadingws, line = src:match("^%-%-%-(%s*)(.*)%s*$")
-               if i == 1 then
-                  n_leading_spaces = #leadingws
-               else
-                  line = leadingws:sub(n_leading_spaces + 1, -1) .. line
-               end
+         if sub then
+            if sub == "end" then
                if current_state == "table" then
+                  ins("</table><p>")
+               elseif current_state == "code" then
+                  ins("</pre><p>")
+               end
+               current_state = nil
+            elseif current_state then
+               error("Attempt to use @@" .. sub .. " inside of @@" .. current_state)
+            else
+               current_state = sub
+               if current_state == "table" then
+                  ins("</p><table>")
                   local row = { "<tr>" }
-                  for col in line:gmatch("[^|]+") do
-                     table.insert(row, "<td>" .. escape_html_chars(col) .. "</td>")
+                  for col in rest:gmatch("[^|]+") do
+                     table.insert(row, "<th>" .. col .. "</th>")
                   end
                   table.insert(row, "</tr>")
                   ins(table.concat(row))
                elseif current_state == "code" then
-                  ins(line .. "<br>")
+                  ins("</p><pre>")
+               end
+            end
+         else
+            local leadingws, line = src:match("^%-%-%-(%s*)(.*)%s*$")
+            if i == 1 then
+               n_leading_spaces = #leadingws
+            else
+               line = leadingws:sub(n_leading_spaces + 1, -1) .. line
+            end
+            if current_state == "table" then
+               local row = { "<tr>" }
+               for col in line:gmatch("[^|]+") do
+                  table.insert(row, "<td>" .. escape_html_chars(col) .. "</td>")
+               end
+               table.insert(row, "</tr>")
+               ins(table.concat(row))
+            elseif current_state == "code" then
+               ins(line .. "<br>")
+            else
+               if line == "" and #content > 0 then
+                  table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
+                  content = {}
                else
-                  if line == "" and #content > 0 then
-                     table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
-                     content = {}
-                  else
-                     ins(line)
-                  end
+                  ins(line)
                end
             end
          end
-         assertf(not current_state, "Unended doc block %q in %s", current_state, filename)
-         table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
-         table.insert(docs, {
-            kind = kind,
-            content = lines,
-            obj = obj,
-         })
       end
+      assertf(not current_state, "Unended doc block %q in %s", current_state, filename)
+      table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
+      table.insert(docs, {
+         kind = kind,
+         content = lines,
+         obj = obj,
+      })
    end
 
    local brief
