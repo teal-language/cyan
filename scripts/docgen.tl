@@ -241,9 +241,16 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
 end
 
 local query <const> = teal_parser:query[[
-   ((comment)+ @com
+   ((comment) @kind
+     . (comment)* @docs
      . (_) @obj
-     (#match? @com "^%-%-%-@%w+$")) ]]
+     (#match? @kind "^%-%-%-@%w+$")
+     (#is-not-comment? @obj)) ]]
+   :with {
+      ["is-not-comment?"] = function(n: ts.Node): boolean
+         return n:type() ~= "comment"
+      end,
+   }
 
 local record Doc
    kind: string
@@ -263,92 +270,85 @@ local function gen_docs(filename: string, module_name: string): string, {string}
    local docs <const>: {Doc} = {}
 
    for match in query:match(root) do
-      local caps <const> = match.captures as {ts.Node}
-      local n <const> = caps[match.capture_count as integer]
-      local s = n:type()
-      if s ~= "comment" then
-         -- obj will match comments as the query will produce EVERY match
-         -- resulting in the same nodes being matched over and over
-         -- this basically guarantees the match we actually care about
-         local obj <const> = table.remove(caps, match.capture_count)
-         local kind_node = table.remove(caps, 1)
-         local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
-         if kind == "nodoc" then
-            return
+      local kind_node <const> = match.captures.kind as ts.Node
+      local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
+      local comments <const> = match.captures.docs as {ts.Node} or {}
+      local obj <const> = match.captures.obj as ts.Node
+      if kind == "nodoc" then
+         return
+      end
+      local lines <const> = {}
+      local content: {string} = {}
+      local current_state: string
+      local n_leading_spaces: integer
+      local function ins(str: string)
+         if str:match("^%s*$") then return end
+         table.insert(content, str)
+      end
+      for i, v in ipairs(comments) do
+         local src <const> = v:source()
+         if not src:match("^%-%-%-") then
+            break
          end
-         local lines <const> = {}
-         local content: {string} = {}
-         local current_state: string
-         local n_leading_spaces: integer
-         local function ins(str: string)
-            if str:match("^%s*$") then return end
-            table.insert(content, str)
-         end
-         for i, v in ipairs(caps) do
-            local src <const> = v:source()
-            if not src:match("^%-%-%-") then
-               break
-            end
-            local sub <const>, rest <const> = src:match("^%-%-%-@@(%w+)(.*)%s*$")
-            -- TODO: make a proper state machine for this
-            if sub then
-               if sub == "end" then
-                  if current_state == "table" then
-                     ins("</table><p>")
-                  elseif current_state == "code" then
-                     ins("</pre><p>")
-                  end
-                  current_state = nil
-               elseif current_state then
-                  error("Attempt to use @@" .. sub .. " inside of @@" .. current_state)
-               else
-                  current_state = sub
-                  if current_state == "table" then
-                     ins("</p><table>")
-                     local row <const> = { "<tr>" }
-                     for col in rest:gmatch("[^|]+") do
-                        table.insert(row, "<th>" .. col .. "</th>")
-                     end
-                     table.insert(row, "</tr>")
-                     ins(table.concat(row))
-                  elseif current_state == "code" then
-                     ins("</p><pre>")
-                  end
-               end
-            else
-               local leadingws <const>, line = src:match("^%-%-%-(%s*)(.*)%s*$")
-               if i == 1 then
-                  n_leading_spaces = #leadingws
-               else
-                  line = leadingws:sub(n_leading_spaces + 1, -1) .. line
-               end
+         local sub <const>, rest <const> = src:match("^%-%-%-@@(%w+)(.*)%s*$")
+         -- TODO: make a proper state machine for this
+         if sub then
+            if sub == "end" then
                if current_state == "table" then
-                  local row = { "<tr>" }
-                  for col in line:gmatch("[^|]+") do
-                     table.insert(row, "<td>" .. escape_html_chars(col) .. "</td>")
+                  ins("</table><p>")
+               elseif current_state == "code" then
+                  ins("</pre><p>")
+               end
+               current_state = nil
+            elseif current_state then
+               error("Attempt to use @@" .. sub .. " inside of @@" .. current_state)
+            else
+               current_state = sub
+               if current_state == "table" then
+                  ins("</p><table>")
+                  local row <const> = { "<tr>" }
+                  for col in rest:gmatch("[^|]+") do
+                     table.insert(row, "<th>" .. col .. "</th>")
                   end
                   table.insert(row, "</tr>")
                   ins(table.concat(row))
                elseif current_state == "code" then
-                  ins(line .. "<br>")
+                  ins("</p><pre>")
+               end
+            end
+         else
+            local leadingws <const>, line = src:match("^%-%-%-(%s*)(.*)%s*$")
+            if i == 1 then
+               n_leading_spaces = #leadingws
+            else
+               line = leadingws:sub(n_leading_spaces + 1, -1) .. line
+            end
+            if current_state == "table" then
+               local row = { "<tr>" }
+               for col in line:gmatch("[^|]+") do
+                  table.insert(row, "<td>" .. escape_html_chars(col) .. "</td>")
+               end
+               table.insert(row, "</tr>")
+               ins(table.concat(row))
+            elseif current_state == "code" then
+               ins(line .. "<br>")
+            else
+               if line == "" and #content > 0 then
+                  table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
+                  content = {}
                else
-                  if line == "" and #content > 0 then
-                     table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
-                     content = {}
-                  else
-                     ins(line)
-                  end
+                  ins(line)
                end
             end
          end
-         assertf(not current_state, "Unended doc block %q in %s", current_state, filename)
-         table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
-         table.insert(docs, {
-            kind = kind,
-            content = lines,
-            obj = obj,
-         })
       end
+      assertf(not current_state, "Unended doc block %q in %s", current_state, filename)
+      table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
+      table.insert(docs, {
+         kind = kind,
+         content = lines,
+         obj = obj,
+      })
    end
 
    local brief: string
