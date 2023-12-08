@@ -28,12 +28,12 @@ end
 ---@desc
 --- Ask the user to affirm or deny a given prompt. The user input will be
 --- compared against the given `affirm` and `deny` lists (case-insensitive), with
---- defaults used if - they are not provided.
+--- defaults used if they are not provided.
 ---
 --- The given logger will be used to print the prompt, and `log.info` if none
 --- is provided.
 function interaction.yes_no_prompt(
-   prompt: string,
+   prompt: string | cs.ColorString,
    logger: log.Logger,
    default: boolean,
    affirm: {string},
