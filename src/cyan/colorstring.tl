@@ -14,6 +14,7 @@ local map <const>, ivalues <const> = util.tab.map, util.tab.ivalues
 --- Colors are described as arrays of numbers that directly correspond to ANSI escape sequences
 local record ColorString
    content: {string | {integer}}
+
    len: function(ColorString): integer
    tostring: function(ColorString): string
 
@@ -102,6 +103,20 @@ function colorstring.new(...: string | {integer}): ColorString
    return setmetatable({
       content = { ... }
    } as ColorString, colorstring_mt)
+end
+
+---@desc
+--- Make a deep copy of a ColorString
+function ColorString:copy(): ColorString
+   local result: ColorString = { content = {} }
+   for i, chunk in ipairs(self.content) do
+      if chunk is {integer} then
+         result.content[i] = util.tab.from(ivalues(chunk))
+      else
+         result.content[i] = chunk
+      end
+   end
+   return setmetatable(result, colorstring_mt)
 end
 
 ---@desc

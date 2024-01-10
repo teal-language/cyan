@@ -26,6 +26,7 @@ local ColorString = {}
 
 
 
+
 function ColorString:len()
    local l = 0
    for _, chunk in ipairs(self.content) do
@@ -102,6 +103,20 @@ function colorstring.new(...)
    return setmetatable({
       content = { ... },
    }, colorstring_mt)
+end
+
+
+
+function ColorString:copy()
+   local result = { content = {} }
+   for i, chunk in ipairs(self.content) do
+      if type(chunk) == "table" then
+         result.content[i] = util.tab.from(ivalues(chunk))
+      else
+         result.content[i] = chunk
+      end
+   end
+   return setmetatable(result, colorstring_mt)
 end
 
 
