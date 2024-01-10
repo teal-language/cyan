@@ -155,6 +155,16 @@ function colorstring.rgb_bg(r: integer, g: integer, b: integer): {integer, integ
    return {48, 2, r, g, b}
 end
 
+---@desc
+--- If input is a colorstring, return a deep copy of it, otherwise just return the input
+function colorstring.copy(str: string | ColorString): string | ColorString
+   if str is string then
+      return str
+   else
+      return str:copy()
+   end
+end
+
 local cs <const> = colorstring.colors
 
 cs.none = { 0 }

@@ -155,6 +155,16 @@ function colorstring.rgb_bg(r, g, b)
    return { 48, 2, r, g, b }
 end
 
+
+
+function colorstring.copy(str)
+   if type(str) == "string" then
+      return str
+   else
+      return str:copy()
+   end
+end
+
 local cs = colorstring.colors
 
 cs.none = { 0 }
