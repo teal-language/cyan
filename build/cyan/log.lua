@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
 
 
 
@@ -38,7 +38,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local util = require("cyan.util")
 local cs = require("cyan.colorstring")
-local tab = util.tab
 local str = util.str
 
 local no_color_env = os.getenv("NO_COLOR") ~= nil
@@ -160,10 +159,9 @@ local function do_log(
 
    for i = 1, select("#", ...) do
       local val = inspector(sanitize((select(i, ...))))
-      local lns = tab.from(str.split(val, "\n", true))
-      for j, ln in ipairs(lns) do
+      for ln, peeked in util.peek(str.split(val, "\n", true)) do
          stream:write(ln)
-         if j < #lns then
+         if peeked then
             stream:write("\n", continuation, " ")
          end
       end

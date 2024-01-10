@@ -38,7 +38,6 @@
 
 local util <const> = require("cyan.util")
 local cs <const> = require("cyan.colorstring")
-local tab <const> = util.tab
 local str <const> = util.str
 
 local no_color_env <const> = os.getenv("NO_COLOR") ~= nil
@@ -160,10 +159,9 @@ local function do_log(
 
    for i = 1, select("#", ...) do
       local val <const> = inspector(sanitize((select(i, ...))))
-      local lns <const> = tab.from(str.split(val, "\n", true))
-      for j, ln in ipairs(lns) do
+      for ln, peeked in util.peek(str.split(val, "\n", true)) do
          stream:write(ln)
-         if j < #lns then
+         if peeked then
             stream:write("\n", continuation, " ")
          end
       end
