@@ -247,6 +247,27 @@ local function create_logger(
    return setmetatable(result, logger_metatable)
 end
 
+
+
+function Logger:copy()
+   local prefix = self.prefix
+   if type(prefix) == "table" then
+      prefix = prefix:copy()
+   end
+   local continuation = self.continuation
+   if type(continuation) == "table" then
+      continuation = continuation:copy()
+   end
+
+   return create_logger(
+   self.stream,
+   self.verbosity_threshold,
+   prefix,
+   continuation,
+   self.inspector)
+
+end
+
 local log = {
    debug = create_logger(
    io.stderr,

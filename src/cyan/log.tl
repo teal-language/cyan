@@ -247,6 +247,27 @@ local function create_logger(
    return setmetatable(result, logger_metatable)
 end
 
+---@desc
+--- Create a copy of a logger, deep copying relevant data
+function Logger:copy(): Logger
+   local prefix = self.prefix
+   if prefix is cs.ColorString then
+      prefix = prefix:copy()
+   end
+   local continuation = self.continuation
+   if continuation is cs.ColorString then
+      continuation = continuation:copy()
+   end
+
+   return create_logger(
+      self.stream,
+      self.verbosity_threshold,
+      prefix,
+      continuation,
+      self.inspector
+   )
+end
+
 local log <const> = {
    debug = create_logger(
       io.stderr,
