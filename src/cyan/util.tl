@@ -202,10 +202,25 @@ local function xor(a: any, b: any): boolean
       or (not a and b as boolean)
 end
 
+---@desc
+--- Takes an iterator and turns it into an iterator that returns pairs of values
+---
+--- For example if some iterator `f` returns the sequence 1, 2, 3
+--- `peek(f)` would return the pairs (1, 2), (2, 3), (3, nil)
+local function peek<Value>(iter: function(...: any): (Value), ...: any): function(): Value, Value
+   local iter_state = table.pack(iter(...)) as {any}
+   return function(): Value, Value
+      local prev <const> = iter_state[1]
+      iter_state = table.pack(iter(table.unpack(iter_state))) as {any}
+      return prev as Value, iter_state[1] as Value
+   end
+end
+
 return {
    str = str,
    tab = tab,
 
    xor = xor,
+   peek = peek,
 }
 

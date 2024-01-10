@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
@@ -202,9 +202,24 @@ local function xor(a, b)
    (not a and b)
 end
 
+
+
+
+
+
+local function peek(iter, ...)
+   local iter_state = table.pack(iter(...))
+   return function()
+      local prev = iter_state[1]
+      iter_state = table.pack(iter(_tl_table_unpack(iter_state)))
+      return prev, iter_state[1]
+   end
+end
+
 return {
    str = str,
    tab = tab,
 
    xor = xor,
+   peek = peek,
 }
