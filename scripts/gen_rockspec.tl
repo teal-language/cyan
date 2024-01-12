@@ -40,9 +40,7 @@ local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 
-local info <const> = log.create_logger(
-   io.stdout,
-   "normal",
+local info <const> = log.info:copy(
    cs.highlight({ansi.color.dark.cyan}, "Rockspec"),
    cs.highlight({ansi.color.dark.cyan}, "...")
 )

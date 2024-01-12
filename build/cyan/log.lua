@@ -249,21 +249,14 @@ end
 
 
 
-function Logger:copy()
-   local prefix = self.prefix
-   if type(prefix) == "table" then
-      prefix = prefix:copy()
-   end
-   local continuation = self.continuation
-   if type(continuation) == "table" then
-      continuation = continuation:copy()
-   end
+function Logger:copy(   new_prefix,
+   new_continuation)
 
    return create_logger(
    self.stream,
    self.verbosity_threshold,
-   prefix,
-   continuation,
+   new_prefix or cs.copy(self.prefix),
+   new_continuation or cs.copy(self.continuation),
    self.inspector)
 
 end

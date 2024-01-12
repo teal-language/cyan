@@ -249,21 +249,15 @@ end
 
 ---@desc
 --- Create a copy of a logger, deep copying relevant data
-function Logger:copy(): Logger
-   local prefix = self.prefix
-   if prefix is cs.ColorString then
-      prefix = prefix:copy()
-   end
-   local continuation = self.continuation
-   if continuation is cs.ColorString then
-      continuation = continuation:copy()
-   end
-
+function Logger:copy(
+   new_prefix: string | cs.ColorString,
+   new_continuation: string | cs.ColorString
+): Logger
    return create_logger(
       self.stream,
       self.verbosity_threshold,
-      prefix,
-      continuation,
+      new_prefix or cs.copy(self.prefix),
+      new_continuation or cs.copy(self.continuation),
       self.inspector
    )
 end
