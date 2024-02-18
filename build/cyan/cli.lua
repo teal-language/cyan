@@ -55,7 +55,10 @@ parser:flag("--no-script", "Do not run any scripts."):
 action(script.disable)
 
 parser:mutex(
-parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr. (Same as --verbosity quiet)."),
+parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr. (Same as --verbosity quiet)."):
+action(function()
+   log.set_verbosity("quiet")
+end),
 parser:option("-v --verbosity", "Set verbosity of logging."):
 choices(log.verbosities):
 action(function(_, __, val)
