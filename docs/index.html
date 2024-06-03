@@ -66,11 +66,13 @@ This documentation is auto-generated and may be incomplete.
 <p><a class=module-name href=#cyan.cli>cyan.cli</a>
 <br></p>
 <p><a class=module-name href=#cyan.colorstring>cyan.colorstring</a>
+<br><a href=#ColorString:copy>ColorString:copy</a>
 <br><a href=#ColorString:len>ColorString:len</a>
 <br><a href=#ColorString:surround>ColorString:surround</a>
 <br><a href=#ColorString:to_raw>ColorString:to_raw</a>
 <br><a href=#ColorString:tostring>ColorString:tostring</a>
 <br><a href=#ColorString>ColorString</a>
+<br><a href=#colorstring.copy>colorstring.copy</a>
 <br><a href=#colorstring.highlight>colorstring.highlight</a>
 <br><a href=#colorstring.new>colorstring.new</a>
 <br><a href=#colorstring.rgb_bg>colorstring.rgb_bg</a>
@@ -144,6 +146,7 @@ This documentation is auto-generated and may be incomplete.
 <p><a class=module-name href=#cyan.log>cyan.log</a>
 <br><a href=#Logger:cont>Logger:cont</a>
 <br><a href=#Logger:cont_nonl>Logger:cont_nonl</a>
+<br><a href=#Logger:copy>Logger:copy</a>
 <br><a href=#Logger:format>Logger:format</a>
 <br><a href=#Logger:format_nonl>Logger:format_nonl</a>
 <br><a href=#Logger:nonl>Logger:nonl</a>
@@ -182,6 +185,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#common.type_check_ast>common.type_check_ast</a>
 </p>
 <p><a class=module-name href=#cyan.util>cyan.util</a>
+<br><a href=#peek>peek</a>
 <br><a href=#str.esc>str.esc</a>
 <br><a href=#str.pad_left>str.pad_left</a>
 <br><a href=#str.split>str.split</a>
@@ -211,6 +215,9 @@ This documentation is auto-generated and may be incomplete.
 <h2><a name=cyan.colorstring>cyan.colorstring</a>
 </h2>
 <p><p>Some wrappers/conveniences around working with ansi escape codes. For example getting the length of a string that contains escape codes shouldnt include them</p></p>
+<h3><a name=ColorString:copy><code>ColorString:copy(): ColorString</code></a>
+</h3>
+<p><p>Make a deep copy of a ColorString</p></p>
 <h3><a name=ColorString:len><code>ColorString:len(): integer</code></a>
 </h3>
 <p><p>Get the length of a given <code>ColorString</code>, not counting any escape sequences.</p><p>Note that <code>ColorString:len() >= ColorString:tostring():len()</code></p></p>
@@ -227,6 +234,9 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <pre>record ColorString<br>   content: {string | {integer}}<br>   len: function(ColorString): integer<br>   tostring: function(ColorString): string<br><br>   metamethod __len: function(ColorString): integer<br>   metamethod __concat: function(ColorString | string, ColorString | string): ColorString<br>end</pre>
 <p><p>The main object that this library consumes and produces. It basically implements the <code>'string'</code> interface and can be used wherever a string is.</p><p>Colors are described as arrays of numbers that directly correspond to ANSI escape sequences</p></p>
+<h3><a name=colorstring.copy><code>colorstring.copy(str: string | ColorString): string | ColorString</code></a>
+</h3>
+<p><p>If input is a colorstring, return a deep copy of it, otherwise just return the input</p></p>
 <h3><a name=colorstring.highlight><code>colorstring.highlight(hl: {integer}, str: string): ColorString</code></a>
 </h3>
 <p><p>Create a <code>Colorstring</code> by surrounding a string with the given ANSI color and an ANSI reset</p></p>
@@ -419,14 +429,14 @@ This documentation is auto-generated and may be incomplete.
 </h2>
 <p><p>Module for handling when input from the user is needed</p></p>
 <h3><a name=interaction.yes_no_prompt><code>interaction.yes_no_prompt(
-   prompt: string,
+   prompt: string | cs.ColorString,
    logger: log.Logger,
    default: boolean,
    affirm: {string},
    deny: {string}
 ): boolean</code></a>
 </h3>
-<p><p>Ask the user to affirm or deny a given prompt. The user input will be compared against the given <code>affirm</code> and <code>deny</code> lists (case-insensitive), with defaults used if - they are not provided.</p><p>The given logger will be used to print the prompt, and <code>log.info</code> if none is provided.</p></p>
+<p><p>Ask the user to affirm or deny a given prompt. The user input will be compared against the given <code>affirm</code> and <code>deny</code> lists (case-insensitive), with defaults used if they are not provided.</p><p>The given logger will be used to print the prompt, and <code>log.info</code> if none is provided.</p></p>
 <h2><a name=cyan.log>cyan.log</a>
 </h2>
 <p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p></p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn&apos;t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table><p></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p></p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): Logger<br> </pre><p> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>ColorString</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>ColorString</code>) it will not be handled.</p></p>
@@ -436,6 +446,12 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=Logger:cont_nonl><code>Logger:cont_nonl(...: any)</code></a>
 </h3>
 <p><p>Log only using the continuation prefix, but don't put a newline at the end.</p></p>
+<h3><a name=Logger:copy><code>Logger:copy(
+   new_prefix: string | cs.ColorString,
+   new_continuation: string | cs.ColorString
+): Logger</code></a>
+</h3>
+<p><p>Create a copy of a logger, deep copying relevant data</p></p>
 <h3><a name=Logger:format><code>Logger:format(fmt: string, ...: any)</code></a>
 </h3>
 <p><p>Call <code>string.format</code> with the given arguments and log that.</p></p>
@@ -544,6 +560,9 @@ This documentation is auto-generated and may be incomplete.
 <h2><a name=cyan.util>cyan.util</a>
 </h2>
 <p><p>Basically some extensions of the std lib. Currently these lean towards a more functional style</p><p>This is split into two main modules, <code>str</code> and <code>tab</code>. For string and table utilities respectively.</p></p>
+<h3><a name=peek><code>peek&lt;Value&gt;(iter: function(...: any): (Value), ...: any): function(): Value, Value</code></a>
+</h3>
+<p><p>Takes an iterator and turns it into an iterator that returns pairs of values</p><p>For example if some iterator <code>f</code> returns the sequence 1, 2, 3 <code>peek(f)</code> would return the pairs (1, 2), (2, 3), (3, nil)</p></p>
 <h3><a name=str.esc><code>str.esc(s: string, sub: string | function(string): string | {string:string}): string, integer</code></a>
 </h3>
 <p><p>escape any special characters in a string</p><p>use <code>sub</code> to control how the characters are substituted, by default a special character <code>x</code> will be replaced with <code>%x</code></p><p>returns the new string and the number of characters replaced</p></p>
