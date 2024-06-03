@@ -36,6 +36,7 @@
 --- sequences or an inspector produces them (outside of a `ColorString`) it will
 --- not be handled.
 
+local system <const> = require("system")
 local util <const> = require("cyan.util")
 local cs <const> = require("cyan.colorstring")
 local str <const> = util.str
@@ -91,21 +92,13 @@ do
    end
 end
 
-local as_fd <const>: {FILE:integer} = {
-   [io.stdin] = 0,
-   [io.stdout] = 1,
-   [io.stderr] = 2,
-}
-
 local ttys <const> = {}
-local function is_a_tty(fd: integer): boolean
-   if ttys[fd] == nil then
-      if not fd then return false end
-      -- TODO: how annoying would it be to ship a small C module that just exports isatty (_isatty on windows)?
-      local ok <const>, exit <const>, signal <const> = os.execute(("test -t %d"):format(fd))
-      ttys[fd] = (ok and exit == "exit") and signal == 0 or false
+local function is_a_tty(file: FILE): boolean
+   if not file then return false end
+   if ttys[file] == nil then
+      ttys[file] = system.isatty(file)
    end
-   return ttys[fd]
+   return ttys[file]
 end
 
 local colorstring_mt <const> = getmetatable(cs.new())
@@ -114,7 +107,7 @@ local function is_color_string(val: any): boolean
 end
 
 local function sanitizer(stream: FILE): function(any): any
-   local is_not_tty <const> = not is_a_tty(as_fd[stream])
+   local is_not_tty <const> = not is_a_tty(stream)
    return function(val: any): any
       if is_color_string(val) and (is_not_tty or no_color_env) then
          return (val as cs.ColorString):to_raw()

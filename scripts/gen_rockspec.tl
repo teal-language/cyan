@@ -18,6 +18,7 @@ dependencies = {
    "argparse",
    "luafilesystem",
    "tl",
+   "luasystem >= 3.0.0",
 }
 build = {
    type = "builtin",

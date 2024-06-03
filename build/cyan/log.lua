@@ -36,6 +36,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+local system = require("system")
 local util = require("cyan.util")
 local cs = require("cyan.colorstring")
 local str = util.str
@@ -91,21 +92,13 @@ do
    end
 end
 
-local as_fd = {
-   [io.stdin] = 0,
-   [io.stdout] = 1,
-   [io.stderr] = 2,
-}
-
 local ttys = {}
-local function is_a_tty(fd)
-   if ttys[fd] == nil then
-      if not fd then return false end
-
-      local ok, exit, signal = os.execute(("test -t %d"):format(fd))
-      ttys[fd] = (ok and exit == "exit") and signal == 0 or false
+local function is_a_tty(file)
+   if not file then return false end
+   if ttys[file] == nil then
+      ttys[file] = system.isatty(file)
    end
-   return ttys[fd]
+   return ttys[file]
 end
 
 local colorstring_mt = getmetatable(cs.new())
@@ -114,7 +107,7 @@ local function is_color_string(val)
 end
 
 local function sanitizer(stream)
-   local is_not_tty = not is_a_tty(as_fd[stream])
+   local is_not_tty = not is_a_tty(stream)
    return function(val)
       if is_color_string(val) and (is_not_tty or no_color_env) then
          return (val):to_raw()
