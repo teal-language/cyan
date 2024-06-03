@@ -40,7 +40,6 @@ build = {
       ["cyan.script"] = "build/cyan/script.lua",
       ["cyan.tlcommon"] = "build/cyan/tlcommon.lua",
       ["cyan.util"] = "build/cyan/util.lua",
-      ["system.d"] = "build/system.d.lua",
    },
    install = {
       lua = {
@@ -64,7 +63,6 @@ build = {
          ["cyan.script"] = "src/cyan/script.tl",
          ["cyan.tlcommon"] = "src/cyan/tlcommon.tl",
          ["cyan.util"] = "src/cyan/util.tl",
-         ["system.d"] = "src/system.d.tl",
       },
       bin = {
          "bin/cyan",

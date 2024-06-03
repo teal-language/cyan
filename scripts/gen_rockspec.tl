@@ -48,16 +48,16 @@ local info <const> = log.info:copy(
 
 local modules <const> = {}
 local install <const> = {}
-for f in fs.scan_dir("src", {"**/*"}) do
-   local mod = f:tostring():sub(1, -4):gsub("/", ".")
-   local p = f:tostring()
+for f in fs.scan_dir("src", {"**/*"}, {"**/*.d.tl"}) do
+   local f_str = f:tostring()
+   local mod = f_str:sub(1, -4):gsub("/", ".")
    table.insert(install, {
       mod,
-      "src/" .. p,
+      "src/" .. f_str,
    })
    table.insert(modules, {
       mod,
-      "build/" .. p:gsub("%.tl$", ".lua"),
+      "build/" .. f_str:gsub("%.tl$", ".lua"),
    })
 end
 local function cmp(a: {string, string}, b: {string, string}): boolean
