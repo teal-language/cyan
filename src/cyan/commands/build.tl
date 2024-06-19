@@ -19,7 +19,8 @@ local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
    if not p:exists() then
       log.err(string.format("%s %q does not exist", prefix, p:to_real_path()))
       return false
-   elseif not p:is_directory() then
+   end
+   if not p:is_directory() then
       log.err(string.format("%s %q is not a directory", prefix, p:to_real_path()))
       return false
    end
@@ -283,19 +284,19 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
                   log.err("Unable to prune ", kind, " '", disp, "': ", err)
                end
             end
-            for _, p in ipairs(unexpected_files) do
+            for p in ivalues(unexpected_files) do
                prune(p, "file")
             end
-            for _, p in ipairs(unexpected_directories) do
+            for p in ivalues(unexpected_directories) do
                prune(p, "directory")
             end
          else
             local strs <const>: {string | cs.ColorString} = {}
-            for _, p in ipairs(unexpected_files) do
+            for p in ivalues(unexpected_files) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p))
             end
-            for _, p in ipairs(unexpected_directories) do
+            for p in ivalues(unexpected_directories) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p, true))
             end

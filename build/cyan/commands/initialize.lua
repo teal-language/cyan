@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -9,6 +9,9 @@ local config = require("cyan.config")
 local cs = require("cyan.colorstring")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
+local util = require("cyan.util")
+
+local ivalues = util.tab.ivalues
 
 local function exec(args, loaded_config, starting_dir)
    if not args.force and loaded_config.loaded_from then
@@ -43,15 +46,14 @@ local function exec(args, loaded_config, starting_dir)
          if ok then
             log.info("Created directory ", cs.highlight(cs.colors.file, p:to_real_path()))
             return true
-         else
-            log.err("Unable to create directory ", cs.highlight(cs.colors.file, p:to_real_path()), ":\n   ", err)
-            return false
          end
+         log.err("Unable to create directory ", cs.highlight(cs.colors.file, p:to_real_path()), ":\n   ", err)
+         return false
       end
       return true
    end
 
-   for _, p in ipairs({ directory, directory .. source, directory .. build }) do
+   for p in ivalues({ directory, directory .. source, directory .. build }) do
       if not try_mkdir(p) then
          return 1
       end
@@ -71,7 +73,7 @@ local function exec(args, loaded_config, starting_dir)
          return
       end
       ins(1, "%s = {\n", name)
-      for _, entry in ipairs(arr) do
+      for entry in ivalues(arr) do
          ins(2, "%q,\n", entry)
       end
       ins(1, "},\n", name)

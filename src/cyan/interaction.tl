@@ -4,6 +4,9 @@
 local log <const> = require("cyan.log")
 local cs <const> = require("cyan.colorstring")
 local ansi <const> = require("cyan.ansi")
+local util <const> = require("cyan.util")
+
+local ivalues <const> = util.tab.ivalues
 
 local interaction <const> = {}
 
@@ -19,7 +22,7 @@ end
 
 local function to_string_set(list: {string}): {string:boolean}
    local result <const> = {}
-   for _, v in ipairs(list) do
+   for v in ivalues(list) do
       result[v:lower()] = true
    end
    return result
@@ -73,7 +76,8 @@ function interaction.yes_no_prompt(
 
       if affirm_set[input] then
          return true
-      elseif deny_set[input] then
+      end
+      if deny_set[input] then
          return false
       end
    end

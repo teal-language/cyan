@@ -10,8 +10,8 @@ local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
-local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>
-   = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains
+local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>, ivalues <const>
+   = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues
 
 local record Args
    command: string
@@ -76,7 +76,7 @@ function command.new(cmd: Command)
 
    commands[cmd.name] = cmd
    if cmd.script_hooks then
-      for _, h in ipairs(cmd.script_hooks) do
+      for h in ivalues(cmd.script_hooks) do
          hooks[cmd.name .. ":" .. h] = true
       end
    end

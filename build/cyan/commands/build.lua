@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 local argparse = require("argparse")
 local tl = require("tl")
@@ -19,7 +19,8 @@ local function exists_and_is_dir(prefix, p)
    if not p:exists() then
       log.err(string.format("%s %q does not exist", prefix, p:to_real_path()))
       return false
-   elseif not p:is_directory() then
+   end
+   if not p:is_directory() then
       log.err(string.format("%s %q is not a directory", prefix, p:to_real_path()))
       return false
    end
@@ -283,19 +284,19 @@ local function build(args, loaded_config, starting_dir)
                   log.err("Unable to prune ", kind, " '", disp, "': ", err)
                end
             end
-            for _, p in ipairs(unexpected_files) do
+            for p in ivalues(unexpected_files) do
                prune(p, "file")
             end
-            for _, p in ipairs(unexpected_directories) do
+            for p in ivalues(unexpected_directories) do
                prune(p, "directory")
             end
          else
             local strs = {}
-            for _, p in ipairs(unexpected_files) do
+            for p in ivalues(unexpected_files) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p))
             end
-            for _, p in ipairs(unexpected_directories) do
+            for p in ivalues(unexpected_directories) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p, true))
             end

@@ -74,10 +74,9 @@ local function run(args: command.Args, loaded_config: config.Config, starting_di
    local ok <const>, err <const> = box:run(1000000000)
    if ok then
       return 0
-   else
-      log.err("Error in script:\n", err)
-      return 1
    end
+   log.err("Error in script:\n", err)
+   return 1
 end
 
 command.new{

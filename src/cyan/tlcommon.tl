@@ -162,7 +162,8 @@ local highlights_by_content <const>: {string:{integer}} = {
 local function highlight_token(tk: Token): cs.ColorString
    if highlights_by_content[tk.tk] then
       return cs.highlight(highlights_by_content[tk.tk], tk.tk)
-   elseif highlights_by_kind[tk.kind] then
+   end
+   if highlights_by_kind[tk.kind] then
       return cs.highlight(highlights_by_kind[tk.kind], tk.tk)
    end
    return cs.new(tk.tk == "$EOF$" and "" or tk.tk)
@@ -179,7 +180,7 @@ function common.syntax_highlight(s: string): cs.ColorString
    local tks <const> = tl.lex(s) as {Token}
    local highlighted <const> = cs.new()
    local last_x = 1
-   for _, tk in ipairs(tks) do
+   for tk in ivalues(tks) do
       -- account for tabs
       local ts = count_tabs(s:sub(last_x, tk.x - 1))
       if ts > 0 then
@@ -283,9 +284,8 @@ function common.report_result(r: tl.Result, c: config.Config): boolean
       if arr and #arr > 0 then
          common.report_errors(logger, arr, r.filename, category)
          return false
-      else
-         return true
       end
+      return true
    end
 
    report(log.warn, warnings, "warning")

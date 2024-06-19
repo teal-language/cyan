@@ -44,7 +44,8 @@ local function parse_string_path(s: string, use_os_sep: boolean): {string}
    s = s:gsub(sep .. "+", sep)
    if s == "" then
       return {}
-   elseif s:sub(-1) == sep then
+   end
+   if s:sub(-1) == sep then
       s = s:sub(1, -2)
    end
 
@@ -84,15 +85,15 @@ end
 function path.ensure(s: string | Path, use_os_sep: boolean): Path
    if s is string then
       return path.new(s, use_os_sep)
-   else
-      return s
    end
+   return s
 end
 
 local function string_is_absolute_path(p: string): boolean
    if path.separator == "/" then
       return p:sub(1, 1) == "/"
-   elseif path.separator == "\\" then
+   end
+   if path.separator == "\\" then
       return p:match("^%a:$") as boolean
    end
 end
@@ -143,9 +144,11 @@ function Path:is_absolute(): boolean
    if #self < 1 then return false end
    if path.separator == "/" then
       return self[1] == ""
-   elseif path.separator == "\\" then
+   end
+   if path.separator == "\\" then
       return self[1]:match("^%a:$") as boolean
    end
+   return false
 end
 
 ---@desc
@@ -287,9 +290,8 @@ function Path:mkdir(): boolean, string
    local succ <const>, err <const> = self:mk_parent_dirs()
    if succ then
       return lfs.mkdir(self:to_real_path())
-   else
-      return false, err
    end
+   return false, err
 end
 
 ---@desc

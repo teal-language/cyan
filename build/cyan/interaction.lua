@@ -1,9 +1,12 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string
 
 
 local log = require("cyan.log")
 local cs = require("cyan.colorstring")
 local ansi = require("cyan.ansi")
+local util = require("cyan.util")
+
+local ivalues = util.tab.ivalues
 
 local interaction = {}
 
@@ -19,7 +22,7 @@ end
 
 local function to_string_set(list)
    local result = {}
-   for _, v in ipairs(list) do
+   for v in ivalues(list) do
       result[v:lower()] = true
    end
    return result
@@ -73,7 +76,8 @@ function interaction.yes_no_prompt(
 
       if affirm_set[input] then
          return true
-      elseif deny_set[input] then
+      end
+      if deny_set[input] then
          return false
       end
    end

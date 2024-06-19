@@ -39,9 +39,9 @@ function Sandbox:run(max_instructions: integer, ...: any): boolean, string
       table.remove(res, 1)
       self._result = res
       return true
-   else
-      return false, res[2] as string .. "\n" .. debug.traceback(t)
    end
+
+   return false, res[2] as string .. "\n" .. debug.traceback(t)
 end
 
 function Sandbox:result(): any...

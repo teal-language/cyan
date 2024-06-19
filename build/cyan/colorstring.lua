@@ -29,7 +29,7 @@ local ColorString = {}
 
 function ColorString:len()
    local l = 0
-   for _, chunk in ipairs(self.content) do
+   for chunk in ivalues(self.content) do
       if type(chunk) == "string" then
          l = l + #chunk
       end
@@ -39,7 +39,7 @@ end
 
 local function append(base, other)
    if type(other) == "table" then
-      for _, chunk in ipairs(other.content) do
+      for chunk in ivalues(other.content) do
          table.insert(base.content, chunk)
       end
    else
@@ -72,9 +72,8 @@ function ColorString:tostring()
    return table.concat(map(self.content, function(chunk)
       if type(chunk) == "string" then
          return chunk
-      else
-         return ansi.CSI .. table.concat(map(chunk, tostring), ";") .. "m"
       end
+      return ansi.CSI .. table.concat(map(chunk, tostring), ";") .. "m"
    end))
 end
 
@@ -160,9 +159,8 @@ end
 function colorstring.copy(str)
    if type(str) == "string" then
       return str
-   else
-      return str:copy()
    end
+   return str:copy()
 end
 
 local cs = colorstring.colors

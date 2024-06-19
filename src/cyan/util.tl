@@ -59,7 +59,7 @@ end
 --- Create a Set from a list
 function tab.set<Value>(lst: {Value}): {Value:boolean}
    local s <const> = {}
-   for _, v in ipairs(lst) do
+   for v in tab.ivalues(lst) do
       s[v] = true
    end
    return s
@@ -81,11 +81,8 @@ function tab.map_ipairs<Value, MappedValue>(t: {Value}, fn: function(Value): Map
    local i = 0
    return function(): integer, MappedValue
       i = i + 1
-      if not t[i] then
-         return
-      else
-         return i, fn(t[i])
-      end
+      if not t[i] then return end
+      return i, fn(t[i])
    end
 end
 
@@ -109,7 +106,7 @@ end
 function tab.filter<Value>(t: {Value}, pred: function(Value): boolean): {Value}, {Value}
    local pass <const>: {Value} = {}
    local fail <const>: {Value} = {}
-   for _, v in ipairs(t) do
+   for v in tab.ivalues(t) do
       table.insert(pred(v) and pass or fail, v)
    end
    return pass, fail
@@ -121,10 +118,10 @@ function tab.merge_list<Value>(a: {Value}, b: {Value}): {Value}
    local new_list <const> = {}
    a = a or {}
    b = b or {}
-   for _, v in ipairs(a) do
+   for v in tab.ivalues(a) do
       table.insert(new_list, v)
    end
-   for _, v in ipairs(b) do
+   for v in tab.ivalues(b) do
       table.insert(new_list, v)
    end
    return new_list
@@ -133,7 +130,7 @@ end
 ---@desc
 --- Report if an array contains an element (as determined by the `==` operator)
 function tab.contains<Value>(t: {Value}, val: Value): boolean
-   for _, v in ipairs(t) do
+   for v in tab.ivalues(t) do
       if val == v then
          return true
       end

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
@@ -162,7 +162,8 @@ local highlights_by_content = {
 local function highlight_token(tk)
    if highlights_by_content[tk.tk] then
       return cs.highlight(highlights_by_content[tk.tk], tk.tk)
-   elseif highlights_by_kind[tk.kind] then
+   end
+   if highlights_by_kind[tk.kind] then
       return cs.highlight(highlights_by_kind[tk.kind], tk.tk)
    end
    return cs.new(tk.tk == "$EOF$" and "" or tk.tk)
@@ -179,7 +180,7 @@ function common.syntax_highlight(s)
    local tks = tl.lex(s)
    local highlighted = cs.new()
    local last_x = 1
-   for _, tk in ipairs(tks) do
+   for tk in ivalues(tks) do
 
       local ts = count_tabs(s:sub(last_x, tk.x - 1))
       if ts > 0 then
@@ -283,9 +284,8 @@ function common.report_result(r, c)
       if arr and #arr > 0 then
          common.report_errors(logger, arr, r.filename, category)
          return false
-      else
-         return true
       end
+      return true
    end
 
    report(log.warn, warnings, "warning")

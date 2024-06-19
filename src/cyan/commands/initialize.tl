@@ -9,6 +9,9 @@ local config <const> = require("cyan.config")
 local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
+local util <const> = require("cyan.util")
+
+local ivalues <const> = util.tab.ivalues
 
 local function exec(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
    if not args.force and loaded_config.loaded_from then
@@ -43,15 +46,14 @@ local function exec(args: command.Args, loaded_config: config.Config, starting_d
          if ok then
             log.info("Created directory ", cs.highlight(cs.colors.file, p:to_real_path()))
             return true
-         else
-            log.err("Unable to create directory ", cs.highlight(cs.colors.file, p:to_real_path()), ":\n   ", err)
-            return false
          end
+         log.err("Unable to create directory ", cs.highlight(cs.colors.file, p:to_real_path()), ":\n   ", err)
+         return false
       end
       return true
    end
 
-   for _, p in ipairs{directory, directory .. source, directory .. build} do
+   for p in ivalues{directory, directory .. source, directory .. build} do
       if not try_mkdir(p) then
          return 1
       end
@@ -71,7 +73,7 @@ local function exec(args: command.Args, loaded_config: config.Config, starting_d
          return
       end
       ins(1, "%s = {\n", name)
-      for _, entry in ipairs(arr) do
+      for entry in ivalues(arr) do
          ins(2, "%q,\n", entry)
       end
       ins(1, "},\n", name)

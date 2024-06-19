@@ -239,9 +239,8 @@ function Dag:insert_file(fstr, in_dir)
    local cycles = check_for_cycles(self)
    if cycles then
       return false, cycles
-   else
-      return true
    end
+   return true
 end
 
 
@@ -271,9 +270,8 @@ function graph.scan_dir(dir, include, exclude)
    local cycles = check_for_cycles(d)
    if cycles then
       return nil, cycles
-   else
-      return d
    end
+   return d
 end
 
 return graph

@@ -8,8 +8,8 @@ local fs <const> = require("cyan.fs")
 local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
 
-local keys <const>, sort <const>, from <const>, values <const>
-   = util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values
+local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
+   = util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
 
 ---@desc
 --- The config data
@@ -53,7 +53,7 @@ local config <const> = {
 local function get_types_in_array(val: {any}, typefn: function(any): string): {string}
    typefn = typefn or type
    local set <const> = {}
-   for _, v in ipairs(val) do
+   for v in ivalues(val) do
       set[typefn(v)] = true
    end
    return sort(from(keys(set)))
@@ -193,7 +193,7 @@ function config.is_config(c: any): Config, {string}, {string}
    local function verify_warnings(key: string)
       local arr <const> = (c as {string:{string}})[key]
       if arr then
-         for _, warning in ipairs(arr) do
+         for warning in ivalues(arr) do
             if not tl.warning_kinds[warning as tl.WarningKind] then
                table.insert(errs, string.format("Unknown warning in %s: %q", key, warning))
             end
@@ -205,9 +205,9 @@ function config.is_config(c: any): Config, {string}, {string}
 
    if #errs > 0 then
       return nil, errs, warnings
-   else
-      return c as Config, nil, warnings
    end
+
+   return c as Config, nil, warnings
 end
 
 ---@desc

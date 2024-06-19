@@ -83,9 +83,8 @@ do
       inspect = function(x: any): string
          if x is string then
             return x
-         else
-            return actual_inspect(x, inspect_opts)
          end
+         return actual_inspect(x, inspect_opts)
       end
    else
       inspect = tostring

@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs
 
 
 
@@ -10,8 +10,8 @@ local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
 
-local merge_list, sort, from, keys, contains =
-util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains
+local merge_list, sort, from, keys, contains, ivalues =
+util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues
 
 local Args = {}
 
@@ -76,7 +76,7 @@ function command.new(cmd)
 
    commands[cmd.name] = cmd
    if cmd.script_hooks then
-      for _, h in ipairs(cmd.script_hooks) do
+      for h in ivalues(cmd.script_hooks) do
          hooks[cmd.name .. ":" .. h] = true
       end
    end

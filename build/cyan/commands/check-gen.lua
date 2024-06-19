@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -13,7 +13,8 @@ local log = require("cyan.log")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
 
-local map_ipairs = util.tab.map_ipairs
+local map_ipairs, ivalues =
+util.tab.map_ipairs, util.tab.ivalues
 
 local function command_exec(should_compile)
    return function(args, loaded_config, starting_dir)
@@ -120,7 +121,7 @@ local function command_exec(should_compile)
       if should_compile then
          if exit ~= 0 then return exit end
 
-         for _, data in ipairs(to_write) do
+         for data in ivalues(to_write) do
             local fh, err = io.open(data.outfile:to_real_path(), "w")
             if fh then
                local generated, gen_err = common.compile_ast(data.output_ast, loaded_config.gen_target)

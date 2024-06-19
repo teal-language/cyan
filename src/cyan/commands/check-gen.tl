@@ -13,7 +13,8 @@ local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
 
-local map_ipairs <const> = util.tab.map_ipairs
+local map_ipairs <const>, ivalues <const>
+   = util.tab.map_ipairs, util.tab.ivalues
 
 local function command_exec(should_compile: boolean): command.CommandFn
    return function(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
@@ -120,7 +121,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
       if should_compile then
          if exit ~= 0 then return exit end
 
-         for _, data in ipairs(to_write) do
+         for data in ivalues(to_write) do
             local fh <const>, err <const> = io.open(data.outfile:to_real_path(), "w")
             if fh then
                local generated <const>, gen_err <const> = common.compile_ast(data.output_ast, loaded_config.gen_target)

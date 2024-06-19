@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -8,8 +8,8 @@ local fs = require("cyan.fs")
 local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
 
-local keys, sort, from, values =
-util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values
+local keys, sort, from, values, ivalues =
+util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
 
 
 
@@ -53,7 +53,7 @@ local config = {
 local function get_types_in_array(val, typefn)
    typefn = typefn or type
    local set = {}
-   for _, v in ipairs(val) do
+   for v in ivalues(val) do
       set[typefn(v)] = true
    end
    return sort(from(keys(set)))
@@ -193,7 +193,7 @@ function config.is_config(c)
    local function verify_warnings(key)
       local arr = (c)[key]
       if arr then
-         for _, warning in ipairs(arr) do
+         for warning in ivalues(arr) do
             if not tl.warning_kinds[warning] then
                table.insert(errs, string.format("Unknown warning in %s: %q", key, warning))
             end
@@ -205,9 +205,9 @@ function config.is_config(c)
 
    if #errs > 0 then
       return nil, errs, warnings
-   else
-      return c, nil, warnings
    end
+
+   return c, nil, warnings
 end
 
 
