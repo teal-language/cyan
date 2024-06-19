@@ -98,6 +98,26 @@ command.new({
    end,
 })
 
+local starting_dir = fs.cwd()
+local config_path = config.find()
+if config_path then
+   local config_dir = config_path:copy()
+   table.remove(config_dir)
+   log.debug("Changing directory into: ", config_dir)
+   fs.chdir(config_dir)
+end
+
+local loaded_config, config_errors, config_warnings =
+config.load()
+
+if common.report_config_errors(config_errors, config_warnings) then
+   os.exit(1)
+end
+
+if not loaded_config then
+   loaded_config = {}
+end
+
 require("cyan.commands.initialize")
 require("cyan.commands.check-gen")
 require("cyan.commands.run")
@@ -123,25 +143,7 @@ command.running = cmd
 log.debug("Arguments: ", args)
 
 local exit = 1
-local starting_dir = fs.cwd()
-local config_path = config.find()
-if config_path then
-   local config_dir = config_path:copy()
-   table.remove(config_dir)
-   log.debug("Changing directory into: ", config_dir)
-   fs.chdir(config_dir)
-end
 
-local loaded_config, config_errors, config_warnings =
-config.load()
-
-if common.report_config_errors(config_errors, config_warnings) then
-   os.exit(1)
-end
-
-if not loaded_config then
-   loaded_config = {}
-end
 command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then

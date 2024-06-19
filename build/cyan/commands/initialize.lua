@@ -3,7 +3,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local argparse = require("argparse")
-local lfs = require("lfs")
 
 local command = require("cyan.command")
 local config = require("cyan.config")
@@ -11,13 +10,13 @@ local cs = require("cyan.colorstring")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
 
-local function exec(args)
-   if not args.force then
-      local found_config = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-      if found_config and found_config:exists() then
-         log.err("Already in a project!\n   Found config file at ", cs.highlight(cs.colors.file, found_config:to_real_path()))
-         return 1
-      end
+local function exec(args, loaded_config, starting_dir)
+   if not args.force and loaded_config.loaded_from then
+      log.err(
+      "Already in a project!\n   Found config file at ",
+      cs.highlight(cs.colors.file, loaded_config.loaded_from:relative_to(starting_dir):to_real_path()))
+
+      return 1
    end
 
    local directory = fs.path.new(args.directory or "./", true)

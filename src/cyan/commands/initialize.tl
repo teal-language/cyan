@@ -3,7 +3,6 @@
 -- create some directories and a tlconfig.lua pointing at those directories
 
 local argparse <const> = require("argparse")
-local lfs <const> = require("lfs")
 
 local command <const> = require("cyan.command")
 local config <const> = require("cyan.config")
@@ -11,13 +10,13 @@ local cs <const> = require("cyan.colorstring")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 
-local function exec(args: command.Args): integer
-   if not args.force then
-      local found_config <const> = fs.search_parent_dirs(lfs.currentdir(), config.filename)
-      if found_config and found_config:exists() then
-         log.err("Already in a project!\n   Found config file at ", cs.highlight(cs.colors.file, found_config:to_real_path()))
+local function exec(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
+   if not args.force and loaded_config.loaded_from then
+         log.err(
+            "Already in a project!\n   Found config file at ",
+            cs.highlight(cs.colors.file, loaded_config.loaded_from:relative_to(starting_dir):to_real_path())
+         )
          return 1
-      end
    end
 
    local directory <const> = fs.path.new(args.directory or "./", true)

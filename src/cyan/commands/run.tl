@@ -1,23 +1,31 @@
 ---@nodoc
-local tl <const> = require("tl")
 local argparse <const> = require("argparse")
-local log <const> = require("cyan.log")
-
-local config <const> = require("cyan.config")
 local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
+local config <const> = require("cyan.config")
+local fs <const> = require("cyan.fs")
+local log <const> = require("cyan.log")
 local sandbox <const> = require("cyan.sandbox")
+local tl <const> = require("tl")
 
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("script", "The Teal script to run.")
       :args("+")
 end
 
-local function run(args: command.Args, loaded_config: config.Config): integer
+local function run(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
    local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
    if not env then
       log.err("Could not initialize Teal environment:\n", env_err)
       return 1
+   end
+
+   do
+      local ok <const>, err <const> = fs.chdir(starting_dir)
+      if not ok then
+         log.err("Could not change directory: ", err)
+         return 1
+      end
    end
 
    local arg_list <const> = args["script"] as {string}

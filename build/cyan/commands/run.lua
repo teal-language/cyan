@@ -1,23 +1,31 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
-local tl = require("tl")
 local argparse = require("argparse")
-local log = require("cyan.log")
-
-local config = require("cyan.config")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
+local config = require("cyan.config")
+local fs = require("cyan.fs")
+local log = require("cyan.log")
 local sandbox = require("cyan.sandbox")
+local tl = require("tl")
 
 local function add_to_argparser(cmd)
    cmd:argument("script", "The Teal script to run."):
    args("+")
 end
 
-local function run(args, loaded_config)
+local function run(args, loaded_config, starting_dir)
    local env, env_err = common.init_env_from_config(loaded_config)
    if not env then
       log.err("Could not initialize Teal environment:\n", env_err)
       return 1
+   end
+
+   do
+      local ok, err = fs.chdir(starting_dir)
+      if not ok then
+         log.err("Could not change directory: ", err)
+         return 1
+      end
    end
 
    local arg_list = args["script"]
