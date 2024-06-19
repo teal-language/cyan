@@ -142,6 +142,19 @@ function tab.contains<Value>(t: {Value}, val: Value): boolean
 end
 
 ---@desc
+--- If `source` is not an array, create an array with `source` as its only element
+---
+--- Note: Due to teal's current generic limitations, this only works if `Value`
+--- is a NON-table type
+function tab.ensure_scalar_array<Value>(source: Value | {Value}): {Value}
+   if type(source) == "table" then
+      return source as {Value}
+   end
+
+   return { source as Value } as {Value}
+end
+
+---@desc
 --- Split a string by `del`, returning the indexes of the match
 ---
 --- Will error if the delimiter matches the empty string

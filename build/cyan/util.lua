@@ -145,6 +145,19 @@ end
 
 
 
+
+function tab.ensure_scalar_array(source)
+   if type(source) == "table" then
+      return source
+   end
+
+   return { source }
+end
+
+
+
+
+
 function str.split_find(s, del, no_patt)
    local idx = 0
    local prev_idx, start_idx
