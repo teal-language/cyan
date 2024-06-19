@@ -128,6 +128,9 @@ local highlights_by_content = {
    ["<="] = cs.colors.op,
    ["="] = cs.colors.op,
    ["~"] = cs.colors.op,
+   ["#"] = cs.colors.op,
+   ["as"] = cs.colors.op,
+   ["is"] = cs.colors.op,
 
    ["type"] = cs.colors.keyword,
    ["record"] = cs.colors.keyword,
@@ -169,7 +172,10 @@ local function count_tabs(str)
    return select(2, str:gsub("\t", ""))
 end
 
-local function prettify_line(s)
+
+
+
+function common.syntax_highlight(s)
    local tks = tl.lex(s)
    local highlighted = cs.new()
    local last_x = 1
@@ -214,7 +220,7 @@ local function prettify_error(e)
    local prefix = (" "):rep(num_len) .. " | "
 
    str:insert("   ", cs.colors.number, tostring(e.y), { 0 }, " | ")
-   str:append(prettify_line(ln))
+   str:append(common.syntax_highlight(ln))
    str:insert(
    "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
    cs.colors.error, ("^"):rep(#err_tk.tk), { 0 }, "\n   ",

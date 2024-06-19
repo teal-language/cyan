@@ -182,6 +182,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#common.report_result>common.report_result</a>
 <br><a href=#common.result_has_errors>common.result_has_errors</a>
 <br><a href=#common.search_module>common.search_module</a>
+<br><a href=#common.syntax_highlight>common.syntax_highlight</a>
 <br><a href=#common.type_check_ast>common.type_check_ast</a>
 </p>
 <p><a class=module-name href=#cyan.util>cyan.util</a>
@@ -191,6 +192,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#str.split>str.split</a>
 <br><a href=#str.split_find>str.split_find</a>
 <br><a href=#tab.contains>tab.contains</a>
+<br><a href=#tab.ensure_scalar_array>tab.ensure_scalar_array</a>
 <br><a href=#tab.filter>tab.filter</a>
 <br><a href=#tab.from>tab.from</a>
 <br><a href=#tab.intersperse>tab.intersperse</a>
@@ -554,6 +556,9 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=common.search_module><code>common.search_module(name: string, search_dtl: boolean): fs.Path</code></a>
 </h3>
 <p><p>A wrapper around <code>tl.search_module</code> but, returns an <code>fs.Path</code> and will cache results</p></p>
+<h3><a name=common.syntax_highlight><code>common.syntax_highlight(s: string): cs.ColorString</code></a>
+</h3>
+<p><p>Takes Teal or Lua code and returns a ColorString highlighting things like keywords, operators, and more.</p></p>
 <h3><a name=common.type_check_ast><code>common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result, string</code></a>
 </h3>
 <p><p>Just type checks an ast</p></p>
@@ -578,6 +583,9 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=tab.contains><code>tab.contains&lt;Value&gt;(t: {Value}, val: Value): boolean</code></a>
 </h3>
 <p><p>Report if an array contains an element (as determined by the <code>==</code> operator)</p></p>
+<h3><a name=tab.ensure_scalar_array><code>tab.ensure_scalar_array&lt;Value&gt;(source: Value | {Value}): {Value}</code></a>
+</h3>
+<p><p>If <code>source</code> is not an array, create an array with <code>source</code> as its only element</p><p>Note: Due to teal's current generic limitations, this only works if <code>Value</code> is a NON-table type</p></p>
 <h3><a name=tab.filter><code>tab.filter&lt;Value&gt;(t: {Value}, pred: function(Value): boolean): {Value}, {Value}</code></a>
 </h3>
 <p><p>Create two new lists from <code>t</code>: the values that return <code>true</code> from <code>pred</code> and the values that return false</p></p>
