@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -39,6 +39,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local system = require("system")
 local util = require("cyan.util")
 local cs = require("cyan.colorstring")
+local decoration = require("cyan.experimental.decoration")
 local str = util.str
 
 local no_color_env = os.getenv("NO_COLOR") ~= nil
@@ -115,6 +116,17 @@ local function sanitizer(stream)
    end
 end
 
+local function renderer(stream)
+   if is_a_tty(stream) and not no_color_env then
+      return decoration.render_ansi
+   end
+   return decoration.render_plain
+end
+
+local function is_decorated_string(value)
+   return getmetatable(value).__name == "cyan.decoration.Decorated"
+end
+
 
 
 local Logger = {}
@@ -143,6 +155,7 @@ local function do_log(
    ...)
 
    local sanitize = sanitizer(stream)
+   local render = renderer(stream)
 
    local prefix = tostring(sanitize(str.pad_left(initial_prefix, prefix_padding)))
    local continuation = tostring(sanitize(str.pad_left(continuation_prefix and continuation_prefix, prefix_padding)))
@@ -150,8 +163,19 @@ local function do_log(
    stream:write(prefix, " ")
 
    for i = 1, select("#", ...) do
-      local val = inspector(sanitize((select(i, ...))))
-      for ln, peeked in util.peek(str.split(val, "\n", true)) do
+      local v = select(i, ...)
+      local render_buf = {}
+      if is_decorated_string(v) then
+         render(
+         render_buf,
+         (v).plain_content,
+         (v).decoration)
+
+      else
+         render_buf[1] = inspector(sanitize(v))
+      end
+      local rendered = table.concat(render_buf)
+      for ln, peeked in util.peek(str.split(rendered, "\n", true)) do
          stream:write(ln)
          if peeked then
             stream:write("\n", continuation, " ")

@@ -6,7 +6,8 @@ local tl <const> = require("tl")
 local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
 local config <const> = require("cyan.config")
-local cs <const> = require("cyan.colorstring")
+-- local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
 local log <const> = require("cyan.log")
@@ -112,8 +113,8 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       end
    end
 
-   local function display_filename(f: fs.Path, trailing_slash: boolean): cs.ColorString
-      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
+   local function display_filename(f: fs.Path, trailing_slash: boolean): any
+      return decoration.file_name(f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
    end
 
    local function get_output_name(src: fs.Path): fs.Path
@@ -157,7 +158,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    local function process_node(n: graph.Node, compile: boolean)
       local path <const> = n.input:to_real_path()
       local disp_path <const> = display_filename(n.input)
-      log.debug("processing node of ", disp_path:tostring(), " for ", compile and "compilation" or "type check")
+      log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out <const> = get_output_name(n.input)
       n.output = out
       local parsed <const>, parse_err <const> = common.parse_file(path)
@@ -291,7 +292,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
                prune(p, "directory")
             end
          else
-            local strs <const>: {string | cs.ColorString} = {}
+            local strs <const>: {any} = {}
             for p in ivalues(unexpected_files) do
                table.insert(strs, "\n   ")
                table.insert(strs, display_filename(p))

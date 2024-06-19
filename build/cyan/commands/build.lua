@@ -6,7 +6,8 @@ local tl = require("tl")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
-local cs = require("cyan.colorstring")
+
+local decoration = require("cyan.experimental.decoration")
 local fs = require("cyan.fs")
 local graph = require("cyan.graph")
 local log = require("cyan.log")
@@ -113,7 +114,7 @@ local function build(args, loaded_config, starting_dir)
    end
 
    local function display_filename(f, trailing_slash)
-      return cs.highlight(cs.colors.file, f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
+      return decoration.file_name(f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
    end
 
    local function get_output_name(src)
@@ -157,7 +158,7 @@ local function build(args, loaded_config, starting_dir)
    local function process_node(n, compile)
       local path = n.input:to_real_path()
       local disp_path = display_filename(n.input)
-      log.debug("processing node of ", disp_path:tostring(), " for ", compile and "compilation" or "type check")
+      log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out = get_output_name(n.input)
       n.output = out
       local parsed, parse_err = common.parse_file(path)

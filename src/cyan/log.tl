@@ -39,6 +39,7 @@
 local system <const> = require("system")
 local util <const> = require("cyan.util")
 local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local str <const> = util.str
 
 local no_color_env <const> = os.getenv("NO_COLOR") ~= nil
@@ -115,6 +116,17 @@ local function sanitizer(stream: FILE): function(any): any
    end
 end
 
+local function renderer(stream: FILE): decoration.Renderer
+   if is_a_tty(stream) and not no_color_env then
+      return decoration.render_ansi
+   end
+   return decoration.render_plain
+end
+
+local function is_decorated_string(value: any): boolean
+   return getmetatable(value).__name == "cyan.decoration.Decorated"
+end
+
 ---@desc
 --- The data needed for a logger to do its job.
 local record Logger
@@ -143,6 +155,7 @@ local function do_log(
    ...: any
 )
    local sanitize <const> = sanitizer(stream)
+   local render <const> = renderer(stream)
 
    local prefix <const> = tostring(sanitize(str.pad_left(initial_prefix as string, prefix_padding)))
    local continuation = tostring(sanitize(str.pad_left(continuation_prefix and continuation_prefix as string, prefix_padding)))
@@ -150,8 +163,19 @@ local function do_log(
    stream:write(prefix, " ")
 
    for i = 1, select("#", ...) do
-      local val <const> = inspector(sanitize((select(i, ...))))
-      for ln, peeked in util.peek(str.split(val, "\n", true)) do
+      local v <const> = select(i, ...)
+      local render_buf <const>: {string} = {}
+      if is_decorated_string(v) then
+         render(
+            render_buf,
+            (v as decoration.Decorated).plain_content,
+            (v as decoration.Decorated).decoration
+         )
+      else
+         render_buf[1] = inspector(sanitize(v))
+      end
+      local rendered <const> = table.concat(render_buf)
+      for ln, peeked in util.peek(str.split(rendered, "\n", true)) do
          stream:write(ln)
          if peeked then
             stream:write("\n", continuation, " ")
