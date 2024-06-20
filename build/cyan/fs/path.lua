@@ -345,8 +345,27 @@ function Path.eq(a, b, use_os_sep)
       return true
    end
 
-   local pa = type(a) == "string" and path.new(a, use_os_sep) or (a):copy()
-   local pb = type(b) == "string" and path.new(b, use_os_sep) or (b):copy()
+   local pa
+   local pb
+
+
+   if type(a) == "string" then
+      pa = path.new(a, use_os_sep)
+   else
+      if getmetatable(a) ~= PathMt then
+         return false
+      end
+      pa = a:copy()
+   end
+
+   if type(b) == "string" then
+      pa = path.new(b, use_os_sep)
+   else
+      if getmetatable(b) ~= PathMt then
+         return false
+      end
+      pb = b:copy()
+   end
 
    pa:to_absolute()
    pb:to_absolute()

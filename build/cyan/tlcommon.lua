@@ -4,14 +4,17 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local config = require("cyan.config")
+local decoration = require("cyan.experimental.decoration")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
 local cs = require("cyan.colorstring")
 local tl = require("tl")
 
-local map, filter, ivalues, set =
-util.tab.map, util.tab.filter, util.tab.ivalues, util.tab.set
+local filter, ivalues, set =
+util.tab.filter, util.tab.ivalues, util.tab.set
+
+local insert = table.insert
 
 
 
@@ -196,6 +199,92 @@ function common.syntax_highlight(s)
    return highlighted
 end
 
+local tk_operator = decoration.copy(decoration.scheme.operator, { monospace = true })
+local tk_keyword = decoration.copy(decoration.scheme.keyword, { monospace = true })
+local tk_number = decoration.copy(decoration.scheme.number, { monospace = true })
+local tk_string = decoration.copy(decoration.scheme.string, { monospace = true })
+
+local decoration_by_content = {
+   ["+"] = tk_operator,
+   ["*"] = tk_operator,
+   ["-"] = tk_operator,
+   ["/"] = tk_operator,
+   ["^"] = tk_operator,
+   ["&"] = tk_operator,
+   ["=="] = tk_operator,
+   ["~="] = tk_operator,
+   [">"] = tk_operator,
+   [">="] = tk_operator,
+   ["<"] = tk_operator,
+   ["<="] = tk_operator,
+   ["="] = tk_operator,
+   ["~"] = tk_operator,
+   ["#"] = tk_operator,
+   ["as"] = tk_operator,
+   ["is"] = tk_operator,
+
+   ["type"] = tk_keyword,
+   ["record"] = tk_keyword,
+   ["enum"] = tk_keyword,
+   ["and"] = tk_keyword,
+   ["break"] = tk_keyword,
+   ["do"] = tk_keyword,
+   ["else"] = tk_keyword,
+   ["elseif"] = tk_keyword,
+   ["end"] = tk_keyword,
+   ["false"] = tk_keyword,
+   ["for"] = tk_keyword,
+   ["function"] = tk_keyword,
+   ["goto"] = tk_keyword,
+   ["if"] = tk_keyword,
+   ["in"] = tk_keyword,
+   ["local"] = tk_keyword,
+   ["nil"] = tk_keyword,
+   ["not"] = tk_keyword,
+   ["or"] = tk_keyword,
+   ["repeat"] = tk_keyword,
+   ["return"] = tk_keyword,
+   ["then"] = tk_keyword,
+   ["true"] = tk_keyword,
+   ["until"] = tk_keyword,
+   ["while"] = tk_keyword,
+}
+
+local decoration_by_kind = {
+   string = tk_string,
+   integer = tk_number,
+   number = tk_number,
+}
+
+local monospace = { monospace = true }
+
+local function decorate_token(tk)
+   if decoration_by_content[tk.tk] then
+      return decoration.decorate(tk.tk, decoration_by_content[tk.tk])
+   end
+   if decoration_by_kind[tk.kind] then
+      return decoration.decorate(tk.tk, decoration_by_kind[tk.kind])
+   end
+   return tk.tk == "$EOF$" and "" or tk.tk
+end
+
+function common._experimental_syntax_highlight(s)
+   local buf = {}
+   local tks = tl.lex(s)
+   local last_x = 1
+   for tk in ivalues(tks) do
+
+      local ts = count_tabs(s:sub(last_x, tk.x - 1))
+      local space_count = 
+      (ts > 0 and 3 * ts or 0) +
+      (last_x < tk.x and tk.x - last_x or 0)
+      insert(buf, decoration.decorate((" "):rep(space_count), { monospace = true }))
+      insert(buf, decorate_token(tk))
+      last_x = tk.x + #tk.tk
+   end
+   return buf
+end
+
 local function prettify_error(e)
    local ln = fs.get_line(e.filename, e.y)
 
@@ -205,40 +294,49 @@ local function prettify_error(e)
       tk = tl.get_token_at(tks, 1, e.x) or " ",
    }
 
-   local str = cs.new(
-   cs.colors.file, e.filename, { 0 },
-   " ", cs.colors.error_number, tostring(e.y), { 0 },
-   ":", cs.colors.error_number, tostring(e.x), { 0 })
-
+   local buf = {
+      decoration.file_name(e.filename),
+      ":", decoration.decorate(tostring(e.y), decoration.scheme.error_number),
+      ":", decoration.decorate(tostring(e.x), decoration.scheme.error_number),
+   }
 
    if e.tag then
-      str:insert(" [", cs.colors.emphasis, e.tag, { 0 }, "]")
+      insert(buf, " [")
+      insert(buf, decoration.decorate(e.tag, decoration.scheme.emphasis))
+      insert(buf, "]")
    end
 
-   str:insert("\n")
+   insert(buf, "\n")
 
    local num_len = #tostring(e.y)
-   local prefix = (" "):rep(num_len) .. " | "
+   local prefix = decoration.decorate((" "):rep(num_len) .. " │ ", monospace)
 
-   str:insert("   ", cs.colors.number, tostring(e.y), { 0 }, " | ")
-   str:append(common.syntax_highlight(ln))
-   str:insert(
-   "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
-   cs.colors.error, ("^"):rep(#err_tk.tk), { 0 }, "\n   ",
-   prefix, cs.colors.error, e.msg, { 0 })
+   insert(buf, decoration.decorate("   ", monospace))
+   insert(buf, decoration.decorate(tostring(e.y), decoration.scheme.number))
+   insert(buf, decoration.decorate(" │ ", monospace))
+   for v in ivalues(common._experimental_syntax_highlight(ln)) do
+      insert(buf, v)
+   end
 
+   insert(buf, decoration.decorate("\n   ", monospace))
+   insert(buf, prefix)
+   insert(buf, decoration.decorate((" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1), monospace))
+   insert(buf, decoration.decorate(("^"):rep(#err_tk.tk), decoration.copy(decoration.scheme.error, monospace)))
+   insert(buf, decoration.decorate("\n   ", monospace))
+   insert(buf, prefix)
+   insert(buf, decoration.decorate(e.msg, decoration.scheme.error))
 
-   return str
+   return buf
 end
 
 
 
 function common.report_errors(logger, errs, file, category)
-   logger(
-   common.make_error_header(file, #errs, category),
-   "\n",
-   _tl_table_unpack(util.tab.intersperse(map(errs, prettify_error), "\n\n")))
-
+   logger(common.make_error_header(file, #errs, category), "\n")
+   for e in ivalues(errs) do
+      logger:cont(_tl_table_unpack(prettify_error(e)))
+      logger:cont("\n")
+   end
 end
 
 

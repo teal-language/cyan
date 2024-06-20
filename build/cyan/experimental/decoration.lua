@@ -35,25 +35,32 @@ local Decoration = {}
 
 
 
-local function copy(decoration)
-   return {
-      bold = decoration.bold,
-      italic = decoration.italic,
-      monospace = decoration.monospace,
-      linked_uri = decoration.linked_uri,
-      ansi_color = decoration.ansi_color,
-      ansi_background_color = decoration.ansi_background_color,
-      color = decoration.color and {
-         red = decoration.color.red,
-         green = decoration.color.green,
-         blue = decoration.color.blue,
-      },
-      background_color = decoration.background_color and {
-         red = decoration.background_color.red,
-         green = decoration.background_color.green,
-         blue = decoration.background_color.blue,
-      },
-   }
+local function color_copy(c)
+   return { red = c.red, green = c.green, blue = c.blue }
+end
+
+local ivalues = require("cyan.util").tab.ivalues
+
+local function copy(decoration, delta)
+   delta = delta or {}
+   local result = {}
+   for k in ivalues({
+         "bold",
+         "italic",
+         "monospace",
+         "linked_uri",
+         "ansi_color",
+         "ansi_background_color",
+      }) do
+      (result)[k] = (delta)[k] == nil and (decoration)[k] or (delta)[k]
+   end
+
+   result.color = (delta.color and color_copy(delta.color)) or
+   (decoration.color and color_copy(decoration.color))
+   result.background_color = (delta.background_color and color_copy(delta.background_color)) or
+   (decoration.background_color and color_copy(decoration.background_color))
+
+   return result
 end
 
 local Decorated = {}
@@ -142,7 +149,10 @@ end
 
 local scheme = {
    teal = { color = rgb(0, 0xAA, 0xB4) },
-   cyan = { color = rgb(0, 0xFF, 0xFF) },
+   cyan = {
+      ansi_color = 6,
+      color = rgb(0, 0xFF, 0xFF),
+   },
    yellow = {
       ansi_color = 3,
       color = rgb(230, 230, 0),
@@ -169,6 +179,7 @@ scheme.warn = scheme.yellow
 scheme.number = scheme.red
 scheme.string = { ansi_color = 11 }
 scheme.operator = scheme.magenta
+scheme.emphasis = { bold = true }
 
 local function file_name(path)
    local decoration = copy(scheme.file)

@@ -345,8 +345,27 @@ function Path.eq(a: Path | string, b: Path | string, use_os_sep: boolean): boole
       return true
    end
 
-   local pa <const> = a is string and path.new(a, use_os_sep) or (a as Path):copy()
-   local pb <const> = b is string and path.new(b, use_os_sep) or (b as Path):copy()
+   local pa: Path
+   local pb: Path
+
+   -- metamethods aren't actually type checked
+   if a is string then
+      pa = path.new(a, use_os_sep)
+   else
+      if getmetatable(a) ~= PathMt then
+         return false
+      end
+      pa = a:copy()
+   end
+
+   if b is string then
+      pa = path.new(b, use_os_sep)
+   else
+      if getmetatable(b) ~= PathMt then
+         return false
+      end
+      pb = b:copy()
+   end
 
    pa:to_absolute()
    pb:to_absolute()

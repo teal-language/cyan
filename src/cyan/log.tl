@@ -103,7 +103,7 @@ end
 
 local colorstring_mt <const> = getmetatable(cs.new())
 local function is_color_string(val: any): boolean
-   return getmetatable(val) == colorstring_mt
+   return rawequal(getmetatable(val), colorstring_mt)
 end
 
 local function sanitizer(stream: FILE): function(any): any
@@ -124,7 +124,11 @@ local function renderer(stream: FILE): decoration.Renderer
 end
 
 local function is_decorated_string(value: any): boolean
-   return getmetatable(value).__name == "cyan.decoration.Decorated"
+   local mt = getmetatable(value)
+   if mt then
+      return mt.__name == "cyan.decoration.Decorated"
+   end
+   return false
 end
 
 ---@desc

@@ -4,14 +4,17 @@
 --- wrappers around the tl api, since it isn't super stable
 
 local config <const> = require("cyan.config")
+local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 local cs <const> = require("cyan.colorstring")
 local tl <const> = require("tl")
 
-local map <const>, filter <const>, ivalues <const>, set <const>
-   = util.tab.map, util.tab.filter, util.tab.ivalues, util.tab.set
+local filter <const>, ivalues <const>, set <const>
+   = util.tab.filter, util.tab.ivalues, util.tab.set
+
+local insert <const> = table.insert
 
 -- tl.Node is not exposed :((((((((((
 local type Node = any -- tl.Node
@@ -196,7 +199,93 @@ function common.syntax_highlight(s: string): cs.ColorString
    return highlighted
 end
 
-local function prettify_error(e: tl.Error): cs.ColorString
+local tk_operator <const> = decoration.copy(decoration.scheme.operator, { monospace = true })
+local tk_keyword <const> = decoration.copy(decoration.scheme.keyword, { monospace = true })
+local tk_number <const> = decoration.copy(decoration.scheme.number, { monospace = true })
+local tk_string <const> = decoration.copy(decoration.scheme.string, { monospace = true })
+
+local decoration_by_content <const>: {string:decoration.Decoration} = {
+   ["+"]        = tk_operator,
+   ["*"]        = tk_operator,
+   ["-"]        = tk_operator,
+   ["/"]        = tk_operator,
+   ["^"]        = tk_operator,
+   ["&"]        = tk_operator,
+   ["=="]       = tk_operator,
+   ["~="]       = tk_operator,
+   [">"]        = tk_operator,
+   [">="]       = tk_operator,
+   ["<"]        = tk_operator,
+   ["<="]       = tk_operator,
+   ["="]        = tk_operator,
+   ["~"]        = tk_operator,
+   ["#"]        = tk_operator,
+   ["as"]       = tk_operator,
+   ["is"]       = tk_operator,
+
+   ["type"]     = tk_keyword,
+   ["record"]   = tk_keyword,
+   ["enum"]     = tk_keyword,
+   ["and"]      = tk_keyword,
+   ["break"]    = tk_keyword,
+   ["do"]       = tk_keyword,
+   ["else"]     = tk_keyword,
+   ["elseif"]   = tk_keyword,
+   ["end"]      = tk_keyword,
+   ["false"]    = tk_keyword,
+   ["for"]      = tk_keyword,
+   ["function"] = tk_keyword,
+   ["goto"]     = tk_keyword,
+   ["if"]       = tk_keyword,
+   ["in"]       = tk_keyword,
+   ["local"]    = tk_keyword,
+   ["nil"]      = tk_keyword,
+   ["not"]      = tk_keyword,
+   ["or"]       = tk_keyword,
+   ["repeat"]   = tk_keyword,
+   ["return"]   = tk_keyword,
+   ["then"]     = tk_keyword,
+   ["true"]     = tk_keyword,
+   ["until"]    = tk_keyword,
+   ["while"]    = tk_keyword,
+}
+
+local decoration_by_kind <const>: {string:decoration.Decoration} = {
+   string  = tk_string,
+   integer = tk_number,
+   number  = tk_number,
+}
+
+local monospace <const>: decoration.Decoration = { monospace = true }
+
+local function decorate_token(tk: Token): decoration.Decorated | string
+   if decoration_by_content[tk.tk] then
+      return decoration.decorate(tk.tk, decoration_by_content[tk.tk])
+   end
+   if decoration_by_kind[tk.kind] then
+      return decoration.decorate(tk.tk,decoration_by_kind[tk.kind])
+   end
+   return tk.tk == "$EOF$" and "" or tk.tk
+end
+
+function common._experimental_syntax_highlight(s: string): {decoration.Decorated | string}
+   local buf <const>: {decoration.Decorated | string} = {}
+   local tks <const> = tl.lex(s) as {Token}
+   local last_x = 1
+   for tk in ivalues(tks) do
+      -- account for tabs
+      local ts <const> = count_tabs(s:sub(last_x, tk.x - 1))
+      local space_count <const> =
+         (ts > 0 and 3 * ts or 0)
+         + (last_x < tk.x and tk.x - last_x or 0)
+      insert(buf, decoration.decorate((" "):rep(space_count), { monospace = true }))
+      insert(buf, decorate_token(tk))
+      last_x = tk.x + #tk.tk
+   end
+   return buf
+end
+
+local function prettify_error(e: tl.Error): {decoration.Decorated | string}
    local ln <const> = fs.get_line(e.filename, e.y)
 
    local tks <const> = tl.lex(ln)
@@ -205,40 +294,49 @@ local function prettify_error(e: tl.Error): cs.ColorString
       tk = tl.get_token_at(tks, 1, e.x) or " "
    }
 
-   local str <const> = cs.new(
-      cs.colors.file, e.filename, {0},
-      " ", cs.colors.error_number, tostring(e.y), {0},
-      ":", cs.colors.error_number, tostring(e.x), {0}
-   )
+   local buf <const>: {decoration.Decorated | string} = {
+      decoration.file_name(e.filename),
+      ":", decoration.decorate(tostring(e.y), decoration.scheme.error_number),
+      ":", decoration.decorate(tostring(e.x), decoration.scheme.error_number)
+   }
 
    if e.tag then
-      str:insert(" [", cs.colors.emphasis, e.tag, {0}, "]")
+      insert(buf, " [")
+      insert(buf, decoration.decorate(e.tag, decoration.scheme.emphasis))
+      insert(buf, "]")
    end
 
-   str:insert("\n")
+   insert(buf, "\n")
 
    local num_len <const> = #tostring(e.y)
-   local prefix <const> = (" "):rep(num_len) .. " | "
+   local prefix <const> = decoration.decorate((" "):rep(num_len) .. " │ ", monospace)
 
-   str:insert("   ", cs.colors.number, tostring(e.y), {0}, " | ")
-   str:append(common.syntax_highlight(ln))
-   str:insert(
-      "\n   ", prefix, (" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1),
-      cs.colors.error, ("^"):rep(#err_tk.tk), {0}, "\n   ",
-      prefix, cs.colors.error, e.msg, {0}
-   )
+   insert(buf, decoration.decorate("   ", monospace))
+   insert(buf, decoration.decorate(tostring(e.y), decoration.scheme.number))
+   insert(buf, decoration.decorate(" │ ", monospace))
+   for v in ivalues(common._experimental_syntax_highlight(ln)) do
+      insert(buf, v)
+   end
 
-   return str
+   insert(buf, decoration.decorate("\n   ", monospace))
+   insert(buf, prefix)
+   insert(buf, decoration.decorate((" "):rep(e.x + count_tabs(ln:sub(1, e.x)) * 3 - 1), monospace))
+   insert(buf, decoration.decorate(("^"):rep(#err_tk.tk), decoration.copy(decoration.scheme.error, monospace)))
+   insert(buf, decoration.decorate("\n   ", monospace))
+   insert(buf, prefix)
+   insert(buf, decoration.decorate(e.msg, decoration.scheme.error))
+
+   return buf
 end
 
 ---@desc
 --- Logs an array of errors with nice colors and a header generated by `make_error_header`
 function common.report_errors(logger: log.Logger, errs: {tl.Error}, file: string, category: string)
-   logger(
-      common.make_error_header(file, #errs, category),
-      "\n",
-      table.unpack(util.tab.intersperse(map(errs, prettify_error), "\n\n" as cs.ColorString))
-   )
+   logger(common.make_error_header(file, #errs, category), "\n")
+   for e in ivalues(errs) do
+      logger:cont(table.unpack(prettify_error(e)))
+      logger:cont("\n")
+   end
 end
 
 ---@desc

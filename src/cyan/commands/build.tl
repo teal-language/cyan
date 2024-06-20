@@ -113,7 +113,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       end
    end
 
-   local function display_filename(f: fs.Path, trailing_slash: boolean): any
+   local function display_filename(f: fs.Path, trailing_slash: boolean): decoration.Decorated
       return decoration.file_name(f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
    end
 
