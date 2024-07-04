@@ -1,3 +1,30 @@
+# 0.3.1
+2024-07-04
+
+Just some minor changes.
+
+Fixes:
+ - The `--quiet` flag actually does something now instead of the previous nothing.
+ - We now change directory before trying to load the config file. Allowing cyan
+   to actually be run in a subdirectory.
+
+API Features:
+ - A new user interaction module has been added `cyan.interaction`. The only
+   function in it so far is `yes_no_prompt`.
+ - `ColorString.copy` method added
+ - `log.Logger.copy` method added
+ - `util.peek` iterator added
+ - `util.tab.ensure_scalar_array` added
+ - `tlcommon.syntax_highlight` function exposed
+
+Developer Things:
+ - Github action dependencies have been updated
+ - A new tree-sitter powered linting script has been added to catch some simple
+   style differences
+ - The tl dependency in the rockspec has now been limited to `~> 15` since the
+   changes in the next branch are breaking and we unsafely wrap them without
+   typechecking
+
 # 0.3.0
 2023-02-01
 
