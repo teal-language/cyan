@@ -8,7 +8,6 @@ local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
-local cs <const> = require("cyan.colorstring")
 local tl <const> = require("tl")
 
 local filter <const>, ivalues <const>, set <const>
@@ -101,102 +100,19 @@ end
 ---
 --- For example `make_error_header("foo.tl", 10, "foo error")` would produce
 --- something like `10 foo errors in foo.tl` with `10` and `foo.tl` highlighted
-function common.make_error_header(file: string, num_errors: integer, category: string): cs.ColorString
-   return cs.new(
-      cs.colors.emphasis, tostring(num_errors),
-      " ", category, (num_errors ~= 1 and "s" or ""), {0},
+function common.make_error_header(file: string, num_errors: integer, category: string): {string | decoration.Decorated}
+   return {
+      decoration.decorate(
+         tostring(num_errors) .. " " .. category .. (num_errors ~= 1 and "s" or ""),
+         decoration.scheme.emphasis
+      ),
       " in ",
-      cs.colors.file, file, {0}
-   )
-end
-
-local highlights_by_kind <const>: {string:{integer}} = {
-   string = cs.colors.string,
-   integer = cs.colors.number,
-   number = cs.colors.number,
-}
-
-local highlights_by_content <const>: {string:{integer}} = {
-   ["+"] = cs.colors.op,
-   ["*"] = cs.colors.op,
-   ["-"] = cs.colors.op,
-   ["/"] = cs.colors.op,
-   ["^"] = cs.colors.op,
-   ["&"] = cs.colors.op,
-   ["=="] = cs.colors.op,
-   ["~="] = cs.colors.op,
-   [">"] = cs.colors.op,
-   [">="] = cs.colors.op,
-   ["<"] = cs.colors.op,
-   ["<="] = cs.colors.op,
-   ["="] = cs.colors.op,
-   ["~"] = cs.colors.op,
-   ["#"] = cs.colors.op,
-   ["as"] = cs.colors.op,
-   ["is"] = cs.colors.op,
-
-   ["type"] = cs.colors.keyword,
-   ["record"] = cs.colors.keyword,
-   ["enum"] = cs.colors.keyword,
-   ["and"] = cs.colors.keyword,
-   ["break"] = cs.colors.keyword,
-   ["do"] = cs.colors.keyword,
-   ["else"] = cs.colors.keyword,
-   ["elseif"] = cs.colors.keyword,
-   ["end"] = cs.colors.keyword,
-   ["false"] = cs.colors.keyword,
-   ["for"] = cs.colors.keyword,
-   ["function"] = cs.colors.keyword,
-   ["goto"] = cs.colors.keyword,
-   ["if"] = cs.colors.keyword,
-   ["in"] = cs.colors.keyword,
-   ["local"] = cs.colors.keyword,
-   ["nil"] = cs.colors.keyword,
-   ["not"] = cs.colors.keyword,
-   ["or"] = cs.colors.keyword,
-   ["repeat"] = cs.colors.keyword,
-   ["return"] = cs.colors.keyword,
-   ["then"] = cs.colors.keyword,
-   ["true"] = cs.colors.keyword,
-   ["until"] = cs.colors.keyword,
-   ["while"] = cs.colors.keyword,
-}
-
-local function highlight_token(tk: Token): cs.ColorString
-   if highlights_by_content[tk.tk] then
-      return cs.highlight(highlights_by_content[tk.tk], tk.tk)
-   end
-   if highlights_by_kind[tk.kind] then
-      return cs.highlight(highlights_by_kind[tk.kind], tk.tk)
-   end
-   return cs.new(tk.tk == "$EOF$" and "" or tk.tk)
+      decoration.file_name(file)
+   }
 end
 
 local function count_tabs(str: string): integer
    return select(2, str:gsub("\t", "")) as integer
-end
-
----@desc
---- Takes Teal or Lua code and returns a ColorString highlighting things like
---- keywords, operators, and more.
-function common.syntax_highlight(s: string): cs.ColorString
-   local tks <const> = tl.lex(s) as {Token}
-   local highlighted <const> = cs.new()
-   local last_x = 1
-   for tk in ivalues(tks) do
-      -- account for tabs
-      local ts = count_tabs(s:sub(last_x, tk.x - 1))
-      if ts > 0 then
-         local spaces = 3 * ts
-         highlighted:append((" "):rep(spaces))
-      end
-      if last_x < tk.x then
-         highlighted:append((" "):rep(tk.x - last_x))
-      end
-      highlighted:append(highlight_token(tk))
-      last_x = tk.x + #tk.tk
-   end
-   return highlighted
 end
 
 local tk_operator <const> = decoration.copy(decoration.scheme.operator, { monospace = true })
@@ -268,7 +184,10 @@ local function decorate_token(tk: Token): decoration.Decorated | string
    return tk.tk == "$EOF$" and "" or tk.tk
 end
 
-function common._experimental_syntax_highlight(s: string): {decoration.Decorated | string}
+---@desc
+--- Takes Teal or Lua code and returns a decorated string highlighting things
+--- like keywords, operators, and more.
+function common.syntax_highlight(s: string): {decoration.Decorated | string}
    local buf <const>: {decoration.Decorated | string} = {}
    local tks <const> = tl.lex(s) as {Token}
    local last_x = 1
@@ -314,7 +233,7 @@ local function prettify_error(e: tl.Error): {decoration.Decorated | string}
    insert(buf, decoration.decorate("   ", monospace))
    insert(buf, decoration.decorate(tostring(e.y), decoration.scheme.number))
    insert(buf, decoration.decorate(" │ ", monospace))
-   for v in ivalues(common._experimental_syntax_highlight(ln)) do
+   for v in ivalues(common.syntax_highlight(ln)) do
       insert(buf, v)
    end
 

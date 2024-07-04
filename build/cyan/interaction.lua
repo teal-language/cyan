@@ -2,16 +2,15 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local log = require("cyan.log")
-local cs = require("cyan.colorstring")
-local ansi = require("cyan.ansi")
 local util = require("cyan.util")
+local decoration = require("cyan.experimental.decoration")
 
 local ivalues = util.tab.ivalues
 
 local interaction = {}
 
-local affirmative = { ansi.color.dark.green }
-local negative = { ansi.color.dark.red }
+local affirmative = decoration.scheme.affirmative
+local negative = decoration.scheme.negative
 
 local yesses = { "yes", "yeah", "yea", "ye", "y" }
 local nos = { "no", "nope", "n" }
@@ -46,21 +45,19 @@ function interaction.yes_no_prompt(
    affirm = affirm or yesses
    deny = deny or nos
 
-   local y = cs.highlight(
-   affirmative,
-   default and title_case(affirm[1]) or affirm[1]:lower())
+   local y = decoration.decorate(
+   default and title_case(affirm[1]) or affirm[1]:lower(),
+   affirmative)
 
-   local n = cs.highlight(
-   negative,
-   default and deny[1]:lower() or title_case(deny[1]))
-
-   local prompt_str = prompt .. " [" .. y .. "/" .. n .. "]: "
+   local n = decoration.decorate(
+   default and deny[1]:lower() or title_case(deny[1]),
+   negative)
 
    local affirm_set = to_string_set(affirm)
    local deny_set = to_string_set(deny)
 
    while true do
-      logger:nonl(prompt_str)
+      logger:nonl(prompt, " [", y, "/", n, "]: ")
       logger.stream:flush()
       local input = io.read("*l"):lower()
 
@@ -68,8 +65,8 @@ function interaction.yes_no_prompt(
          logger:cont(
          "Defaulting to ",
          default and
-         cs.highlight(affirmative, title_case(affirm[1])) or
-         cs.highlight(negative, title_case(deny[1])))
+         decoration.decorate(title_case(affirm[1]), affirmative) or
+         decoration.decorate(title_case(deny[1]), negative))
 
          return default or false
       end

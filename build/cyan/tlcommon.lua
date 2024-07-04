@@ -8,7 +8,6 @@ local decoration = require("cyan.experimental.decoration")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
-local cs = require("cyan.colorstring")
 local tl = require("tl")
 
 local filter, ivalues, set =
@@ -102,101 +101,18 @@ end
 
 
 function common.make_error_header(file, num_errors, category)
-   return cs.new(
-   cs.colors.emphasis, tostring(num_errors),
-   " ", category, (num_errors ~= 1 and "s" or ""), { 0 },
-   " in ",
-   cs.colors.file, file, { 0 })
+   return {
+      decoration.decorate(
+      tostring(num_errors) .. " " .. category .. (num_errors ~= 1 and "s" or ""),
+      decoration.scheme.emphasis),
 
-end
-
-local highlights_by_kind = {
-   string = cs.colors.string,
-   integer = cs.colors.number,
-   number = cs.colors.number,
-}
-
-local highlights_by_content = {
-   ["+"] = cs.colors.op,
-   ["*"] = cs.colors.op,
-   ["-"] = cs.colors.op,
-   ["/"] = cs.colors.op,
-   ["^"] = cs.colors.op,
-   ["&"] = cs.colors.op,
-   ["=="] = cs.colors.op,
-   ["~="] = cs.colors.op,
-   [">"] = cs.colors.op,
-   [">="] = cs.colors.op,
-   ["<"] = cs.colors.op,
-   ["<="] = cs.colors.op,
-   ["="] = cs.colors.op,
-   ["~"] = cs.colors.op,
-   ["#"] = cs.colors.op,
-   ["as"] = cs.colors.op,
-   ["is"] = cs.colors.op,
-
-   ["type"] = cs.colors.keyword,
-   ["record"] = cs.colors.keyword,
-   ["enum"] = cs.colors.keyword,
-   ["and"] = cs.colors.keyword,
-   ["break"] = cs.colors.keyword,
-   ["do"] = cs.colors.keyword,
-   ["else"] = cs.colors.keyword,
-   ["elseif"] = cs.colors.keyword,
-   ["end"] = cs.colors.keyword,
-   ["false"] = cs.colors.keyword,
-   ["for"] = cs.colors.keyword,
-   ["function"] = cs.colors.keyword,
-   ["goto"] = cs.colors.keyword,
-   ["if"] = cs.colors.keyword,
-   ["in"] = cs.colors.keyword,
-   ["local"] = cs.colors.keyword,
-   ["nil"] = cs.colors.keyword,
-   ["not"] = cs.colors.keyword,
-   ["or"] = cs.colors.keyword,
-   ["repeat"] = cs.colors.keyword,
-   ["return"] = cs.colors.keyword,
-   ["then"] = cs.colors.keyword,
-   ["true"] = cs.colors.keyword,
-   ["until"] = cs.colors.keyword,
-   ["while"] = cs.colors.keyword,
-}
-
-local function highlight_token(tk)
-   if highlights_by_content[tk.tk] then
-      return cs.highlight(highlights_by_content[tk.tk], tk.tk)
-   end
-   if highlights_by_kind[tk.kind] then
-      return cs.highlight(highlights_by_kind[tk.kind], tk.tk)
-   end
-   return cs.new(tk.tk == "$EOF$" and "" or tk.tk)
+      " in ",
+      decoration.file_name(file),
+   }
 end
 
 local function count_tabs(str)
    return select(2, str:gsub("\t", ""))
-end
-
-
-
-
-function common.syntax_highlight(s)
-   local tks = tl.lex(s)
-   local highlighted = cs.new()
-   local last_x = 1
-   for tk in ivalues(tks) do
-
-      local ts = count_tabs(s:sub(last_x, tk.x - 1))
-      if ts > 0 then
-         local spaces = 3 * ts
-         highlighted:append((" "):rep(spaces))
-      end
-      if last_x < tk.x then
-         highlighted:append((" "):rep(tk.x - last_x))
-      end
-      highlighted:append(highlight_token(tk))
-      last_x = tk.x + #tk.tk
-   end
-   return highlighted
 end
 
 local tk_operator = decoration.copy(decoration.scheme.operator, { monospace = true })
@@ -268,7 +184,10 @@ local function decorate_token(tk)
    return tk.tk == "$EOF$" and "" or tk.tk
 end
 
-function common._experimental_syntax_highlight(s)
+
+
+
+function common.syntax_highlight(s)
    local buf = {}
    local tks = tl.lex(s)
    local last_x = 1
@@ -314,7 +233,7 @@ local function prettify_error(e)
    insert(buf, decoration.decorate("   ", monospace))
    insert(buf, decoration.decorate(tostring(e.y), decoration.scheme.number))
    insert(buf, decoration.decorate(" │ ", monospace))
-   for v in ivalues(common._experimental_syntax_highlight(ln)) do
+   for v in ivalues(common.syntax_highlight(ln)) do
       insert(buf, v)
    end
 

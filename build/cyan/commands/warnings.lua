@@ -1,12 +1,11 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
 
-local ansi = require("cyan.ansi")
 local command = require("cyan.command")
 local config = require("cyan.config")
-local cs = require("cyan.colorstring")
+local decoration = require("cyan.experimental.decoration")
 local log = require("cyan.log")
 local tl = require("tl")
 local util = require("cyan.util")
@@ -31,17 +30,18 @@ local function exec(_, c)
       table.insert(buf, padded)
       table.insert(buf, ": ")
       if disable[t] then
-         table.insert(buf, cs.highlight({ ansi.color.dark.red }, "disabled"):tostring())
+         table.insert(buf, decoration.decorate("disabled", decoration.scheme.red))
       elseif err[t] then
-         table.insert(buf, cs.new({ ansi.color.dark.green }, "enabled", { ansi.color.dark.red }, " (as error)", { 0 }):tostring())
+         table.insert(buf, decoration.decorate("enabled", decoration.scheme.green))
+         table.insert(buf, " (as error)")
       else
-         table.insert(buf, cs.highlight({ ansi.color.dark.green }, "enabled"):tostring())
+         table.insert(buf, decoration.decorate("enabled", decoration.scheme.green))
       end
       table.insert(buf, "\n")
    end
    table.remove(buf)
 
-   log.info(table.concat(buf))
+   log.info(_tl_table_unpack(buf))
    return 0
 end
 

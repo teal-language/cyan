@@ -102,7 +102,7 @@ local function render_ansi(buf: {string}, content: string, decoration: Decoratio
          (control_sequence_introducer .. "%dm"):format(
             decoration.ansi_color < 8
                and decoration.ansi_color + 30
-               or decoration.ansi_color + 90
+               or decoration.ansi_color - 8 + 90
          )
       )
    elseif decoration.color then
@@ -121,7 +121,7 @@ local function render_ansi(buf: {string}, content: string, decoration: Decoratio
          (control_sequence_introducer .. "%dm"):format(
             decoration.ansi_background_color < 8
                and decoration.ansi_background_color + 40
-               or decoration.ansi_background_color + 100
+               or decoration.ansi_background_color - 8 + 100
          )
       )
    elseif decoration.background_color then
@@ -151,6 +151,10 @@ local scheme: {string:Decoration} = {
    teal = { color = rgb(0, 0xAA, 0xB4) },
    cyan = {
       ansi_color = 6,
+      color = rgb(0, 0xCC, 0xCC)
+   },
+   bright_cyan = {
+      ansi_color = 14,
       color = rgb(0, 0xFF, 0xFF)
    },
    yellow = {
@@ -160,6 +164,18 @@ local scheme: {string:Decoration} = {
    red = {
       ansi_color = 1,
       color = rgb(200, 50, 50),
+   },
+   green = {
+      ansi_color = 2,
+      color = rgb(10, 180, 10),
+   },
+   bright_green = {
+      ansi_color = 10,
+      color = rgb(85, 255, 85),
+   },
+   bright_red = {
+      ansi_color = 9,
+      color = rgb(230, 60, 60),
    },
    bright_yellow = {
       ansi_color = 11,
@@ -171,15 +187,18 @@ local scheme: {string:Decoration} = {
    },
 }
 
-scheme.keyword = scheme.teal
-scheme.file = scheme.yellow
-scheme.error = scheme.red
-scheme.error_number = scheme.red
-scheme.warn = scheme.yellow
-scheme.number = scheme.red
-scheme.string = { ansi_color = 11 }
-scheme.operator = scheme.magenta
+scheme.keyword = copy(scheme.teal)
+scheme.file = copy(scheme.yellow)
+scheme.error = copy(scheme.red)
+scheme.error_number = copy(scheme.red)
+scheme.warn = copy(scheme.yellow)
+scheme.number = copy(scheme.red)
+scheme.string = copy(scheme.bright_yellow)
+scheme.operator = copy(scheme.magenta)
 scheme.emphasis = { bold = true }
+
+scheme.affirmative = copy(scheme.bright_green)
+scheme.negative = copy(scheme.red)
 
 local function file_name(path: string): Decorated
    local decoration <const> = copy(scheme.file)

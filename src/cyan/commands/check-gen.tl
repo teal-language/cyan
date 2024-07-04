@@ -8,7 +8,7 @@ local argparse <const> = require("argparse")
 local config <const> = require("cyan.config")
 local common <const> = require("cyan.tlcommon")
 local command <const> = require("cyan.command")
-local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
@@ -52,7 +52,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
       local current_dir <const> = fs.cwd()
       local to_write <const> = {}
       local function process_file(path: fs.Path)
-         local disp_file <const> = cs.new(cs.colors.file, path:relative_to(starting_dir):tostring(), {0})
+         local disp_file <const> = decoration.file_name(path:relative_to(starting_dir):tostring())
          if not path:is_file() then
             log.err(disp_file, " is not a file")
             exit = 1
@@ -61,11 +61,11 @@ local function command_exec(should_compile: boolean): command.CommandFn
 
          local real_path <const> = path:to_real_path()
          local outfile <const> = get_output_filename(path)
-         local disp_outfile <const> = cs.new(cs.colors.file, outfile:relative_to(starting_dir):tostring(), {0})
+         local disp_outfile <const> = decoration.file_name(outfile:relative_to(starting_dir):tostring())
 
          local parsed <const>, perr <const> = common.parse_file(real_path)
          if not parsed then
-            log.err("Error parsing file ", disp_file .. "\n   " .. tostring(perr))
+            log.err("Error parsing file ", disp_file, "\n   ", tostring(perr))
             exit = 1
             return
          end

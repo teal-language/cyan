@@ -5,7 +5,7 @@
 local tl <const> = require("tl")
 
 local command <const> = require("cyan.command")
-local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local sandbox <const> = require("cyan.sandbox")
@@ -38,7 +38,7 @@ end
 local load_cache <const>: {string:Loaded} = {}
 local function load_script(path: string): Loaded, string | tl.Result
    if not load_cache[path] then
-      log.extra("Loading script: ", cs.highlight(cs.colors.file, path))
+      log.extra("Loading script: ", decoration.file_name(path))
       local p <const> = fs.path.new(path)
 
       local box, err: sandbox.Sandbox, string
@@ -163,9 +163,9 @@ function script.emit_hook(name: string, ...: any): boolean, string
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
       if ok then
-         log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))
+         log.info("Ran script ", decoration.file_name(s:to_real_path()))
       else
-         log.err("Error in script ", cs.highlight(cs.colors.file, s:to_real_path()), ":\n   ", err)
+         log.err("Error in script ", decoration.file_name(s:to_real_path()), ":\n   ", err)
          return false, err
       end
    end

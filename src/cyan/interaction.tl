@@ -2,16 +2,15 @@
 --- Module for handling when input from the user is needed
 
 local log <const> = require("cyan.log")
-local cs <const> = require("cyan.colorstring")
-local ansi <const> = require("cyan.ansi")
 local util <const> = require("cyan.util")
+local decoration <const> = require("cyan.experimental.decoration")
 
 local ivalues <const> = util.tab.ivalues
 
 local interaction <const> = {}
 
-local affirmative <const> = { ansi.color.dark.green }
-local negative <const> = { ansi.color.dark.red }
+local affirmative <const> = decoration.scheme.affirmative
+local negative <const> = decoration.scheme.negative
 
 local yesses <const> = { "yes", "yeah", "yea", "ye", "y" }
 local nos <const> = { "no", "nope", "n" }
@@ -36,7 +35,7 @@ end
 --- The given logger will be used to print the prompt, and `log.info` if none
 --- is provided.
 function interaction.yes_no_prompt(
-   prompt: string | cs.ColorString,
+   prompt: string | decoration.Decorated,
    logger: log.Logger,
    default: boolean,
    affirm: {string},
@@ -46,21 +45,19 @@ function interaction.yes_no_prompt(
    affirm = affirm or yesses
    deny = deny or nos
 
-   local y <const> = cs.highlight(
-      affirmative,
-      default and title_case(affirm[1]) or affirm[1]:lower()
+   local y <const> = decoration.decorate(
+      default and title_case(affirm[1]) or affirm[1]:lower(),
+      affirmative
    )
-   local n <const> = cs.highlight(
-      negative,
-      default and deny[1]:lower() or title_case(deny[1])
+   local n <const> = decoration.decorate(
+      default and deny[1]:lower() or title_case(deny[1]),
+      negative
    )
-   local prompt_str <const> = prompt .. " [" .. y .. "/" .. n .. "]: "
-
    local affirm_set <const> = to_string_set(affirm)
    local deny_set <const> = to_string_set(deny)
 
    while true do
-      logger:nonl(prompt_str)
+      logger:nonl(prompt, " [", y, "/", n, "]: ")
       logger.stream:flush()
       local input = io.read("*l"):lower()
 
@@ -68,8 +65,8 @@ function interaction.yes_no_prompt(
          logger:cont(
             "Defaulting to ",
             default
-               and cs.highlight(affirmative, title_case(affirm[1]))
-               or cs.highlight(negative, title_case(deny[1]))
+               and decoration.decorate(title_case(affirm[1]), affirmative)
+               or decoration.decorate(title_case(deny[1]), negative)
          )
          return default or false
       end

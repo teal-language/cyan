@@ -5,7 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local tl = require("tl")
 
 local command = require("cyan.command")
-local cs = require("cyan.colorstring")
+local decoration = require("cyan.experimental.decoration")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
 local sandbox = require("cyan.sandbox")
@@ -38,7 +38,7 @@ end
 local load_cache = {}
 local function load_script(path)
    if not load_cache[path] then
-      log.extra("Loading script: ", cs.highlight(cs.colors.file, path))
+      log.extra("Loading script: ", decoration.file_name(path))
       local p = fs.path.new(path)
 
       local box, err
@@ -163,9 +163,9 @@ function script.emit_hook(name, ...)
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
       if ok then
-         log.info("Ran script ", cs.highlight(cs.colors.file, s:to_real_path()))
+         log.info("Ran script ", decoration.file_name(s:to_real_path()))
       else
-         log.err("Error in script ", cs.highlight(cs.colors.file, s:to_real_path()), ":\n   ", err)
+         log.err("Error in script ", decoration.file_name(s:to_real_path()), ":\n   ", err)
          return false, err
       end
    end

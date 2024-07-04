@@ -36,14 +36,13 @@ build = {
 }
 ]]
 
-local ansi <const> = require("cyan.ansi")
-local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 
 local info <const> = log.info:copy(
-   cs.highlight({ansi.color.dark.cyan}, "Rockspec"),
-   cs.highlight({ansi.color.dark.cyan}, "...")
+   decoration.decorate("Rockspec", decoration.scheme.cyan),
+   decoration.decorate("...", decoration.scheme.cyan)
 )
 
 local modules <const> = {}
@@ -76,4 +75,4 @@ end
 local fh <const> = io.open(specfile, "w")
 fh:write(template:format(convert(modules, 2), convert(install, 3)))
 fh:close()
-info("Wrote ", cs.highlight(cs.colors.file, specfile))
+info("Wrote ", decoration.file_name(specfile))

@@ -38,7 +38,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local system = require("system")
 local util = require("cyan.util")
-local cs = require("cyan.colorstring")
 local decoration = require("cyan.experimental.decoration")
 local str = util.str
 
@@ -101,21 +100,6 @@ local function is_a_tty(file)
    return ttys[file]
 end
 
-local colorstring_mt = getmetatable(cs.new())
-local function is_color_string(val)
-   return rawequal(getmetatable(val), colorstring_mt)
-end
-
-local function sanitizer(stream)
-   local is_not_tty = not is_a_tty(stream)
-   return function(val)
-      if is_color_string(val) and (is_not_tty or no_color_env) then
-         return (val):to_raw()
-      end
-      return val
-   end
-end
-
 local function renderer(stream)
    if is_a_tty(stream) and not no_color_env then
       return decoration.render_ansi
@@ -151,6 +135,19 @@ function Logger:should_log()
    return verbosity_to_int[verbosity] >= threshold
 end
 
+local function rendered_prefix(
+   prefix,
+   render)
+
+   local buf = {}
+   if type(prefix) == "string" then
+      table.insert(buf, str.pad_left(prefix, prefix_padding))
+   else
+      render(buf, str.pad_left(prefix.plain_content, prefix_padding), prefix.decoration)
+   end
+   return table.concat(buf)
+end
+
 local function do_log(
    stream,
    initial_prefix,
@@ -158,11 +155,10 @@ local function do_log(
    inspector,
    ...)
 
-   local sanitize = sanitizer(stream)
    local render = renderer(stream)
 
-   local prefix = tostring(sanitize(str.pad_left(initial_prefix, prefix_padding)))
-   local continuation = tostring(sanitize(str.pad_left(continuation_prefix and continuation_prefix, prefix_padding)))
+   local prefix = rendered_prefix(initial_prefix, render)
+   local continuation = rendered_prefix(continuation_prefix, render)
 
    stream:write(prefix, " ")
 
@@ -176,7 +172,7 @@ local function do_log(
          (v).decoration)
 
       else
-         render_buf[1] = inspector(sanitize(v))
+         render_buf[1] = inspector(v)
       end
       local rendered = table.concat(render_buf)
       for ln, peeked in util.peek(str.split(rendered, "\n", true)) do
@@ -267,6 +263,16 @@ local function create_logger(
    return setmetatable(result, logger_metatable)
 end
 
+local function copy_decorated(maybe_decorated)
+   if type(maybe_decorated) == "string" then
+      return maybe_decorated
+   end
+   return {
+      plain_content = maybe_decorated.plain_content,
+      decoration = maybe_decorated.decoration,
+   }
+end
+
 
 
 function Logger:copy(   new_prefix,
@@ -275,8 +281,8 @@ function Logger:copy(   new_prefix,
    return create_logger(
    self.stream,
    self.verbosity_threshold,
-   new_prefix or cs.copy(self.prefix),
-   new_continuation or cs.copy(self.continuation),
+   new_prefix or copy_decorated(self.prefix),
+   new_continuation or copy_decorated(self.continuation),
    self.inspector)
 
 end
@@ -285,33 +291,33 @@ local log = {
    debug = create_logger(
    io.stderr,
    "debug",
-   cs.highlight(cs.colors.debug, "DEBUG"),
-   cs.highlight(cs.colors.debug, "..."),
+   decoration.decorate("DEBUG", decoration.scheme.bright_red),
+   decoration.decorate("...", decoration.scheme.bright_red),
    inspect),
 
    err = create_logger(
    io.stderr,
    nil,
-   cs.highlight(cs.colors.error, "Error"),
-   cs.highlight(cs.colors.error, "...")),
+   decoration.decorate("Error", decoration.scheme.error),
+   decoration.decorate("...", decoration.scheme.error)),
 
    warn = create_logger(
    io.stderr,
    "quiet",
-   cs.highlight(cs.colors.warn, "Warn"),
-   cs.highlight(cs.colors.warn, "...")),
+   decoration.decorate("Error", decoration.scheme.warn),
+   decoration.decorate("...", decoration.scheme.warn)),
 
    info = create_logger(
    io.stdout,
    "normal",
-   cs.highlight(cs.colors.teal, "Info"),
-   cs.highlight(cs.colors.teal, "...")),
+   decoration.decorate("Info", decoration.scheme.teal),
+   decoration.decorate("...", decoration.scheme.teal)),
 
    extra = create_logger(
    io.stdout,
    "extra",
-   cs.highlight(cs.colors.teal, "*Info"),
-   cs.highlight(cs.colors.teal, "...")),
+   decoration.decorate("*Info", decoration.scheme.teal),
+   decoration.decorate("...", decoration.scheme.teal)),
 
    create_logger = create_logger,
    verbosities = verbosities,

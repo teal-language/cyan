@@ -20,8 +20,8 @@
 --- create_logger: function(
 ---    stream: FILE,
 ---    verbosity_threshold: Verbosity,
----    prefix: string | ColorString,
----    cont: string | ColorString,
+---    prefix: string | decoration.Decorated,
+---    cont: string | decoration.Decorated,
 ---    inspector: function(any): string
 --- ): Logger
 ---@@end
@@ -31,14 +31,13 @@
 --- prefix is longer.
 ---
 --- Additionally, loggers will try to detect whether or not to display colors.
---- This is only handled with the `ColorString` type to avoid the many pitfalls of
---- trying to parse ANSI escape sequences. If a regular string contains any escape
---- sequences or an inspector produces them (outside of a `ColorString`) it will
---- not be handled.
+--- This is only handled with the `decoration.Decorated` type to avoid the many
+--- pitfalls of trying to parse ANSI escape sequences. If a regular string
+--- contains any escape sequences or an inspector produces them (outside of a
+--- `decoration.Decorated`) it will not be handled.
 
 local system <const> = require("system")
 local util <const> = require("cyan.util")
-local cs <const> = require("cyan.colorstring")
 local decoration <const> = require("cyan.experimental.decoration")
 local str <const> = util.str
 
@@ -101,21 +100,6 @@ local function is_a_tty(file: FILE): boolean
    return ttys[file]
 end
 
-local colorstring_mt <const> = getmetatable(cs.new())
-local function is_color_string(val: any): boolean
-   return rawequal(getmetatable(val), colorstring_mt)
-end
-
-local function sanitizer(stream: FILE): function(any): any
-   local is_not_tty <const> = not is_a_tty(stream)
-   return function(val: any): any
-      if is_color_string(val) and (is_not_tty or no_color_env) then
-         return (val as cs.ColorString):to_raw()
-      end
-      return val
-   end
-end
-
 local function renderer(stream: FILE): decoration.Renderer
    if is_a_tty(stream) and not no_color_env then
       return decoration.render_ansi
@@ -136,8 +120,8 @@ end
 local record Logger
    stream: FILE
    verbosity_threshold: Verbosity
-   prefix: string | cs.ColorString
-   continuation: string | cs.ColorString
+   prefix: string | decoration.Decorated
+   continuation: string | decoration.Decorated
    inspector: function(any): string
 
    metamethod __call: function(...: any)
@@ -151,18 +135,30 @@ function Logger:should_log(): boolean
    return verbosity_to_int[verbosity] >= threshold
 end
 
+local function rendered_prefix(
+   prefix: string | decoration.Decorated,
+   render: decoration.Renderer
+): string
+   local buf = {}
+   if prefix is string then
+      table.insert(buf, str.pad_left(prefix, prefix_padding))
+   else
+      render(buf, str.pad_left(prefix.plain_content, prefix_padding), prefix.decoration)
+   end
+   return table.concat(buf)
+end
+
 local function do_log(
    stream: FILE,
-   initial_prefix: string | cs.ColorString,
-   continuation_prefix: string | cs.ColorString,
+   initial_prefix: string | decoration.Decorated,
+   continuation_prefix: string | decoration.Decorated,
    inspector: function(any): (string),
    ...: any
 )
-   local sanitize <const> = sanitizer(stream)
    local render <const> = renderer(stream)
 
-   local prefix <const> = tostring(sanitize(str.pad_left(initial_prefix as string, prefix_padding)))
-   local continuation = tostring(sanitize(str.pad_left(continuation_prefix and continuation_prefix as string, prefix_padding)))
+   local prefix <const> = rendered_prefix(initial_prefix, render)
+   local continuation <const> = rendered_prefix(continuation_prefix, render)
 
    stream:write(prefix, " ")
 
@@ -176,7 +172,7 @@ local function do_log(
             (v as decoration.Decorated).decoration
          )
       else
-         render_buf[1] = inspector(sanitize(v))
+         render_buf[1] = inspector(v)
       end
       local rendered <const> = table.concat(render_buf)
       for ln, peeked in util.peek(str.split(rendered, "\n", true)) do
@@ -253,8 +249,8 @@ Logger.inspector = tostring
 local function create_logger(
    stream: FILE,
    verbosity_threshold: Verbosity,
-   prefix: string | cs.ColorString,
-   cont: string | cs.ColorString,
+   prefix: string | decoration.Decorated,
+   cont: string | decoration.Decorated,
    inspector: function(any): string
 ): Logger
    local result: Logger = {
@@ -267,17 +263,27 @@ local function create_logger(
    return setmetatable(result, logger_metatable)
 end
 
+local function copy_decorated(maybe_decorated: string | decoration.Decorated): string | decoration.Decorated
+   if maybe_decorated is string then
+      return maybe_decorated
+   end
+   return {
+      plain_content = maybe_decorated.plain_content,
+      decoration = maybe_decorated.decoration
+   }
+end
+
 ---@desc
 --- Create a copy of a logger, deep copying relevant data
 function Logger:copy(
-   new_prefix: string | cs.ColorString,
-   new_continuation: string | cs.ColorString
+   new_prefix: string | decoration.Decorated,
+   new_continuation: string | decoration.Decorated
 ): Logger
    return create_logger(
       self.stream,
       self.verbosity_threshold,
-      new_prefix or cs.copy(self.prefix),
-      new_continuation or cs.copy(self.continuation),
+      new_prefix or copy_decorated(self.prefix),
+      new_continuation or copy_decorated(self.continuation),
       self.inspector
    )
 end
@@ -286,33 +292,33 @@ local log <const> = {
    debug = create_logger(
       io.stderr,
       "debug",
-      cs.highlight(cs.colors.debug, "DEBUG"),
-      cs.highlight(cs.colors.debug, "..."),
+      decoration.decorate("DEBUG", decoration.scheme.bright_red),
+      decoration.decorate("...", decoration.scheme.bright_red),
       inspect
    ),
    err = create_logger(
       io.stderr,
       nil,
-      cs.highlight(cs.colors.error, "Error"),
-      cs.highlight(cs.colors.error, "...")
+      decoration.decorate("Error", decoration.scheme.error),
+      decoration.decorate("...", decoration.scheme.error)
    ),
    warn = create_logger(
       io.stderr,
       "quiet",
-      cs.highlight(cs.colors.warn, "Warn"),
-      cs.highlight(cs.colors.warn, "...")
+      decoration.decorate("Error", decoration.scheme.warn),
+      decoration.decorate("...", decoration.scheme.warn)
    ),
    info = create_logger(
       io.stdout,
       "normal",
-      cs.highlight(cs.colors.teal, "Info"),
-      cs.highlight(cs.colors.teal, "...")
+      decoration.decorate("Info", decoration.scheme.teal),
+      decoration.decorate("...", decoration.scheme.teal)
    ),
    extra = create_logger(
       io.stdout,
       "extra",
-      cs.highlight(cs.colors.teal, "*Info"),
-      cs.highlight(cs.colors.teal, "...")
+      decoration.decorate("*Info", decoration.scheme.teal),
+      decoration.decorate("...", decoration.scheme.teal)
    ),
    create_logger = create_logger,
    verbosities = verbosities,

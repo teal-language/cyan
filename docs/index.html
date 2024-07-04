@@ -103,19 +103,6 @@ This documentation is auto-generated and may be incomplete.
 <br></p>
 <p><a class=module-name href=#cyan.cli>cyan.cli</a>
 <br></p>
-<p><a class=module-name href=#cyan.colorstring>cyan.colorstring</a>
-<br><a href=#ColorString:copy>ColorString:copy</a>
-<br><a href=#ColorString:len>ColorString:len</a>
-<br><a href=#ColorString:surround>ColorString:surround</a>
-<br><a href=#ColorString:to_raw>ColorString:to_raw</a>
-<br><a href=#ColorString:tostring>ColorString:tostring</a>
-<br><a href=#ColorString>ColorString</a>
-<br><a href=#colorstring.copy>colorstring.copy</a>
-<br><a href=#colorstring.highlight>colorstring.highlight</a>
-<br><a href=#colorstring.new>colorstring.new</a>
-<br><a href=#colorstring.rgb_bg>colorstring.rgb_bg</a>
-<br><a href=#colorstring.rgb_fg>colorstring.rgb_fg</a>
-</p>
 <p><a class=module-name href=#cyan.command>cyan.command</a>
 <br><a href=#Command>Command</a>
 <br><a href=#command.get>command.get</a>
@@ -128,6 +115,10 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#config.find>config.find</a>
 <br><a href=#config.is_config>config.is_config</a>
 <br><a href=#config.load>config.load</a>
+</p>
+<p><a class=module-name href=#cyan.experimental.decoration>cyan.experimental.decoration</a>
+<br><a href=#Color>Color</a>
+<br><a href=#Decoration>Decoration</a>
 </p>
 <p><a class=module-name href=#cyan.fs.path>cyan.fs.path</a>
 <br><a href=#Path.eq>Path.eq</a>
@@ -155,7 +146,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#path.ensure>path.ensure</a>
 <br><a href=#path.new>path.new</a>
 </p>
-<p><a class=module-name href=#cyan.fs>cyan.fs</a>
+</td><td valign=top><p><a class=module-name href=#cyan.fs>cyan.fs</a>
 <br><a href=#fs.chdir>fs.chdir</a>
 <br><a href=#fs.copy>fs.copy</a>
 <br><a href=#fs.cwd>fs.cwd</a>
@@ -167,7 +158,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#fs.scan_dir>fs.scan_dir</a>
 <br><a href=#fs.search_parent_dirs>fs.search_parent_dirs</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.graph>cyan.graph</a>
+<p><a class=module-name href=#cyan.graph>cyan.graph</a>
 <br><a href=#Dag:find>Dag:find</a>
 <br><a href=#Dag:insert_file>Dag:insert_file</a>
 <br><a href=#Dag:mark_each>Dag:mark_each</a>
@@ -195,9 +186,9 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#log.set_prefix_padding>log.set_prefix_padding</a>
 <br><a href=#log.set_verbosity>log.set_verbosity</a>
 </p>
-<p><a class=module-name href=#cyan.meta>cyan.meta</a>
+</td><td valign=top><p><a class=module-name href=#cyan.meta>cyan.meta</a>
 <br></p>
-</td><td valign=top><p><a class=module-name href=#cyan.sandbox>cyan.sandbox</a>
+<p><a class=module-name href=#cyan.sandbox>cyan.sandbox</a>
 <br></p>
 <p><a class=module-name href=#cyan.script>cyan.script</a>
 <br><a href=#script.disable>script.disable</a>
@@ -252,67 +243,7 @@ This documentation is auto-generated and may be incomplete.
 <h2><a name=cyan.cli>cyan.cli</a>
 </h2>
 <p><p>The command line driver</p><p>This is not a module to be used and requiring it will attempt to start the cli and call os.exit</p></p>
-<h2><a name=cyan.colorstring>cyan.colorstring</a>
-</h2>
-<p><p>Some wrappers/conveniences around working with ansi escape codes. For example getting the length of a string that contains escape codes shouldnt include them</p></p>
-<h3><a name=ColorString:copy><code class=bulleted>method ColorString:copy</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> ColorString:copy(): <code class=parameter-type>ColorString</code></code></pre><p><p>Make a deep copy of a ColorString</p></p>
-</div><h3><a name=ColorString:len><code class=bulleted>method ColorString:len</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> ColorString:len(): <code class=parameter-type>integer</code></code></pre><p><p>Get the length of a given <code>ColorString</code>, not counting any escape sequences.</p><p>Note that <code>ColorString:len() >= ColorString:tostring():len()</code></p></p>
-</div><h3><a name=ColorString:surround><code class=bulleted>method ColorString:surround</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> ColorString:surround(
-	<code class=parameter-name>col</code>: <code class=parameter-type>{integer}</code>
-)</code></pre><p><p>surrounds a string with a color</p></p>
-</div><h3><a name=ColorString:to_raw><code class=bulleted>method ColorString:to_raw</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> ColorString:to_raw(): <code class=parameter-type>string</code></code></pre><p><p>Converts a <code>Colorstring</code> to a regular string, stripping any ANSI escapes</p></p>
-</div><h3><a name=ColorString:tostring><code class=bulleted>method ColorString:tostring</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> ColorString:tostring(): <code class=parameter-type>string</code></code></pre><p><p>Converts a <code>Colorstring</code> to a regular string with the correct ANSI escapes</p></p>
-</div><h3><a name=ColorString><code class=bulleted>type ColorString</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>record</code> ColorString
-	content: <code class=parameter-type>{string | {integer}}</code>
-	len: <code class=parameter-type>function(ColorString): integer</code>
-	tostring: <code class=parameter-type>function(ColorString): string</code>
-
-	<code class=keyword>metamethod</code> __len: <code class=parameter-type>function(ColorString): integer</code>
-	<code class=keyword>metamethod</code> __concat: <code class=parameter-type>function(ColorString | string, ColorString | string): ColorString</code>
-<code class=keyword>end</code></code></pre><p><p>The main object that this library consumes and produces. It basically implements the <code>'string'</code> interface and can be used wherever a string is.</p><p>Colors are described as arrays of numbers that directly correspond to ANSI escape sequences</p></p>
-</div><h3><a name=colorstring.copy><code class=bulleted>function colorstring.copy</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> colorstring.copy(
-	<code class=parameter-name>str</code>: <code class=parameter-type>string | ColorString</code>
-): <code class=parameter-type>string | ColorString</code></code></pre><p><p>If input is a colorstring, return a deep copy of it, otherwise just return the input</p></p>
-</div><h3><a name=colorstring.highlight><code class=bulleted>function colorstring.highlight</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> colorstring.highlight(
-	<code class=parameter-name>hl</code>: <code class=parameter-type>{integer}</code>,
-	<code class=parameter-name>str</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>ColorString</code></code></pre><p><p>Create a <code>Colorstring</code> by surrounding a string with the given ANSI color and an ANSI reset</p></p>
-</div><h3><a name=colorstring.new><code class=bulleted>function colorstring.new</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> colorstring.new(
-	<code class=parameter-name>...</code>: <code class=parameter-type>string | {integer}</code>
-): <code class=parameter-type>ColorString</code></code></pre><p><p>The <code>Colorstring</code> constructor</p></p>
-</div><h3><a name=colorstring.rgb_bg><code class=bulleted>function colorstring.rgb_bg</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> colorstring.rgb_bg(
-	<code class=parameter-name>r</code>: <code class=parameter-type>integer</code>,
-	<code class=parameter-name>g</code>: <code class=parameter-type>integer</code>,
-	<code class=parameter-name>b</code>: <code class=parameter-type>integer</code>
-): <code class=parameter-type>{integer, integer, integer, integer, integer}</code></code></pre><p><p>The ansi escape for an arbitrary RGB background color</p></p>
-</div><h3><a name=colorstring.rgb_fg><code class=bulleted>function colorstring.rgb_fg</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> colorstring.rgb_fg(
-	<code class=parameter-name>r</code>: <code class=parameter-type>integer</code>,
-	<code class=parameter-name>g</code>: <code class=parameter-type>integer</code>,
-	<code class=parameter-name>b</code>: <code class=parameter-type>integer</code>
-): <code class=parameter-type>{integer, integer, integer, integer, integer}</code></code></pre><p><p>The ansi escape for an arbitrary RGB foreground color</p></p>
-</div><h2><a name=cyan.command>cyan.command</a>
+<h2><a name=cyan.command>cyan.command</a>
 </h2>
 <p><p>The common interface for commands to implement</p></p>
 <h3><a name=Command><code class=bulleted>type Command</code></a>
@@ -378,6 +309,28 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=config.load><code class=bulleted>function config.load</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> config.load(): <code class=parameter-type>Config</code>, <code class=parameter-type>{string}</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Try to load <code>tlconfig.lua</code> in the current directory</p></p>
+</div><h2><a name=cyan.experimental.decoration>cyan.experimental.decoration</a>
+</h2>
+<p><p>A replacement for colorstring that doesn't specifically rely on ANSI terminal escapes</p></p>
+<h3><a name=Color><code class=bulleted>type Color</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>record</code> Color
+	red: <code class=parameter-type>integer</code>
+	green: <code class=parameter-type>integer</code>
+	blue: <code class=parameter-type>integer</code>
+<code class=keyword>end</code></code></pre><p><p>A color described by rgb values in [0, 255]</p></p>
+</div><h3><a name=Decoration><code class=bulleted>type Decoration</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>record</code> Decoration
+	bold: <code class=parameter-type>boolean</code>
+	italic: <code class=parameter-type>boolean</code>
+	monospace: <code class=parameter-type>boolean</code>
+	linked_uri: <code class=parameter-type>string</code>
+	color: <code class=parameter-type>Color</code>
+	background_color: <code class=parameter-type>Color</code>
+	ansi_color: <code class=parameter-type>integer</code>
+	ansi_background_color: <code class=parameter-type>integer</code>
+<code class=keyword>end</code></code></pre><p><p>Various visual properties that could apply to some text</p></p>
 </div><h2><a name=cyan.fs.path>cyan.fs.path</a>
 </h2>
 <p><p>Object oriented lexical path management</p></p>
@@ -599,7 +552,7 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=interaction.yes_no_prompt><code class=bulleted>function interaction.yes_no_prompt</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> interaction.yes_no_prompt(
-	<code class=parameter-name>prompt</code>: <code class=parameter-type>string | cs.ColorString</code>,
+	<code class=parameter-name>prompt</code>: <code class=parameter-type>string | decoration.Decorated</code>,
 	<code class=parameter-name>logger</code>: <code class=parameter-type>log.Logger</code>,
 	<code class=parameter-name>default</code>: <code class=parameter-type>boolean</code>,
 	<code class=parameter-name>affirm</code>: <code class=parameter-type>{string}</code>,
@@ -607,7 +560,7 @@ This documentation is auto-generated and may be incomplete.
 ): <code class=parameter-type>boolean</code></code></pre><p><p>Ask the user to affirm or deny a given prompt. The user input will be compared against the given <code>affirm</code> and <code>deny</code> lists (case-insensitive), with defaults used if they are not provided.</p><p>The given logger will be used to print the prompt, and <code>log.info</code> if none is provided.</p></p>
 </div><h2><a name=cyan.log>cyan.log</a>
 </h2>
-<p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p></p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn&apos;t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table><p></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p></p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | ColorString,<br>    cont: string | ColorString,<br>    inspector: function(any): string<br> ): Logger<br> </pre><p> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>ColorString</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>ColorString</code>) it will not be handled.</p></p>
+<p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p></p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn&apos;t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table><p></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p></p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | decoration.Decorated,<br>    cont: string | decoration.Decorated,<br>    inspector: function(any): string<br> ): Logger<br> </pre><p> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>decoration.Decorated</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>decoration.Decorated</code>) it will not be handled.</p></p>
 <h3><a name=Logger:cont><code class=bulleted>method Logger:cont</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Logger:cont(
@@ -621,8 +574,8 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=Logger:copy><code class=bulleted>method Logger:copy</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Logger:copy(
-	<code class=parameter-name>new_prefix</code>: <code class=parameter-type>string | cs.ColorString</code>,
-	<code class=parameter-name>new_continuation</code>: <code class=parameter-type>string | cs.ColorString</code>
+	<code class=parameter-name>new_prefix</code>: <code class=parameter-type>string | decoration.Decorated</code>,
+	<code class=parameter-name>new_continuation</code>: <code class=parameter-type>string | decoration.Decorated</code>
 ): <code class=parameter-type>Logger</code></code></pre><p><p>Create a copy of a logger, deep copying relevant data</p></p>
 </div><h3><a name=Logger:format><code class=bulleted>method Logger:format</code></a>
 </h3>
@@ -649,8 +602,8 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>record</code> Logger
 	stream: <code class=parameter-type>FILE</code>
 	verbosity_threshold: <code class=parameter-type>Verbosity</code>
-	prefix: <code class=parameter-type>string | cs.ColorString</code>
-	continuation: <code class=parameter-type>string | cs.ColorString</code>
+	prefix: <code class=parameter-type>string | decoration.Decorated</code>
+	continuation: <code class=parameter-type>string | decoration.Decorated</code>
 	inspector: <code class=parameter-type>function(any): string</code>
 
 	<code class=keyword>metamethod</code> __call: <code class=parameter-type>function(...: any)</code>
@@ -668,8 +621,8 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> create_logger(
 	<code class=parameter-name>stream</code>: <code class=parameter-type>FILE</code>,
 	<code class=parameter-name>verbosity_threshold</code>: <code class=parameter-type>Verbosity</code>,
-	<code class=parameter-name>prefix</code>: <code class=parameter-type>string | cs.ColorString</code>,
-	<code class=parameter-name>cont</code>: <code class=parameter-type>string | cs.ColorString</code>,
+	<code class=parameter-name>prefix</code>: <code class=parameter-type>string | decoration.Decorated</code>,
+	<code class=parameter-name>cont</code>: <code class=parameter-type>string | decoration.Decorated</code>,
 	<code class=parameter-name>inspector</code>: <code class=parameter-type>function(any): string</code>
 ): <code class=parameter-type>Logger</code></code></pre><p><p>Creates a Logger as described above</p></p>
 </div><h3><a name=log.set_prefix_padding><code class=bulleted>function log.set_prefix_padding</code></a>
@@ -752,7 +705,7 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-name>file</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>num_errors</code>: <code class=parameter-type>integer</code>,
 	<code class=parameter-name>category</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>cs.ColorString</code></code></pre><p><p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p></p>
+): <code class=parameter-type>{string | decoration.Decorated}</code></code></pre><p><p>Creates a nicely colored header to log errors</p><p>For example <code>make_error_header(<code>"foo.tl"</code>, 10, <code>"foo error"</code>)</code> would produce something like <code>10 foo errors in foo.tl</code> with <code>10</code> and <code>foo.tl</code> highlighted</p></p>
 </div><h3><a name=common.parse_file><code class=bulleted>function common.parse_file</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.parse_file(
@@ -805,7 +758,7 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.syntax_highlight(
 	<code class=parameter-name>s</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>cs.ColorString</code></code></pre><p><p>Takes Teal or Lua code and returns a ColorString highlighting things like keywords, operators, and more.</p></p>
+): <code class=parameter-type>{decoration.Decorated | string}</code></code></pre><p><p>Takes Teal or Lua code and returns a decorated string highlighting things like keywords, operators, and more.</p></p>
 </div><h3><a name=common.type_check_ast><code class=bulleted>function common.type_check_ast</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.type_check_ast(

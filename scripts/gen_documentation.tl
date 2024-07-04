@@ -1,6 +1,4 @@
-
-local ansi <const> = require("cyan.ansi")
-local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
@@ -9,8 +7,8 @@ local keys <const> = util.tab.keys
 local info = log.create_logger(
    io.stdout,
    "normal",
-   cs.highlight({ansi.color.bright.cyan}, "Docgen"),
-   cs.highlight({ansi.color.bright.cyan}, "...")
+   decoration.decorate("Docgen", decoration.scheme.bright_cyan),
+   decoration.decorate("...", decoration.scheme.bright_cyan)
 )
 
 local has_ltreesitter <const>, ts <const> = pcall(require, "ltreesitter")
@@ -443,8 +441,10 @@ local function gen_docs(filename: string, module_name: string): string, {string}
    if not brief then
       log.warn(
          filename, " has no ",
-         cs.highlight(cs.colors.keyword, "---@brief"), "\n   If this is intentional, use ",
-         cs.highlight(cs.colors.keyword, "---@nodoc"), " to silence this warning"
+         decoration.decorate("---@brief", decoration.scheme.keyword),
+         "\n   If this is intentional, use ",
+         decoration.decorate("---@nodoc", decoration.scheme.keyword),
+         " to silence this warning"
       )
    end
 
@@ -471,7 +471,7 @@ for path in fs.scan_dir("src", {"cyan/**/*"}) do
    local mod <const> = path:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
    local docs <const>, toc <const> = gen_docs(file, mod)
    if docs then
-      info("Processed ", cs.highlight(cs.colors.file, path:tostring()))
+      info("Processed ", decoration.file_name(path:tostring()))
       table.insert(table_of_contents, html {
          p { a (mod, { href = ("#%s"):format(mod), class = "module-name" }),
              br,
@@ -520,4 +520,4 @@ local final_blob <const> = template:gsub(
 local fh <const> = assert(io.open(docfile:to_real_path(), "w"))
 fh:write(final_blob)
 fh:close()
-info("Wrote ", cs.highlight(cs.colors.file, docfile:to_real_path()))
+info("Wrote ", decoration.file_name(docfile:to_real_path()))
