@@ -2,6 +2,12 @@
 <html lang="en">
 <meta charset="utf-8"/>
 <style>
+/*
+* {
+	border: 1px solid magenta !important;
+}
+*/
+
 html {
 	background-color: #16191a;
 }
@@ -44,12 +50,44 @@ p, pre, table {
 	padding-left: 2%;
 }
 
+.description {
+	margin: 0 0 5% 5%;
+}
+
+.keyword {
+	color: #799ae0;
+}
+
+.string {
+	color: #d16161;
+}
+
+.signature {
+	width: 80%;
+	background-color: #202330;
+	border: solid #afafcf 1px;
+	border-radius: 6px;
+	padding: 5px;
+}
+
+.bulleted:before {
+	content: "\2022 ";
+}
+
 .module-name:before { content: "\2756 "; }
 .module-name { font-weight: bold; }
 .private-field-comment {
-	color: #b0c4f6;
+	color: #77405F;
 	font-weight: bold;
 }
+
+.parameter-name {
+}
+
+.parameter-type {
+	color: #C7B1F2;
+}
+
 </style>
 
 <body>
@@ -65,5 +103,6 @@ This documentation is auto-generated and may be incomplete.
 </td></tbody></table>
 
 <!--CONTENTS-->
+
 </body>
 </html>

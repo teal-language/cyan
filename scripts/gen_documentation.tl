@@ -72,12 +72,12 @@ local _h1 <const> = tag_wrapper "h1"
 local h2 <const> = tag_wrapper "h2"
 local h3 <const> = tag_wrapper "h3"
 local _h4 <const> = tag_wrapper "h4"
-local pre <const> = tag_wrapper "pre"
+local _pre <const> = tag_wrapper "pre"
 local p <const> = tag_wrapper "p"
 local a <const> = tag_wrapper "a"
 local br <const> = "<br>"
-local function doc_header(content: string | TagTree, name: string): TagTree
-   return h3(a({ "<code>", content, "</code>" }, { name = name }))
+local function bullet_header(content: string | TagTree, name: string): TagTree
+   return h3(a({ "<code class=bulleted>", content, "</code>" }, { name = name }))
 end
 
 local emit: {string:Emitter} = setmetatable({}, {
@@ -117,22 +117,94 @@ local function escape_html_chars(str: string): string, integer
    return str:gsub("[<>'\"&]", html_escape_map)
 end
 
+local function begin_signature_and_description(name: string, keyword: string): {string}
+   local data = {
+      "<div class=description>",
+      "<pre class=signature><code>",
+      "<code class=keyword>", assert(keyword), "</code> ", assert(name),
+   }
+
+   return data
+end
+
+local function end_signature_and_description(
+   name: string,
+   link_name: string,
+   data: {string},
+   content: string | TagTree
+): string
+   return html {
+      bullet_header(name, link_name),
+      data,
+      "</code></pre>",
+      content,
+      "</div>",
+   }
+end
+
 emit["function_statement"] = function(prefix: {string}, n: ts.Node, out: {string}): string
    local sig <const> = n:child_by_field_name("signature")
    local ret <const> = sig:child_by_field_name("return_type")
    local typeargs <const> = sig:child_by_field_name("typeargs")
    local name <const> = n:child_by_field_name("name"):source()
 
+   local data = begin_signature_and_description(name, "function")
+   local first = true
+
+   if typeargs then
+      table.insert(data, (escape_html_chars "<"))
+      for child in typeargs:named_children() do
+         if not first then
+            table.insert(data, ", ")
+         end
+         table.insert(data, "<code class=parameter-type>")
+         table.insert(data, child:source())
+         table.insert(data, "</code>")
+         first = false
+      end
+      table.insert(data, (escape_html_chars ">"))
+   end
+
+   table.insert(data, "(")
+
+   first = true
+   for child in sig:child_by_field_name("arguments"):named_children() do
+      local parameter_name <const> = child:child_by_field_name("name")
+      local ty <const> = assert(child:child_by_field_name("type")):source()
+      if not first then
+         table.insert(data, ",")
+      end
+      table.insert(data, "\n\t<code class=parameter-name>")
+      table.insert(data, parameter_name and parameter_name:source() or "...")
+      table.insert(data, "</code>: <code class=parameter-type>")
+      table.insert(data, ty)
+      table.insert(data, "</code>")
+
+      first = false
+   end
+
+   table.insert(data, first and ")" or "\n)")
+
+   if ret then
+      table.insert(data, ": ")
+      first = true
+      for t in ret:named_children() do
+         if not first then
+            table.insert(data, ", ")
+         end
+         table.insert(data, "<code class=parameter-type>" .. t:source() .. "</code>")
+         first = false
+      end
+   end
+
    table.insert(
       out,
-      html {
-         doc_header({ name,
-                      typeargs and escape_html_chars(typeargs:source()) or "",
-                      sig:child_by_field_name("arguments"):source(),
-                      (ret and ": " .. ret:source() or "") },
-                    name),
+      end_signature_and_description(
+         (name:match(":") and "method " or "function ") .. name,
+         name,
+         data,
          p { escape(table.concat(prefix)) }
-      }
+      )
    )
    return name
 end
@@ -142,34 +214,30 @@ emit["enum_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
    assertf(body, "enum_body is nil for %s", tostring(n));
 
    local name <const> = n:child_by_field_name("name"):source()
-   local entries <const> = {}
+
+   local data = begin_signature_and_description(name, "enum")
+   table.insert(data, "\n")
 
    for child in body:named_children() do
-      table.insert(entries, child:source())
+      table.insert(data, "\t<code class=string>" .. child:source() .. "</code>\n")
    end
 
+   table.insert(data, "<code class=keyword>end</code>")
 
    table.insert(
       out,
-      html {
-         doc_header ({"type ", name}, name),
-         pre { "enum ", name, br, "   ",
-               table.concat(entries, br .. "   "),
-               br,
-               "end " },
-         p { escape(table.concat(prefix)) }
-      }
+      end_signature_and_description("type " .. name, name, data, p { escape(table.concat(prefix)) })
    )
 
    return name
 end
 
 emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
-   local fields <const> = {}
    local meta <const> = {}
    local body <const> = n:child_by_field_name("record_body")
    assertf(body, "record_body is nil for %s", tostring(n))
 
+   local fields <const> = {}
    local private_fields <const> = {}
 
    for c in body:named_children() do
@@ -187,55 +255,55 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
          table.insert(
             is_private and private_fields or fields,
             (is_string and "[%s]" or "%s"):format(key:source())
-               .. ": " .. t:source()
+               .. ": <code class=parameter-type>" .. t:source() .. "</code>"
          )
       elseif c:type() == "metamethod" then
          table.insert(
             meta,
-            c:source()
+            "<code class=keyword>metamethod</code> "
+               .. c:child_by_field_name("name"):source()
+               .. ": <code class=parameter-type>"
+               .. c:child_by_field_name("type"):source()
+               .. "</code>"
          )
       elseif c:type() == "record_array_type" then
          table.insert(
             fields,
             1,
-            "{" .. c:child(0):source() .. "}"
+            "<code class=parameter-type>{" .. c:child(0):source() .. "}</code>"
          )
       end
    end
 
    local obj_name <const> = n:child_by_field_name("name"):source()
 
-   local pre_contents <const> = { "record ", obj_name }
+   local data = begin_signature_and_description(obj_name, "record")
 
    if #fields > 0 then
-      table.insert(pre_contents, br .. "   " .. table.concat(fields, br .. "   "))
+      table.insert(data, "\n\t" .. table.concat(fields, "\n\t"))
    end
 
    if #meta > 0 then
       if #fields > 0 then
-         table.insert(pre_contents, br)
+         table.insert(data, "\n")
       end
-      table.insert(pre_contents, br .. "   " .. table.concat(meta, br .. "   "))
+      table.insert(data, "\n\t" .. table.concat(meta, "\n\t"))
    end
 
    if #private_fields > 0 then
       if #fields > 0 or #meta > 0 then
-         table.insert(pre_contents, br)
+         table.insert(data, br)
       end
-      table.insert(pre_contents, br .. "   <details><summary class=\"private-field-comment\">-- private fields</summary>" .. br .. "   ")
-      table.insert(pre_contents, table.concat(private_fields, br .. "   "))
-      table.insert(pre_contents, "</details>")
+      table.insert(data, "\n<details><summary class=\"private-field-comment\">\t-- private fields (click to show)</summary>\n\t")
+      table.insert(data, table.concat(private_fields, "\n\t"))
+      table.insert(data, "</details>")
    end
 
-   table.insert(pre_contents, br .. "end")
+   table.insert(data, "\n<code class=keyword>end</code>")
 
    table.insert(
       out,
-      html {
-         doc_header ({"type ", obj_name}, obj_name),
-         pre (pre_contents),
-         p { escape(table.concat(prefix)) }
-      }
+      end_signature_and_description("type " .. obj_name, obj_name, data, p { escape(table.concat(prefix)) })
    )
    return obj_name
 end
