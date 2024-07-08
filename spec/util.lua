@@ -55,6 +55,7 @@ end
 
 local Batch = {}
 function Batch:new(name)
+   assert(not name or type(name) == "string")
    return setmetatable({
       name = name or "___",
       _on_fail = "",
@@ -67,6 +68,7 @@ function Batch:add(assert_func, ...)
 end
 
 function Batch:show_on_failure(str)
+   assert(not str or type(str) == "string")
    self._on_fail = str
 end
 

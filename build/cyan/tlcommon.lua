@@ -251,11 +251,11 @@ end
 
 
 function common.report_errors(logger, errs, file, category)
-   logger(common.make_error_header(file, #errs, category), "\n")
+   logger(_tl_table_unpack(common.make_error_header(file, #errs, category)))
    for e in ivalues(errs) do
       logger:cont(_tl_table_unpack(prettify_error(e)))
-      logger:cont("\n")
    end
+   logger:cont("")
 end
 
 

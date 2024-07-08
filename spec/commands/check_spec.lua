@@ -24,7 +24,7 @@ describe("check command", function()
          },
          cmd_output_match_lines = {
             [1] = "Error.*%d.*foo%.tl",
-            [6] = "Type checked.*bar%.tl",
+            [7] = "Type checked.*bar%.tl",
          },
          exit_code = 1,
       })
@@ -76,7 +76,7 @@ describe("check command", function()
          dir_structure = {
             ["foo.tl"] = [[local x: string = 10]],
          },
-         cmd_output_match = [[1.-|.-local.-x: string]],
+         cmd_output_match = [[1.-│.-local.-x: string]],
          exit_code = 1,
       })
    end)
