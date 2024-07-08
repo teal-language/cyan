@@ -5,6 +5,9 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+local ivalues = require("cyan.util").tab.ivalues
+local insert = table.insert
+
 
 
 local Color = {}
@@ -12,10 +15,6 @@ local Color = {}
 
 
 
-
-local function rgb(red, green, blue)
-   return { red = red, green = green, blue = blue }
-end
 
 
 
@@ -35,13 +34,40 @@ local Decoration = {}
 
 
 
-local function color_copy(c)
+
+
+local Decorated = {}
+
+
+
+
+local Renderer = {}
+
+local decoration = {
+   Color = Color,
+   Decorated = Decorated,
+   Decoration = Decoration,
+   Renderer = Renderer,
+
+   scheme = {},
+}
+
+
+
+function decoration.rgb(red, green, blue)
+   return { red = red, green = green, blue = blue }
+end
+local rgb = decoration.rgb;
+
+
+
+function decoration.color_copy(c)
    return { red = c.red, green = c.green, blue = c.blue }
 end
 
-local ivalues = require("cyan.util").tab.ivalues
 
-local function copy(decoration, delta)
+
+function decoration.copy(to_be_copied, delta)
    delta = delta or {}
    local result = {}
    for k in ivalues({
@@ -52,172 +78,167 @@ local function copy(decoration, delta)
          "ansi_color",
          "ansi_background_color",
       }) do
-      (result)[k] = (delta)[k] == nil and (decoration)[k] or (delta)[k]
+      (result)[k] = (delta)[k] == nil and (to_be_copied)[k] or (delta)[k]
    end
 
-   result.color = (delta.color and color_copy(delta.color)) or
-   (decoration.color and color_copy(decoration.color))
-   result.background_color = (delta.background_color and color_copy(delta.background_color)) or
-   (decoration.background_color and color_copy(decoration.background_color))
+   result.color = (delta.color and decoration.color_copy(delta.color)) or
+   (to_be_copied.color and decoration.color_copy(to_be_copied.color))
+   result.background_color = (delta.background_color and decoration.color_copy(delta.background_color)) or
+   (to_be_copied.background_color and decoration.color_copy(to_be_copied.background_color))
 
    return result
 end
+local copy = decoration.copy
 
-local Decorated = {}
-
-
-
-
-local Renderer = {}
-
-local insert = table.insert
 local decorated_mt = {
    __name = "cyan.decoration.Decorated",
+   __index = Decorated,
 }
 
-local function decorate(plain, decoration)
+
+
+function decoration.decorate(plain, decor)
    return setmetatable({
       plain_content = plain,
-      decoration = decoration,
+      decoration = decor,
    }, decorated_mt)
 end
 
-local function render_plain(buf, content, _decoration)
+
+
+function Decorated:copy(delta)
+   return decoration.decorate(
+   self.plain_content,
+   decoration.copy(self.decoration, delta))
+
+end
+
+
+
+function decoration.render_plain(buf, content, _decoration)
    insert(buf, content)
 end
 
-local function render_ansi(buf, content, decoration)
+
+
+function decoration.render_ansi(buf, content, decor)
    local control_sequence_introducer = string.char(27) .. "["
    local operating_system_command = string.char(27) .. "]"
    local string_terminator = string.char(27) .. "\\"
-   if decoration.bold then
+   if decor.bold then
       insert(buf, control_sequence_introducer .. "1m")
    end
-   if decoration.italic then
+   if decor.italic then
       insert(buf, control_sequence_introducer .. "3m")
    end
-   if decoration.ansi_color then
+   if decor.ansi_color then
       insert(
       buf,
       (control_sequence_introducer .. "%dm"):format(
-      decoration.ansi_color < 8 and
-      decoration.ansi_color + 30 or
-      decoration.ansi_color - 8 + 90))
+      decor.ansi_color < 8 and
+      decor.ansi_color + 30 or
+      decor.ansi_color - 8 + 90))
 
 
-   elseif decoration.color then
+   elseif decor.color then
       insert(
       buf,
       (control_sequence_introducer .. "38;2;%d;%d;%dm"):format(
-      tostring(decoration.color.red or 0),
-      tostring(decoration.color.green or 0),
-      tostring(decoration.color.blue or 0)))
+      tostring(decor.color.red or 0),
+      tostring(decor.color.green or 0),
+      tostring(decor.color.blue or 0)))
 
 
    end
-   if decoration.ansi_background_color then
+   if decor.ansi_background_color then
       insert(
       buf,
       (control_sequence_introducer .. "%dm"):format(
-      decoration.ansi_background_color < 8 and
-      decoration.ansi_background_color + 40 or
-      decoration.ansi_background_color - 8 + 100))
+      decor.ansi_background_color < 8 and
+      decor.ansi_background_color + 40 or
+      decor.ansi_background_color - 8 + 100))
 
 
-   elseif decoration.background_color then
+   elseif decor.background_color then
       insert(
       buf,
       (control_sequence_introducer .. "48;2;%d;%d;%dm"):format(
-      tostring(decoration.color.red or 0),
-      tostring(decoration.color.green or 0),
-      tostring(decoration.color.blue or 0)))
+      tostring(decor.color.red or 0),
+      tostring(decor.color.green or 0),
+      tostring(decor.color.blue or 0)))
 
 
    end
-   if decoration.linked_uri then
+   if decor.linked_uri then
       insert(
       buf,
-      (operating_system_command .. "8;;%s" .. string_terminator):format(decoration.linked_uri))
+      (operating_system_command .. "8;;%s" .. string_terminator):format(decor.linked_uri))
 
    end
    insert(buf, content)
-   if decoration.linked_uri then
+   if decor.linked_uri then
       insert(buf, operating_system_command .. "8;;" .. string_terminator)
    end
    insert(buf, control_sequence_introducer .. "0m")
 end
 
-local scheme = {
-   teal = { color = rgb(0, 0xAA, 0xB4) },
-   cyan = {
-      ansi_color = 6,
-      color = rgb(0, 0xCC, 0xCC),
-   },
-   bright_cyan = {
-      ansi_color = 14,
-      color = rgb(0, 0xFF, 0xFF),
-   },
-   yellow = {
-      ansi_color = 3,
-      color = rgb(230, 230, 0),
-   },
-   red = {
-      ansi_color = 1,
-      color = rgb(200, 50, 50),
-   },
-   green = {
-      ansi_color = 2,
-      color = rgb(10, 180, 10),
-   },
-   bright_green = {
-      ansi_color = 10,
-      color = rgb(85, 255, 85),
-   },
-   bright_red = {
-      ansi_color = 9,
-      color = rgb(230, 60, 60),
-   },
-   bright_yellow = {
-      ansi_color = 11,
-      color = rgb(230, 230, 0),
-   },
-   magenta = {
-      ansi_color = 5,
-      color = rgb(190, 60, 60),
-   },
+decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }
+decoration.scheme.cyan = {
+   ansi_color = 6,
+   color = rgb(0, 0xCC, 0xCC),
+}
+decoration.scheme.bright_cyan = {
+   ansi_color = 14,
+   color = rgb(0, 0xFF, 0xFF),
+}
+decoration.scheme.yellow = {
+   ansi_color = 3,
+   color = rgb(230, 230, 0),
+}
+decoration.scheme.red = {
+   ansi_color = 1,
+   color = rgb(200, 50, 50),
+}
+decoration.scheme.green = {
+   ansi_color = 2,
+   color = rgb(10, 180, 10),
+}
+decoration.scheme.bright_green = {
+   ansi_color = 10,
+   color = rgb(85, 255, 85),
+}
+decoration.scheme.bright_red = {
+   ansi_color = 9,
+   color = rgb(230, 60, 60),
+}
+decoration.scheme.bright_yellow = {
+   ansi_color = 11,
+   color = rgb(230, 230, 0),
+}
+decoration.scheme.magenta = {
+   ansi_color = 5,
+   color = rgb(190, 60, 60),
 }
 
-scheme.keyword = copy(scheme.teal)
-scheme.file = copy(scheme.yellow)
-scheme.error = copy(scheme.red)
-scheme.error_number = copy(scheme.red)
-scheme.warn = copy(scheme.yellow)
-scheme.number = copy(scheme.red)
-scheme.string = copy(scheme.bright_yellow)
-scheme.operator = copy(scheme.magenta)
-scheme.emphasis = { bold = true }
+decoration.scheme.keyword = copy(decoration.scheme.teal)
+decoration.scheme.file = copy(decoration.scheme.yellow)
+decoration.scheme.error = copy(decoration.scheme.red)
+decoration.scheme.error_number = copy(decoration.scheme.red)
+decoration.scheme.warn = copy(decoration.scheme.yellow)
+decoration.scheme.number = copy(decoration.scheme.red)
+decoration.scheme.string = copy(decoration.scheme.bright_yellow)
+decoration.scheme.operator = copy(decoration.scheme.magenta)
+decoration.scheme.emphasis = { bold = true }
 
-scheme.affirmative = copy(scheme.bright_green)
-scheme.negative = copy(scheme.red)
+decoration.scheme.affirmative = copy(decoration.scheme.bright_green)
+decoration.scheme.negative = copy(decoration.scheme.red)
 
-local function file_name(path)
-   local decoration = copy(scheme.file)
-   decoration.linked_uri = ("file://%s"):format(path)
-   return decorate(path, decoration)
+
+
+function decoration.file_name(path)
+   local d = copy(decoration.scheme.file)
+   d.linked_uri = ("file://%s"):format(path)
+   return decoration.decorate(path, d)
 end
 
-return {
-   Color = Color,
-   Decorated = Decorated,
-   Decoration = Decoration,
-   Renderer = Renderer,
-
-   decorate = decorate,
-   file_name = file_name,
-   copy = copy,
-
-   render_plain = render_plain,
-   render_ansi = render_ansi,
-
-   scheme = scheme,
-}
+return decoration

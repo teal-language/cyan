@@ -118,7 +118,16 @@ This documentation is auto-generated and may be incomplete.
 </p>
 <p><a class=module-name href=#cyan.experimental.decoration>cyan.experimental.decoration</a>
 <br><a href=#Color>Color</a>
+<br><a href=#Decorated:copy>Decorated:copy</a>
+<br><a href=#Decorated>Decorated</a>
 <br><a href=#Decoration>Decoration</a>
+<br><a href=#decoration.color_copy>decoration.color_copy</a>
+<br><a href=#decoration.copy>decoration.copy</a>
+<br><a href=#decoration.decorate>decoration.decorate</a>
+<br><a href=#decoration.file_name>decoration.file_name</a>
+<br><a href=#decoration.render_ansi>decoration.render_ansi</a>
+<br><a href=#decoration.render_plain>decoration.render_plain</a>
+<br><a href=#decoration.rgb>decoration.rgb</a>
 </p>
 <p><a class=module-name href=#cyan.fs.path>cyan.fs.path</a>
 <br><a href=#Path.eq>Path.eq</a>
@@ -319,6 +328,17 @@ This documentation is auto-generated and may be incomplete.
 	green: <code class=parameter-type>integer</code>
 	blue: <code class=parameter-type>integer</code>
 <code class=keyword>end</code></code></pre><p><p>A color described by rgb values in [0, 255]</p></p>
+</div><h3><a name=Decorated:copy><code class=bulleted>method Decorated:copy</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> Decorated:copy(
+	<code class=parameter-name>delta</code>: <code class=parameter-type>Decoration</code>
+): <code class=parameter-type>Decorated</code></code></pre><p><p>Deeply copy the decoration of a decorated string</p></p>
+</div><h3><a name=Decorated><code class=bulleted>type Decorated</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>record</code> Decorated
+	plain_content: <code class=parameter-type>string</code>
+	decoration: <code class=parameter-type>Decoration</code>
+<code class=keyword>end</code></code></pre><p><p>A string and a decoration</p></p>
 </div><h3><a name=Decoration><code class=bulleted>type Decoration</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Decoration
@@ -331,6 +351,49 @@ This documentation is auto-generated and may be incomplete.
 	ansi_color: <code class=parameter-type>integer</code>
 	ansi_background_color: <code class=parameter-type>integer</code>
 <code class=keyword>end</code></code></pre><p><p>Various visual properties that could apply to some text</p></p>
+</div><h3><a name=decoration.color_copy><code class=bulleted>function decoration.color_copy</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.color_copy(
+	<code class=parameter-name>c</code>: <code class=parameter-type>Color</code>
+): <code class=parameter-type>Color</code></code></pre><p><p>Deep copy a <code>Color</code></p></p>
+</div><h3><a name=decoration.copy><code class=bulleted>function decoration.copy</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.copy(
+	<code class=parameter-name>to_be_copied</code>: <code class=parameter-type>Decoration</code>,
+	<code class=parameter-name>delta</code>: <code class=parameter-type>Decoration</code>
+): <code class=parameter-type>Decoration</code></code></pre><p><p>Deep copy a <code>Decoration</code></p></p>
+</div><h3><a name=decoration.decorate><code class=bulleted>function decoration.decorate</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.decorate(
+	<code class=parameter-name>plain</code>: <code class=parameter-type>string</code>,
+	<code class=parameter-name>decor</code>: <code class=parameter-type>Decoration</code>
+): <code class=parameter-type>Decorated</code></code></pre><p><p>Create a decorated string</p></p>
+</div><h3><a name=decoration.file_name><code class=bulleted>function decoration.file_name</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.file_name(
+	<code class=parameter-name>path</code>: <code class=parameter-type>string</code>
+): <code class=parameter-type>Decorated</code></code></pre><p><p>Decorate using the default decoration for file names and a uri for the path</p></p>
+</div><h3><a name=decoration.render_ansi><code class=bulleted>function decoration.render_ansi</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.render_ansi(
+	<code class=parameter-name>buf</code>: <code class=parameter-type>{string}</code>,
+	<code class=parameter-name>content</code>: <code class=parameter-type>string</code>,
+	<code class=parameter-name>decor</code>: <code class=parameter-type>Decoration</code>
+)</code></pre><p><p>Render decorations as ANSI escape sequences</p></p>
+</div><h3><a name=decoration.render_plain><code class=bulleted>function decoration.render_plain</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.render_plain(
+	<code class=parameter-name>buf</code>: <code class=parameter-type>{string}</code>,
+	<code class=parameter-name>content</code>: <code class=parameter-type>string</code>,
+	<code class=parameter-name>_decoration</code>: <code class=parameter-type>Decoration</code>
+)</code></pre><p><p>Render text by discarding all decorations</p></p>
+</div><h3><a name=decoration.rgb><code class=bulleted>function decoration.rgb</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.rgb(
+	<code class=parameter-name>red</code>: <code class=parameter-type>integer</code>,
+	<code class=parameter-name>green</code>: <code class=parameter-type>integer</code>,
+	<code class=parameter-name>blue</code>: <code class=parameter-type>integer</code>
+): <code class=parameter-type>Color</code></code></pre><p><p>Positional constructor for <code>Color</code></p></p>
 </div><h2><a name=cyan.fs.path>cyan.fs.path</a>
 </h2>
 <p><p>Object oriented lexical path management</p></p>
