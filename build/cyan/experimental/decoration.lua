@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -57,7 +57,7 @@ local decoration = {
 function decoration.rgb(red, green, blue)
    return { red = red, green = green, blue = blue }
 end
-local rgb = decoration.rgb;
+local rgb = decoration.rgb
 
 
 
@@ -127,6 +127,10 @@ local ansi_string_terminator = ansi_escape .. "\\"
 
 
 function decoration.render_ansi(buf, content, decor)
+   assert(content)
+   decor = decor or {}
+
+   local starting_len = #buf
    if decor.bold then
       insert(buf, ansi_control_sequence_introducer .. "1m")
    end
@@ -181,7 +185,9 @@ function decoration.render_ansi(buf, content, decor)
    if decor.linked_uri then
       insert(buf, ansi_operating_system_command .. "8;;" .. ansi_string_terminator)
    end
-   insert(buf, ansi_control_sequence_introducer .. "0m")
+   if starting_len + 1 ~= #buf then
+      insert(buf, ansi_control_sequence_introducer .. "0m")
+   end
 end
 
 decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }

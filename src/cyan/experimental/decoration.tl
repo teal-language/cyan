@@ -57,7 +57,7 @@ local decoration <const> = {
 function decoration.rgb(red: integer, green: integer, blue: integer): Color
    return { red = red, green = green, blue = blue }
 end
-local rgb <const> = decoration.rgb;
+local rgb <const> = decoration.rgb
 
 ---@desc
 --- Deep copy a `Color`
@@ -66,7 +66,7 @@ function decoration.color_copy(c: Color): Color
 end
 
 ---@desc
---- Deep copy a `Decoration`
+--- Deep copy a `Decoration`, but copy values from `delta` when present
 function decoration.copy(to_be_copied: Decoration, delta: Decoration): Decoration
    delta = delta or {}
    local result <const>: Decoration = {}
@@ -127,6 +127,10 @@ local ansi_string_terminator <const> = ansi_escape .. "\\"
 ---@desc
 --- Render decorations as ANSI escape sequences
 function decoration.render_ansi(buf: {string}, content: string, decor: Decoration)
+   assert(content)
+   decor = decor or {}
+
+   local starting_len <const> = #buf
    if decor.bold then
       insert(buf, ansi_control_sequence_introducer .. "1m")
    end
@@ -181,7 +185,9 @@ function decoration.render_ansi(buf: {string}, content: string, decor: Decoratio
    if decor.linked_uri then
       insert(buf, ansi_operating_system_command .. "8;;" .. ansi_string_terminator)
    end
-   insert(buf, ansi_control_sequence_introducer .. "0m")
+   if starting_len + 1 ~= #buf then
+      insert(buf, ansi_control_sequence_introducer .. "0m")
+   end
 end
 
 decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }
