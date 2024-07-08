@@ -119,22 +119,24 @@ function decoration.render_plain(buf, content, _decoration)
    insert(buf, content)
 end
 
+local ansi_escape = string.char(27)
+local ansi_control_sequence_introducer = ansi_escape .. "["
+local ansi_operating_system_command = ansi_escape .. "]"
+local ansi_string_terminator = ansi_escape .. "\\"
+
 
 
 function decoration.render_ansi(buf, content, decor)
-   local control_sequence_introducer = string.char(27) .. "["
-   local operating_system_command = string.char(27) .. "]"
-   local string_terminator = string.char(27) .. "\\"
    if decor.bold then
-      insert(buf, control_sequence_introducer .. "1m")
+      insert(buf, ansi_control_sequence_introducer .. "1m")
    end
    if decor.italic then
-      insert(buf, control_sequence_introducer .. "3m")
+      insert(buf, ansi_control_sequence_introducer .. "3m")
    end
    if decor.ansi_color then
       insert(
       buf,
-      (control_sequence_introducer .. "%dm"):format(
+      (ansi_control_sequence_introducer .. "%dm"):format(
       decor.ansi_color < 8 and
       decor.ansi_color + 30 or
       decor.ansi_color - 8 + 90))
@@ -143,17 +145,17 @@ function decoration.render_ansi(buf, content, decor)
    elseif decor.color then
       insert(
       buf,
-      (control_sequence_introducer .. "38;2;%d;%d;%dm"):format(
-      tostring(decor.color.red or 0),
-      tostring(decor.color.green or 0),
-      tostring(decor.color.blue or 0)))
+      (ansi_control_sequence_introducer .. "38;2;%d;%d;%dm"):format(
+      decor.color.red or 0,
+      decor.color.green or 0,
+      decor.color.blue or 0))
 
 
    end
    if decor.ansi_background_color then
       insert(
       buf,
-      (control_sequence_introducer .. "%dm"):format(
+      (ansi_control_sequence_introducer .. "%dm"):format(
       decor.ansi_background_color < 8 and
       decor.ansi_background_color + 40 or
       decor.ansi_background_color - 8 + 100))
@@ -162,24 +164,24 @@ function decoration.render_ansi(buf, content, decor)
    elseif decor.background_color then
       insert(
       buf,
-      (control_sequence_introducer .. "48;2;%d;%d;%dm"):format(
-      tostring(decor.color.red or 0),
-      tostring(decor.color.green or 0),
-      tostring(decor.color.blue or 0)))
+      (ansi_control_sequence_introducer .. "48;2;%d;%d;%dm"):format(
+      decor.color.red or 0,
+      decor.color.green or 0,
+      decor.color.blue or 0))
 
 
    end
    if decor.linked_uri then
       insert(
       buf,
-      (operating_system_command .. "8;;%s" .. string_terminator):format(decor.linked_uri))
+      (ansi_operating_system_command .. "8;;%s" .. ansi_string_terminator):format(decor.linked_uri))
 
    end
    insert(buf, content)
    if decor.linked_uri then
-      insert(buf, operating_system_command .. "8;;" .. string_terminator)
+      insert(buf, ansi_operating_system_command .. "8;;" .. ansi_string_terminator)
    end
-   insert(buf, control_sequence_introducer .. "0m")
+   insert(buf, ansi_control_sequence_introducer .. "0m")
 end
 
 decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }
