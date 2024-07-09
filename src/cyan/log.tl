@@ -38,7 +38,7 @@
 
 local system <const> = require("system")
 local util <const> = require("cyan.util")
-local decoration <const> = require("cyan.experimental.decoration")
+local decoration <const> = require("cyan.decoration")
 local str <const> = util.str
 
 local no_color_env <const> = os.getenv("NO_COLOR") ~= nil

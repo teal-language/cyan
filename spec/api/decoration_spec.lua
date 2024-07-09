@@ -1,4 +1,4 @@
-local decoration = require("cyan.experimental.decoration")
+local decoration = require("cyan.decoration")
 
 describe("decoration api", function()
    describe("ansi rendering", function()

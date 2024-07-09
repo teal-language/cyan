@@ -38,7 +38,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local system = require("system")
 local util = require("cyan.util")
-local decoration = require("cyan.experimental.decoration")
+local decoration = require("cyan.decoration")
 local str = util.str
 
 local no_color_env = os.getenv("NO_COLOR") ~= nil

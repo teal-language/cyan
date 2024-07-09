@@ -5,7 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local command = require("cyan.command")
 local config = require("cyan.config")
-local decoration = require("cyan.experimental.decoration")
+local decoration = require("cyan.decoration")
 local log = require("cyan.log")
 local tl = require("tl")
 local util = require("cyan.util")

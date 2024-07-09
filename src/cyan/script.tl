@@ -5,7 +5,7 @@
 local tl <const> = require("tl")
 
 local command <const> = require("cyan.command")
-local decoration <const> = require("cyan.experimental.decoration")
+local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local sandbox <const> = require("cyan.sandbox")

@@ -4,7 +4,7 @@
 --- wrappers around the tl api, since it isn't super stable
 
 local config <const> = require("cyan.config")
-local decoration <const> = require("cyan.experimental.decoration")
+local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")

@@ -1,7 +1,7 @@
 local argparse <const> = require("argparse")
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
-local decoration <const> = require("cyan.experimental.decoration")
+local decoration <const> = require("cyan.decoration")
 local util <const> = require("cyan.util")
 local pad_left <const>, ivalues <const> = util.str.pad_left, util.tab.ivalues
 

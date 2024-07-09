@@ -3,7 +3,7 @@
 
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
-local decoration <const> = require("cyan.experimental.decoration")
+local decoration <const> = require("cyan.decoration")
 
 local ivalues <const> = util.tab.ivalues
 
