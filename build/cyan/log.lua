@@ -157,17 +157,12 @@ local function do_log(
    ...)
 
    local render = renderer(stream)
-   local function render_string(s)
-      local buf = {}
-      render(buf, s, {})
-      return buf[1] or ""
-   end
 
    local prefix = rendered_prefix(initial_prefix, render)
    local continuation = rendered_prefix(continuation_prefix, render)
 
-   local new_line = render_string("\n")
-   local space = render_string(" ")
+   local new_line = decoration.render_to_string(render, "\n")
+   local space = decoration.render_to_string(render, " ")
 
    stream:write(prefix, space)
 
@@ -181,7 +176,7 @@ local function do_log(
          (v).decoration)
 
       else
-         render_buf[1] = render_string(inspector(v))
+         render_buf[1] = decoration.render_to_string(render, inspector(v))
       end
       local rendered = table.concat(render_buf)
       local first = true

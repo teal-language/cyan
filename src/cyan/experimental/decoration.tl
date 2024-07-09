@@ -194,6 +194,14 @@ function decoration.render_ansi(buf: {string}, content: string, decor: Decoratio
    end
 end
 
+---@desc
+--- A convenience function to render to a buffer, then concatenate that buffer
+function decoration.render_to_string(render: Renderer, plain_content: string, decor: Decoration): string
+   local buf <const> = {}
+   render(buf, plain_content, decor)
+   return table.concat(buf)
+end
+
 decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }
 decoration.scheme.cyan = {
    ansi_color = 6,

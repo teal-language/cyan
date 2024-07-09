@@ -194,6 +194,14 @@ function decoration.render_ansi(buf, content, decor)
    end
 end
 
+
+
+function decoration.render_to_string(render, plain_content, decor)
+   local buf = {}
+   render(buf, plain_content, decor)
+   return table.concat(buf)
+end
+
 decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }
 decoration.scheme.cyan = {
    ansi_color = 6,
