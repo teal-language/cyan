@@ -77,6 +77,15 @@ local SchemeEntry = {}
 
 
 
+
+
+
+
+
+
+
+
+
 local decoration = {
    Color = Color,
    Decorated = Decorated,
@@ -235,18 +244,9 @@ function decoration.render_to_string(render, plain_content, decor)
 end
 
 local scheme = {
-   teal = { color = rgb(0, 0xaa, 0xb4) },
-   cyan = {
-      ansi_color = 6,
-      color = rgb(0, 0xcc, 0xcc),
-   },
-   bright_cyan = {
-      ansi_color = 14,
-      color = rgb(0, 0xff, 0xff),
-   },
-   yellow = {
-      ansi_color = 3,
-      color = rgb(230, 230, 0),
+   black = {
+      ansi_color = 0,
+      color = rgb(0, 0, 0),
    },
    red = {
       ansi_color = 1,
@@ -256,22 +256,61 @@ local scheme = {
       ansi_color = 2,
       color = rgb(10, 180, 10),
    },
-   bright_green = {
-      ansi_color = 10,
-      color = rgb(85, 255, 85),
+   yellow = {
+      ansi_color = 3,
+      color = rgb(230, 230, 0),
+   },
+   blue = {
+      ansi_color = 4,
+      color = rgb(30, 100, 220),
+   },
+   magenta = {
+      ansi_color = 5,
+      color = rgb(100, 30, 150),
+   },
+   cyan = {
+      ansi_color = 6,
+      color = rgb(0, 180, 200),
+   },
+   white = {
+      ansi_color = 7,
+      color = rgb(255, 255, 255),
+   },
+
+   gray = {
+      ansi_color = 8,
+      color = rgb(128, 128, 128),
    },
    bright_red = {
       ansi_color = 9,
       color = rgb(230, 60, 60),
    },
+   bright_green = {
+      ansi_color = 10,
+      color = rgb(85, 255, 85),
+   },
    bright_yellow = {
       ansi_color = 11,
       color = rgb(230, 230, 0),
    },
-   magenta = {
-      ansi_color = 5,
-      color = rgb(190, 60, 60),
+   bright_blue = {
+      ansi_color = 12,
+      color = rgb(60, 150, 0xff),
    },
+   bright_magenta = {
+      ansi_color = 13,
+      color = rgb(0xff, 100, 0xff),
+   },
+   bright_cyan = {
+      ansi_color = 14,
+      color = rgb(0, 0xff, 0xff),
+   },
+   bright_white = {
+      ansi_color = 15,
+      color = rgb(0xff, 0xff, 0xff),
+   },
+
+   teal = { color = rgb(0, 0xaa, 0xb4) },
 
    keyword = "teal",
    file = "yellow",
