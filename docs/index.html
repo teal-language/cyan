@@ -99,8 +99,6 @@ This documentation is auto-generated and may be incomplete.
 <h1>Table of Contents</h1>
 
 <table width='100%'><tbody><td valign=top>
-<p><a class=module-name href=#cyan.ansi>cyan.ansi</a>
-<br></p>
 <p><a class=module-name href=#cyan.cli>cyan.cli</a>
 <br></p>
 <p><a class=module-name href=#cyan.command>cyan.command</a>
@@ -155,7 +153,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#path.ensure>path.ensure</a>
 <br><a href=#path.new>path.new</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.fs>cyan.fs</a>
+<p><a class=module-name href=#cyan.fs>cyan.fs</a>
 <br><a href=#fs.chdir>fs.chdir</a>
 <br><a href=#fs.copy>fs.copy</a>
 <br><a href=#fs.cwd>fs.cwd</a>
@@ -167,7 +165,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#fs.scan_dir>fs.scan_dir</a>
 <br><a href=#fs.search_parent_dirs>fs.search_parent_dirs</a>
 </p>
-<p><a class=module-name href=#cyan.graph>cyan.graph</a>
+</td><td valign=top><p><a class=module-name href=#cyan.graph>cyan.graph</a>
 <br><a href=#Dag:find>Dag:find</a>
 <br><a href=#Dag:insert_file>Dag:insert_file</a>
 <br><a href=#Dag:mark_each>Dag:mark_each</a>
@@ -246,9 +244,6 @@ This documentation is auto-generated and may be incomplete.
 </td>
 </td></tbody></table>
 
-<h2><a name=cyan.ansi>cyan.ansi</a>
-</h2>
-<p><p>A small utility library for grabbing the ANSI escapes for colors and such</p></p>
 <h2><a name=cyan.cli>cyan.cli</a>
 </h2>
 <p><p>The command line driver</p><p>This is not a module to be used and requiring it will attempt to start the cli and call os.exit</p></p>
@@ -361,7 +356,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> decoration.copy(
 	<code class=parameter-name>to_be_copied</code>: <code class=parameter-type>Decoration</code>,
 	<code class=parameter-name>delta</code>: <code class=parameter-type>Decoration</code>
-): <code class=parameter-type>Decoration</code></code></pre><p><p>Deep copy a <code>Decoration</code></p></p>
+): <code class=parameter-type>Decoration</code></code></pre><p><p>Deep copy a <code>Decoration</code>, but copy values from <code>delta</code> when present</p></p>
 </div><h3><a name=decoration.decorate><code class=bulleted>function decoration.decorate</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> decoration.decorate(

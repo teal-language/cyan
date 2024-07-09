@@ -20,7 +20,6 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      ["cyan.ansi"] = "build/cyan/ansi.lua",
       ["cyan.cli"] = "build/cyan/cli.lua",
       ["cyan.command"] = "build/cyan/command.lua",
       ["cyan.commands.build"] = "build/cyan/commands/build.lua",
@@ -43,7 +42,6 @@ build = {
    },
    install = {
       lua = {
-         ["cyan.ansi"] = "src/cyan/ansi.tl",
          ["cyan.cli"] = "src/cyan/cli.tl",
          ["cyan.command"] = "src/cyan/command.tl",
          ["cyan.commands.build"] = "src/cyan/commands/build.tl",
