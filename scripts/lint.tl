@@ -1,19 +1,25 @@
 local common <const> = require("cyan.tlcommon")
-local cs <const> = require("cyan.colorstring")
+local decoration <const> = require("cyan.experimental.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
+
 local function lint()
+   local warn <const> = log.warn:copy(
+      decoration.decorate("Lint", decoration.scheme.warn),
+      decoration.decorate("...", decoration.scheme.warn)
+   )
+
    local has_ltreesitter <const>, ts <const> = pcall(require, "ltreesitter")
    if not has_ltreesitter then
-      log.warn("lint requires the ltreesitter module, which lua was unable to find\n", ts as string)
+      warn("lint requires the ltreesitter module, which lua was unable to find\n", ts as string)
       return
    end
 
    local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "teal")
    if not has_teal_parser then
-      log.warn("lint requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
+      warn("lint requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
       return
    end
 
@@ -67,6 +73,10 @@ local function lint()
       ((identifier) @id
        (#match? @id "^[_a-z].*[a-z][A-Z]")
        (#use-snake-case @id))
+
+      ((number) @num
+       (#match? @num "^0x")
+       (#check-hex-case @num))
    ]]:with {
       ["else-after-diverge"] = function(else_: ts.Node, ret_or_break: ts.Node)
          local start = else_:start_point()
@@ -109,6 +119,17 @@ local function lint()
             helpful_message = "This codebase uses snake_case for variable names, and PascalCase for types",
          })
       end,
+      ["check-hex-case"] = function(num: ts.Node)
+         if not num:source():match("[A-F]") then
+            return
+         end
+         local start = num:start_point()
+         table.insert(errors, {
+            location = to_one_indexed(start),
+            what = "use-lower-case-for-hex",
+            helpful_message = "This codebase uses lower case for hexadecimal digits",
+         })
+      end,
    }
 
    local total_errors = 0
@@ -117,46 +138,48 @@ local function lint()
    for path in fs.scan_dir(".", {"src/cyan/**/*"}) do
       errors = {}
       local real_path <const> = path:to_real_path()
-      local disp_path <const> = cs.highlight(cs.colors.file, real_path)
+      local disp_path <const> = decoration.file_name(real_path)
       local text <const> = fs.read(real_path)
       local root <const> = teal_parser:parse_string(text):root()
       query:exec(root)
       total_errors = total_errors + #errors
       if #errors > 0 then
-         log.warn(common.make_error_header(real_path, #errors, "lint"))
+         warn(table.unpack(common.make_error_header(real_path, #errors, "lint")))
          for err in util.tab.values(errors) do
             counts[err.what] = 1 + (counts[err.what] or 0)
-            log.warn:cont(
-               disp_path, ":", err.location.row, ":", err.location.column, " [", cs.highlight(cs.colors.emphasis, err.what),
+            warn:cont(
+               disp_path, ":", err.location.row, ":", err.location.column, " [", decoration.decorate(err.what, decoration.scheme.emphasis),
                "]\n         ┌"
             )
 
             for line_number in util.tab.values{ err.location.row - 1, err.location.row, err.location.row + 1 } do
                if line_number > 0 then
                   local line <const> = fs.get_line(real_path, line_number)
-                  log.warn:cont(
+                  warn:cont(
                      line_number == err.location.row
-                        and cs.highlight(cs.colors.error, ">>> ")
-                        or cs.highlight({}, "    "),
-                     cs.highlight(cs.colors.number, util.str.pad_left(tostring(line_number), 4)), " │ ", common.syntax_highlight(line)
+                        and decoration.decorate(">>> ", decoration.scheme.error)
+                        or decoration.decorate("    ", {}),
+                     decoration.decorate(util.str.pad_left(tostring(line_number), 4), decoration.scheme.number),
+                     " │ ",
+                     table.unpack(common.syntax_highlight(line))
                   )
                end
             end
 
-            log.warn:cont(
+            warn:cont(
                "         │\n",
-               "         └ ", cs.highlight(cs.colors.error, err.helpful_message), "\n"
+               "         └ ", decoration.decorate(err.helpful_message, decoration.scheme.error), "\n"
             )
          end
       else
-         log.info("Checked ", cs.highlight(cs.colors.file, real_path))
+         log.info("Checked ", decoration.file_name(real_path))
       end
    end
 
    if total_errors > 0 then
-      log.warn("Found a total of ", cs.highlight(cs.colors.emphasis, total_errors .. " lint" .. (total_errors ~= 1 and "s" or "")))
+      warn("Found a total of ", decoration.decorate(total_errors .. " lint" .. (total_errors ~= 1 and "s" or ""), decoration.scheme.emphasis))
       for k, v in pairs(counts) do
-         log.warn:cont("   [", cs.highlight(cs.colors.emphasis, k), "] = ", v)
+         warn:cont("   [", decoration.decorate(k, decoration.scheme.emphasis), "] = ", v)
       end
    end
 end

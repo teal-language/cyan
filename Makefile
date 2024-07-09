@@ -45,6 +45,9 @@ bootstrap: build/cyan/fs build/cyan/experimental build/cyan/commands $(LUA)
 test: default
 	busted
 
+lint: default
+	./bin/cyan run scripts/lint.tl
+
 docs: docs/index.html
 rockspec: cyan-dev-1.rockspec
 

@@ -72,6 +72,7 @@ end
 ---@desc
 --- Deep copy a `Decoration`, but copy values from `delta` when present
 function decoration.copy(to_be_copied: Decoration, delta: Decoration): Decoration
+   to_be_copied = to_be_copied or {}
    delta = delta or {}
    local result <const>: Decoration = {}
    for k in ivalues {
@@ -202,14 +203,14 @@ function decoration.render_to_string(render: Renderer, plain_content: string, de
    return table.concat(buf)
 end
 
-decoration.scheme.teal = { color = rgb(0, 0xAA, 0xB4) }
+decoration.scheme.teal = { color = rgb(0, 0xaa, 0xb4) }
 decoration.scheme.cyan = {
    ansi_color = 6,
-   color = rgb(0, 0xCC, 0xCC)
+   color = rgb(0, 0xcc, 0xcc)
 }
 decoration.scheme.bright_cyan = {
    ansi_color = 14,
-   color = rgb(0, 0xFF, 0xFF)
+   color = rgb(0, 0xff, 0xff)
 }
 decoration.scheme.yellow = {
    ansi_color = 3,
