@@ -119,11 +119,13 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#Decorated:copy>Decorated:copy</a>
 <br><a href=#Decorated>Decorated</a>
 <br><a href=#Decoration>Decoration</a>
+<br><a href=#Renderer>Renderer</a>
 <br><a href=#decoration.color_copy>decoration.color_copy</a>
 <br><a href=#decoration.copy>decoration.copy</a>
 <br><a href=#decoration.decorate>decoration.decorate</a>
 <br><a href=#decoration.file_name>decoration.file_name</a>
 <br><a href=#decoration.render_ansi>decoration.render_ansi</a>
+<br><a href=#decoration.render_html>decoration.render_html</a>
 <br><a href=#decoration.render_plain>decoration.render_plain</a>
 <br><a href=#decoration.rgb>decoration.rgb</a>
 </p>
@@ -257,8 +259,7 @@ This documentation is auto-generated and may be incomplete.
 	description: <code class=parameter-type>string</code>
 	argparse: <code class=parameter-type>function(argparse.Command)</code>
 	script_hooks: <code class=parameter-type>{string}</code>
-	exec: <code class=parameter-type>CommandFn</code>
-<code class=keyword>end</code></code></pre><p><p>The interface</p></p>
+	exec: <code class=parameter-type>CommandFn</code></code></pre><p><p>The interface</p></p>
 </div><h3><a name=command.get><code class=bulleted>function command.get</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> command.get(
@@ -300,8 +301,7 @@ This documentation is auto-generated and may be incomplete.
 	gen_target: <code class=parameter-type>tl.TargetMode</code>
 	disable_warnings: <code class=parameter-type>{tl.WarningKind}</code>
 	warning_error: <code class=parameter-type>{tl.WarningKind}</code>
-	externals: <code class=parameter-type>{string:any}</code>
-<code class=keyword>end</code></code></pre><p><p>The config data</p></p>
+	externals: <code class=parameter-type>{string:any}</code></code></pre><p><p>The config data</p></p>
 </div><h3><a name=config.find><code class=bulleted>function config.find</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> config.find(): <code class=parameter-type>fs.Path</code></code></pre><p><p>Find <code>config.filename</code> in the current or parent directories</p></p>
@@ -321,8 +321,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>record</code> Color
 	red: <code class=parameter-type>integer</code>
 	green: <code class=parameter-type>integer</code>
-	blue: <code class=parameter-type>integer</code>
-<code class=keyword>end</code></code></pre><p><p>A color described by rgb values in [0, 255]</p></p>
+	blue: <code class=parameter-type>integer</code></code></pre><p><p>A color described by rgb values in [0, 255]</p></p>
 </div><h3><a name=Decorated:copy><code class=bulleted>method Decorated:copy</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Decorated:copy(
@@ -332,8 +331,7 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Decorated
 	plain_content: <code class=parameter-type>string</code>
-	decoration: <code class=parameter-type>Decoration</code>
-<code class=keyword>end</code></code></pre><p><p>A string and a decoration</p></p>
+	decoration: <code class=parameter-type>Decoration</code></code></pre><p><p>A string and a decoration</p></p>
 </div><h3><a name=Decoration><code class=bulleted>type Decoration</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Decoration
@@ -344,8 +342,10 @@ This documentation is auto-generated and may be incomplete.
 	color: <code class=parameter-type>Color</code>
 	background_color: <code class=parameter-type>Color</code>
 	ansi_color: <code class=parameter-type>integer</code>
-	ansi_background_color: <code class=parameter-type>integer</code>
-<code class=keyword>end</code></code></pre><p><p>Various visual properties that could apply to some text</p></p>
+	ansi_background_color: <code class=parameter-type>integer</code></code></pre><p><p>Various visual properties that could apply to some text</p></p>
+</div><h3><a name=Renderer><code class=bulleted>type Renderer</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>type</code> Renderer<code class=parameter-type>function(out_buffer: {string}, plain_content: string, Decoration)</code></code></pre><p><p>Render the decorated contents into <code>out_buffer</code></p><p><code>Renderer</code>s are assumed to be stateless, and results may be cached and rearranged in the actual output</p></p>
 </div><h3><a name=decoration.color_copy><code class=bulleted>function decoration.color_copy</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> decoration.color_copy(
@@ -375,6 +375,13 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-name>content</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>decor</code>: <code class=parameter-type>Decoration</code>
 )</code></pre><p><p>Render decorations as ANSI escape sequences</p></p>
+</div><h3><a name=decoration.render_html><code class=bulleted>function decoration.render_html</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> decoration.render_html(
+	<code class=parameter-name>buf</code>: <code class=parameter-type>{string}</code>,
+	<code class=parameter-name>content</code>: <code class=parameter-type>string</code>,
+	<code class=parameter-name>decor</code>: <code class=parameter-type>Decoration</code>
+)</code></pre><p><p>Render decorations as HTML</p></p>
 </div><h3><a name=decoration.render_plain><code class=bulleted>function decoration.render_plain</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> decoration.render_plain(
@@ -480,8 +487,7 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-type>{string}</code>
 
 	<code class=keyword>metamethod</code> __concat: <code class=parameter-type>function(Path | string, Path | string): Path</code>
-	<code class=keyword>metamethod</code> __eq: <code class=parameter-type>function(Path | string, Path | string): boolean</code>
-<code class=keyword>end</code></code></pre><p><p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p></p>
+	<code class=keyword>metamethod</code> __eq: <code class=parameter-type>function(Path | string, Path | string): boolean</code></code></pre><p><p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p></p>
 </div><h3><a name=path.ensure><code class=bulleted>function path.ensure</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> path.ensure(
@@ -583,8 +589,7 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Dag
 <details><summary class="private-field-comment">	-- private fields (click to show)</summary>
-	_nodes_by_filename: <code class=parameter-type>{string:Node}</code></details>
-<code class=keyword>end</code></code></pre><p><p>The graph object</p></p>
+	_nodes_by_filename: <code class=parameter-type>{string:Node}</code></details></code></pre><p><p>The graph object</p></p>
 </div><h3><a name=Node><code class=bulleted>type Node</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Node
@@ -592,8 +597,7 @@ This documentation is auto-generated and may be incomplete.
 	output: <code class=parameter-type>fs.Path</code>
 	modules: <code class=parameter-type>{string:fs.Path}</code>
 	mark: <code class=parameter-type>Mark</code>
-	dependents: <code class=parameter-type>{Node:boolean}</code>
-<code class=keyword>end</code></code></pre><p><p>The nodes that are stored in the graph</p></p>
+	dependents: <code class=parameter-type>{Node:boolean}</code></code></pre><p><p>The nodes that are stored in the graph</p></p>
 </div><h3><a name=graph.empty><code class=bulleted>function graph.empty</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> graph.empty(): <code class=parameter-type>Dag</code></code></pre><p><p>Initializes an empty graph</p></p>
@@ -664,8 +668,7 @@ This documentation is auto-generated and may be incomplete.
 	continuation: <code class=parameter-type>string | decoration.Decorated</code>
 	inspector: <code class=parameter-type>function(any): string</code>
 
-	<code class=keyword>metamethod</code> __call: <code class=parameter-type>function(...: any)</code>
-<code class=keyword>end</code></code></pre><p><p>The data needed for a logger to do its job.</p></p>
+	<code class=keyword>metamethod</code> __call: <code class=parameter-type>function(...: any)</code></code></pre><p><p>The data needed for a logger to do its job.</p></p>
 </div><h3><a name=Verbosity><code class=bulleted>type Verbosity</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>enum</code> Verbosity
@@ -738,8 +741,7 @@ This documentation is auto-generated and may be incomplete.
 	tks: <code class=parameter-type>{Token}</code>
 	ast: <code class=parameter-type>Node</code>
 	reqs: <code class=parameter-type>{string}</code>
-	errs: <code class=parameter-type>{tl.Error}</code>
-<code class=keyword>end</code></code></pre><p><p>The result from parsing source code including the tokens, ast, calls to require, and errors</p></p>
+	errs: <code class=parameter-type>{tl.Error}</code></code></pre><p><p>The result from parsing source code including the tokens, ast, calls to require, and errors</p></p>
 </div><h3><a name=common.init_env_from_config><code class=bulleted>function common.init_env_from_config</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.init_env_from_config(
@@ -816,7 +818,7 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.syntax_highlight(
 	<code class=parameter-name>s</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>{decoration.Decorated | string}</code></code></pre><p><p>Takes Teal or Lua code and returns a decorated string highlighting things like keywords, operators, and more.</p></p>
+): <code class=parameter-type>{decoration.Decorated}</code></code></pre><p><p>Takes Teal or Lua code and returns a decorated string highlighting things like keywords, operators, and more.</p></p>
 </div><h3><a name=common.type_check_ast><code class=bulleted>function common.type_check_ast</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.type_check_ast(

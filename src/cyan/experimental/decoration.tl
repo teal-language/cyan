@@ -41,7 +41,11 @@ local record Decorated
    decoration: Decoration
 end
 
-local type Renderer = function({string}, string, Decoration)
+---@desc
+--- Render the decorated contents into `out_buffer`
+---
+--- `Renderer`s are assumed to be stateless, and results may be cached and rearranged in the actual output
+local type Renderer = function(out_buffer: {string}, plain_content: string, Decoration)
 
 local decoration <const> = {
    Color = Color,
