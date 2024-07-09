@@ -6,8 +6,12 @@ local util <const> = require("cyan.util")
 
 
 local function lint()
+   local info <const> = log.info:copy(
+      decoration.decorate("Lint Info", decoration.scheme.bright_green),
+      decoration.decorate("...", decoration.scheme.bright_green)
+   )
    local warn <const> = log.warn:copy(
-      decoration.decorate("Lint", decoration.scheme.warn),
+      decoration.decorate("Lint Error", decoration.scheme.warn),
       decoration.decorate("...", decoration.scheme.warn)
    )
 
@@ -172,11 +176,13 @@ local function lint()
             )
          end
       else
-         log.info("Checked ", decoration.file_name(real_path))
+         info("Checked ", decoration.file_name(real_path))
       end
    end
 
-   if total_errors > 0 then
+   if total_errors == 0 then
+      info("Lint passed")
+   else
       warn("Found a total of ", decoration.decorate(total_errors .. " lint" .. (total_errors ~= 1 and "s" or ""), decoration.scheme.emphasis))
       for k, v in pairs(counts) do
          warn:cont("   [", decoration.decorate(k, decoration.scheme.emphasis), "] = ", v)

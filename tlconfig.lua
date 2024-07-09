@@ -12,6 +12,7 @@ return {
          post = {
             "scripts/gen_rockspec.tl",
             "scripts/gen_documentation.tl",
+            "scripts/lint.tl",
          },
       },
    },
