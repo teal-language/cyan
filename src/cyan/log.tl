@@ -58,7 +58,7 @@ local verbosities <const>: {Verbosity} = {
    "extra",
    "debug",
 }
-local verbosity_to_int <const>: {Verbosity:integer} = {
+local verbosity_to_int <total>: {Verbosity:integer} = {
    quiet = 0,
    normal = 1,
    extra = 2,
