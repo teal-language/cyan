@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
@@ -181,7 +181,7 @@ local function decorate_token(tk)
    if decoration_by_kind[tk.kind] then
       return decoration.decorate(tk.tk, decoration_by_kind[tk.kind])
    end
-   return tk.tk == "$EOF$" and "" or tk.tk
+   return decoration.decorate(tk.tk == "$EOF$" and "" or tk.tk, monospace)
 end
 
 
@@ -197,7 +197,7 @@ function common.syntax_highlight(s)
       local space_count = 
       (ts > 0 and 3 * ts or 0) +
       (last_x < tk.x and tk.x - last_x or 0)
-      insert(buf, decoration.decorate((" "):rep(space_count), { monospace = true }))
+      insert(buf, decoration.decorate((" "):rep(space_count), monospace))
       insert(buf, decorate_token(tk))
       last_x = tk.x + #tk.tk
    end
@@ -231,7 +231,7 @@ local function prettify_error(e)
    local prefix = decoration.decorate((" "):rep(num_len) .. " │ ", monospace)
 
    insert(buf, decoration.decorate("   ", monospace))
-   insert(buf, decoration.decorate(tostring(e.y), decoration.scheme.number))
+   insert(buf, decoration.decorate(tostring(e.y), decoration.copy(decoration.scheme.number, monospace)))
    insert(buf, decoration.decorate(" │ ", monospace))
    for v in ivalues(common.syntax_highlight(ln)) do
       insert(buf, v)
@@ -244,6 +244,12 @@ local function prettify_error(e)
    insert(buf, decoration.decorate("\n   ", monospace))
    insert(buf, prefix)
    insert(buf, decoration.decorate(e.msg, decoration.scheme.error))
+
+   for i, v in ipairs(buf) do
+      if type(v) == "string" then
+         buf[i] = decoration.decorate(v, monospace)
+      end
+   end
 
    return buf
 end

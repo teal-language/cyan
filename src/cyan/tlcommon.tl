@@ -174,21 +174,21 @@ local decoration_by_kind <const>: {string:decoration.Decoration} = {
 
 local monospace <const>: decoration.Decoration = { monospace = true }
 
-local function decorate_token(tk: Token): decoration.Decorated | string
+local function decorate_token(tk: Token): decoration.Decorated
    if decoration_by_content[tk.tk] then
       return decoration.decorate(tk.tk, decoration_by_content[tk.tk])
    end
    if decoration_by_kind[tk.kind] then
-      return decoration.decorate(tk.tk,decoration_by_kind[tk.kind])
+      return decoration.decorate(tk.tk, decoration_by_kind[tk.kind])
    end
-   return tk.tk == "$EOF$" and "" or tk.tk
+   return decoration.decorate(tk.tk == "$EOF$" and "" or tk.tk, monospace)
 end
 
 ---@desc
 --- Takes Teal or Lua code and returns a decorated string highlighting things
 --- like keywords, operators, and more.
-function common.syntax_highlight(s: string): {decoration.Decorated | string}
-   local buf <const>: {decoration.Decorated | string} = {}
+function common.syntax_highlight(s: string): {decoration.Decorated}
+   local buf <const>: {decoration.Decorated} = {}
    local tks <const> = tl.lex(s) as {Token}
    local last_x = 1
    for tk in ivalues(tks) do
@@ -197,14 +197,14 @@ function common.syntax_highlight(s: string): {decoration.Decorated | string}
       local space_count <const> =
          (ts > 0 and 3 * ts or 0)
          + (last_x < tk.x and tk.x - last_x or 0)
-      insert(buf, decoration.decorate((" "):rep(space_count), { monospace = true }))
+      insert(buf, decoration.decorate((" "):rep(space_count), monospace))
       insert(buf, decorate_token(tk))
       last_x = tk.x + #tk.tk
    end
    return buf
 end
 
-local function prettify_error(e: tl.Error): {decoration.Decorated | string}
+local function prettify_error(e: tl.Error): {decoration.Decorated}
    local ln <const> = fs.get_line(e.filename, e.y)
 
    local tks <const> = tl.lex(ln)
@@ -231,7 +231,7 @@ local function prettify_error(e: tl.Error): {decoration.Decorated | string}
    local prefix <const> = decoration.decorate((" "):rep(num_len) .. " │ ", monospace)
 
    insert(buf, decoration.decorate("   ", monospace))
-   insert(buf, decoration.decorate(tostring(e.y), decoration.scheme.number))
+   insert(buf, decoration.decorate(tostring(e.y), decoration.copy(decoration.scheme.number, monospace)))
    insert(buf, decoration.decorate(" │ ", monospace))
    for v in ivalues(common.syntax_highlight(ln)) do
       insert(buf, v)
@@ -245,7 +245,13 @@ local function prettify_error(e: tl.Error): {decoration.Decorated | string}
    insert(buf, prefix)
    insert(buf, decoration.decorate(e.msg, decoration.scheme.error))
 
-   return buf
+   for i, v in ipairs(buf) do
+      if v is string then
+         buf[i] = decoration.decorate(v, monospace)
+      end
+   end
+
+   return buf as {decoration.Decorated}
 end
 
 ---@desc
