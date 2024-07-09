@@ -90,7 +90,6 @@ function script.register(path, command_name, hooks)
       registered[command_name] = {}
    end
    local reg = registered[command_name]
-
    for hook in ivalues((type(hooks) == "string" and { hooks } or hooks)) do
       if not reg[hook] then
          reg[hook] = {}

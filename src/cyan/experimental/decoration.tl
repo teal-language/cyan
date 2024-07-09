@@ -2,9 +2,6 @@
 --- A replacement for colorstring that doesn't specifically rely on ANSI
 --- terminal escapes
 
--- local util <const> = require("cyan.util")
--- local tab <const> = util.tab
-
 local util <const> = require("cyan.util")
 local ivalues <const>, map <const> = util.tab.ivalues, util.tab.map
 local insert <const> = table.insert

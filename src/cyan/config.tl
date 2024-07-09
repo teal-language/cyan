@@ -45,11 +45,6 @@ local config <const> = {
    filename = "tlconfig.lua",
 }
 
--- TODO: Get Teal itself to do this typechecking for us
---
---       Ideally, we could somehow use teal to tell us the types inferred in the config file
---       For now, we just try to make a biased `type` function that reports nicer table types
-
 local function get_types_in_array(val: {any}, typefn: function(any): string): {string}
    typefn = typefn or type
    local set <const> = {}

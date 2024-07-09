@@ -45,11 +45,6 @@ local config = {
    filename = "tlconfig.lua",
 }
 
-
-
-
-
-
 local function get_types_in_array(val, typefn)
    typefn = typefn or type
    local set = {}
