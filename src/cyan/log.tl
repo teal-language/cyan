@@ -101,10 +101,10 @@ local function is_a_tty(file: FILE): boolean
 end
 
 local function renderer(stream: FILE): decoration.Renderer
-   if is_a_tty(stream) and not no_color_env then
-      return decoration.render_ansi
+   if no_color_env or not is_a_tty(stream) then
+      return decoration.render_plain
    end
-   return decoration.render_plain
+   return decoration.render_ansi
 end
 
 local function is_decorated_string(value: any): boolean
@@ -139,11 +139,11 @@ local function rendered_prefix(
    prefix: string | decoration.Decorated,
    render: decoration.Renderer
 ): string
-   local buf = {}
+   local buf <const> = {}
    if prefix is string then
-      table.insert(buf, str.pad_left(prefix, prefix_padding))
+      render(buf, str.pad_left(prefix, prefix_padding), { monospace = true })
    else
-      render(buf, str.pad_left(prefix.plain_content, prefix_padding), prefix.decoration)
+      render(buf, str.pad_left(prefix.plain_content, prefix_padding), decoration.copy(prefix.decoration, { monospace = true }))
    end
    return table.concat(buf)
 end
@@ -153,14 +153,23 @@ local function do_log(
    initial_prefix: string | decoration.Decorated,
    continuation_prefix: string | decoration.Decorated,
    inspector: function(any): (string),
+   end_with_newline: boolean,
    ...: any
 )
    local render <const> = renderer(stream)
+   local function render_string(s: string): string
+      local buf <const> = {}
+      render(buf, s, {})
+      return buf[1] or ""
+   end
 
    local prefix <const> = rendered_prefix(initial_prefix, render)
    local continuation <const> = rendered_prefix(continuation_prefix, render)
 
-   stream:write(prefix, " ")
+   local new_line <const> = render_string "\n"
+   local space <const> = render_string " "
+
+   stream:write(prefix, space)
 
    for i = 1, select("#", ...) do
       local v <const> = select(i, ...)
@@ -172,15 +181,22 @@ local function do_log(
             (v as decoration.Decorated).decoration
          )
       else
-         render_buf[1] = inspector(v)
+         render_buf[1] = render_string(inspector(v))
       end
       local rendered <const> = table.concat(render_buf)
-      for ln, peeked in util.peek(str.split(rendered, "\n", true)) do
-         stream:write(ln)
-         if peeked then
-            stream:write("\n", continuation, " ")
+      local first = true
+      for ln in str.split(rendered, "\n", true) do
+         if first then
+            first = false
+         else
+            stream:write(new_line, continuation, space)
          end
+         stream:write(ln)
       end
+   end
+
+   if end_with_newline then
+      stream:write(new_line)
    end
 end
 
@@ -193,6 +209,7 @@ function Logger:cont_nonl(...: any)
       self.continuation,
       self.continuation,
       self.inspector,
+      false,
       ...
    )
 end
@@ -201,8 +218,14 @@ end
 --- Log only using the continuation prefix.
 function Logger:cont(...: any)
    if not self:should_log() then return end
-   self:cont_nonl(...)
-   self.stream:write("\n")
+   do_log(
+      self.stream,
+      self.continuation,
+      self.continuation,
+      self.inspector,
+      true,
+      ...
+   )
 end
 
 ---@desc
@@ -214,6 +237,7 @@ function Logger:nonl(...: any)
       self.prefix,
       self.continuation,
       self.inspector,
+      false,
       ...
    )
 end
@@ -233,8 +257,14 @@ end
 local logger_metatable <const>: metatable<Logger> = {
    __call = function(self: Logger, ...: any)
       if not self:should_log() then return end
-      self:nonl(...)
-      self.stream:write("\n")
+      do_log(
+         self.stream,
+         self.prefix,
+         self.continuation,
+         self.inspector,
+         true,
+         ...
+      )
    end,
    __index = Logger,
 }
