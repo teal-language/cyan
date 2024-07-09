@@ -306,6 +306,24 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    return obj_name
 end
 
+emit["type_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
+   local obj_name <const> = n:child_by_field_name("name"):source()
+   local data = begin_signature_and_description(obj_name, "type")
+   local value <const> = n:child_by_field_name("value")
+
+   -- TODO: This could be rendered better
+   table.insert(data, "<code class=parameter-type>")
+   table.insert(data, value:source())
+   table.insert(data, "</code>")
+
+   table.insert(
+      out,
+      end_signature_and_description("type " .. obj_name, obj_name, data, p { escape(table.concat(prefix)) })
+   )
+
+   return obj_name
+end
+
 local query <const> = teal_parser:query[[
    ((comment) @kind
      . (comment)* @docs
