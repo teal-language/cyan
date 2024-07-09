@@ -5,7 +5,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local ivalues = require("cyan.util").tab.ivalues
+local util = require("cyan.util")
+local ivalues, map = util.tab.ivalues, util.tab.map
 local insert = table.insert
 
 
@@ -47,13 +48,43 @@ local Decorated = {}
 
 local Renderer = {}
 
+
+
+local SchemeEntry = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local decoration = {
    Color = Color,
    Decorated = Decorated,
    Decoration = Decoration,
    Renderer = Renderer,
+   SchemeEntry = SchemeEntry,
 
-   scheme = {},
+   scheme = nil,
 }
 
 
@@ -203,56 +234,67 @@ function decoration.render_to_string(render, plain_content, decor)
    return table.concat(buf)
 end
 
-decoration.scheme.teal = { color = rgb(0, 0xaa, 0xb4) }
-decoration.scheme.cyan = {
-   ansi_color = 6,
-   color = rgb(0, 0xcc, 0xcc),
-}
-decoration.scheme.bright_cyan = {
-   ansi_color = 14,
-   color = rgb(0, 0xff, 0xff),
-}
-decoration.scheme.yellow = {
-   ansi_color = 3,
-   color = rgb(230, 230, 0),
-}
-decoration.scheme.red = {
-   ansi_color = 1,
-   color = rgb(200, 50, 50),
-}
-decoration.scheme.green = {
-   ansi_color = 2,
-   color = rgb(10, 180, 10),
-}
-decoration.scheme.bright_green = {
-   ansi_color = 10,
-   color = rgb(85, 255, 85),
-}
-decoration.scheme.bright_red = {
-   ansi_color = 9,
-   color = rgb(230, 60, 60),
-}
-decoration.scheme.bright_yellow = {
-   ansi_color = 11,
-   color = rgb(230, 230, 0),
-}
-decoration.scheme.magenta = {
-   ansi_color = 5,
-   color = rgb(190, 60, 60),
+local scheme = {
+   teal = { color = rgb(0, 0xaa, 0xb4) },
+   cyan = {
+      ansi_color = 6,
+      color = rgb(0, 0xcc, 0xcc),
+   },
+   bright_cyan = {
+      ansi_color = 14,
+      color = rgb(0, 0xff, 0xff),
+   },
+   yellow = {
+      ansi_color = 3,
+      color = rgb(230, 230, 0),
+   },
+   red = {
+      ansi_color = 1,
+      color = rgb(200, 50, 50),
+   },
+   green = {
+      ansi_color = 2,
+      color = rgb(10, 180, 10),
+   },
+   bright_green = {
+      ansi_color = 10,
+      color = rgb(85, 255, 85),
+   },
+   bright_red = {
+      ansi_color = 9,
+      color = rgb(230, 60, 60),
+   },
+   bright_yellow = {
+      ansi_color = 11,
+      color = rgb(230, 230, 0),
+   },
+   magenta = {
+      ansi_color = 5,
+      color = rgb(190, 60, 60),
+   },
+
+   keyword = "teal",
+   file = "yellow",
+   error = "red",
+   error_number = "red",
+   warn = "yellow",
+   number = "red",
+   string = "bright_yellow",
+   operator = "magenta",
+   emphasis = { bold = true },
+
+   affirmative = "bright_green",
+   negative = "red",
 }
 
-decoration.scheme.keyword = copy(decoration.scheme.teal)
-decoration.scheme.file = copy(decoration.scheme.yellow)
-decoration.scheme.error = copy(decoration.scheme.red)
-decoration.scheme.error_number = copy(decoration.scheme.red)
-decoration.scheme.warn = copy(decoration.scheme.yellow)
-decoration.scheme.number = copy(decoration.scheme.red)
-decoration.scheme.string = copy(decoration.scheme.bright_yellow)
-decoration.scheme.operator = copy(decoration.scheme.magenta)
-decoration.scheme.emphasis = { bold = true }
+local function resolve_scheme_entry(value)
+   if type(value) == "string" then
+      return copy(resolve_scheme_entry(scheme[value]))
+   end
+   return value
+end
 
-decoration.scheme.affirmative = copy(decoration.scheme.bright_green)
-decoration.scheme.negative = copy(decoration.scheme.red)
+decoration.scheme = map(scheme, resolve_scheme_entry)
 
 
 

@@ -120,6 +120,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#Decorated>Decorated</a>
 <br><a href=#Decoration>Decoration</a>
 <br><a href=#Renderer>Renderer</a>
+<br><a href=#SchemeEntry>SchemeEntry</a>
 <br><a href=#decoration.color_copy>decoration.color_copy</a>
 <br><a href=#decoration.copy>decoration.copy</a>
 <br><a href=#decoration.decorate>decoration.decorate</a>
@@ -351,6 +352,31 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=Renderer><code class=bulleted>type Renderer</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>type</code> Renderer<code class=parameter-type>function(out_buffer: {string}, plain_content: string, Decoration)</code></code></pre><p><p>Render the decorated contents into <code>out_buffer</code></p><p><code>Renderer</code>s are assumed to be stateless, and results may be cached and rearranged in the actual output</p></p>
+</div><h3><a name=SchemeEntry><code class=bulleted>type SchemeEntry</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>enum</code> SchemeEntry
+	<code class=string>"bright_cyan"</code>
+	<code class=string>"bright_green"</code>
+	<code class=string>"bright_red"</code>
+	<code class=string>"bright_yellow"</code>
+	<code class=string>"cyan"</code>
+	<code class=string>"green"</code>
+	<code class=string>"magenta"</code>
+	<code class=string>"red"</code>
+	<code class=string>"teal"</code>
+	<code class=string>"yellow"</code>
+	<code class=string>"emphasis"</code>
+	<code class=string>"error"</code>
+	<code class=string>"error_number"</code>
+	<code class=string>"file"</code>
+	<code class=string>"keyword"</code>
+	<code class=string>"number"</code>
+	<code class=string>"operator"</code>
+	<code class=string>"string"</code>
+	<code class=string>"warn"</code>
+	<code class=string>"affirmative"</code>
+	<code class=string>"negative"</code>
+<code class=keyword>end</code></code></pre><p><p>Predefined decorations used for logging, syntax highlighting errors, etc.</p></p>
 </div><h3><a name=decoration.color_copy><code class=bulleted>function decoration.color_copy</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> decoration.color_copy(
