@@ -560,4 +560,23 @@ function Path:is_in(dirname, use_os_sep)
    return true
 end
 
+function Path:extension_split(ndots)
+   local result = self:copy()
+   if #result == 0 then
+      return result
+   end
+
+   local last = result[#result]
+   for n = ndots or 1, 1, -1 do
+      local patt = "^(.-)(" .. ("%.[^%.]+"):rep(n) .. ")$"
+      local base, ext = last:match(patt)
+      if ext then
+         result[#result] = base
+         return result, ext:lower()
+      end
+   end
+
+   return result
+end
+
 return path

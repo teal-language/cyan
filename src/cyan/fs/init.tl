@@ -145,16 +145,8 @@ function fs.extension_split(p: Path | string, ndots: integer): string, string
    if not p then
       return nil
    end
-   local str_path <const> = p is Path and p:to_real_path() or p as string
-   for n = ndots or 1, 1, -1 do
-      local patt <const> = "^(.-)(" .. ("%.%a+"):rep(n) .. ")$"
-      local base <const>, ext = str_path:match(patt)
-      if ext then
-         ext = ext:lower()
-         return base, ext
-      end
-   end
-   return str_path
+   local head <const>, tail <const> = ensure(p):extension_split(ndots)
+   return head:to_real_path(), tail
 end
 
 ---@desc
