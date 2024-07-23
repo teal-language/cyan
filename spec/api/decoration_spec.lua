@@ -8,7 +8,7 @@ describe("decoration api", function()
          decoration.render_ansi(buf, " ", {})
          decoration.render_ansi(buf, "world", { ansi_background_color = 7 })
          local result = table.concat(buf)
-         local expected = "\x1b[34mhello\x1b[0m \x1b[47mworld\x1b[0m"
+         local expected = "\27[34mhello\27[0m \27[47mworld\27[0m"
 
          assert.are.equal(expected, result)
       end)
