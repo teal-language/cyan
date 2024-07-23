@@ -375,12 +375,13 @@ local found_modules = {}
 
 
 function common.search_module(name, search_dtl)
-   if not found_modules[name] then
+   local key = name .. ":" .. (search_dtl and "t" or "f")
+   if not found_modules[key] then
       local found, fd = tl.search_module(name, search_dtl)
       if found then fd:close() end
-      found_modules[name] = fs.path.new(found)
+      found_modules[key] = fs.path.new(found)
    end
-   return found_modules[name]
+   return found_modules[key]
 end
 
 

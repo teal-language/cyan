@@ -375,12 +375,13 @@ local found_modules: {string:fs.Path} = {}
 ---@desc
 --- A wrapper around `tl.search_module` but, returns an `fs.Path` and will cache results
 function common.search_module(name: string, search_dtl: boolean): fs.Path
-   if not found_modules[name] then
+   local key <const> = name .. ":" .. (search_dtl and "t" or "f")
+   if not found_modules[key] then
       local found, fd = tl.search_module(name, search_dtl)
       if found then fd:close() end
-      found_modules[name] = fs.path.new(found)
+      found_modules[key] = fs.path.new(found)
    end
-   return found_modules[name]
+   return found_modules[key]
 end
 
 ---@desc
