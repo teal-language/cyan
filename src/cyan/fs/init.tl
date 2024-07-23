@@ -189,7 +189,7 @@ function fs.copy(source: string | Path, dest: string | Path): boolean, string
    if not source_contents then
       return false, read_err
    end
-   local fh <const>, open_err <const> = io.open(dest_path:to_real_path(), "r")
+   local fh <const>, open_err <const> = io.open(dest_path:to_real_path(), "w")
    if not fh then
       return false, open_err
    end

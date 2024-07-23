@@ -189,7 +189,7 @@ function fs.copy(source, dest)
    if not source_contents then
       return false, read_err
    end
-   local fh, open_err = io.open(dest_path:to_real_path(), "r")
+   local fh, open_err = io.open(dest_path:to_real_path(), "w")
    if not fh then
       return false, open_err
    end
