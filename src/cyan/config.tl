@@ -29,8 +29,8 @@ local record Config
    -- { Command Name -> { Hook Name -> File(s) } }
    scripts: {string:{string:string|{string}}}
 
-   gen_compat: tl.CompatMode
-   gen_target: tl.TargetMode
+   gen_compat: tl.GenCompat
+   gen_target: tl.GenTarget
    disable_warnings: {tl.WarningKind}
    warning_error: {tl.WarningKind}
 
@@ -58,7 +58,7 @@ local function get_array_type(val: any, default: string): string
    if type(val) ~= "table" then
       return type(val)
    end
-   local ts <const> = get_types_in_array(val as {any})
+   local ts <const> = get_types_in_array(val as {any}, nil)
    if #ts == 0 then
       ts[1] = default
    end
@@ -66,7 +66,7 @@ local function get_array_type(val: any, default: string): string
 end
 
 local function get_map_type(val: table, default_key: string, default_value: string): string, string
-   local key_types <const> = get_types_in_array(from(keys(val as {any:any})))
+   local key_types <const> = get_types_in_array(from(keys(val as {any:any})), nil)
    if #key_types == 0 then
       key_types[1] = default_key
    end
@@ -177,7 +177,7 @@ function config.is_config(c: any): Config, {string}, {string}
          -- error already generated an error or wasn't provided
          return
       end
-      local as_path = fs.path.new(val)
+      local as_path = fs.path.new(val, false)
       if as_path:is_absolute() then
          table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_real_path()))
       end
@@ -218,7 +218,7 @@ function config.load(): Config, {string}, {string}
    if not b then
       return nil, {ferr}, {}
    end
-   local ok, err = b:run()
+   local ok, err = b:run(nil)
    if not ok then
       return nil, {err}, {}
    end

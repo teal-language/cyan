@@ -184,7 +184,7 @@ end
 
 
 function Path:append(other)
-   local p = type(other) == "string" and path.new(other) or other
+   local p = type(other) == "string" and path.new(other, false) or other
    if p:is_absolute() then
       error("Attempt to append absolute path", 2)
    end
@@ -197,7 +197,7 @@ function Path:prepend(other)
    if self:is_absolute() then
       error("Attempt to prepend to absolute path", 2)
    end
-   other = path.ensure(other)
+   other = path.ensure(other, false)
    local other_len = #other
    table.move(self, 1, #self, other_len + 1)
    for i = 1, other_len do
@@ -299,7 +299,7 @@ end
 
 
 function Path:remove_leading(p)
-   local leading = type(p) == "string" and path.new(p) or p
+   local leading = type(p) == "string" and path.new(p, false) or p
    if xor(leading:is_absolute(), self:is_absolute()) then
       error(("Attempt to mix absolute and non-absolute path: (%s) and (%s)"):format(self:tostring(), leading:tostring()), 2)
    end
@@ -403,7 +403,7 @@ end
 local pattern_cache = setmetatable({}, { __mode = "kv" })
 local function get_patt(patt)
    if not pattern_cache[patt] then
-      local path_patt = parse_string_path(patt)
+      local path_patt = parse_string_path(patt, false)
 
 
 

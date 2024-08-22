@@ -39,12 +39,12 @@ local load_cache = {}
 local function load_script(path)
    if not load_cache[path] then
       log.extra("Loading script: ", decoration.file_name(path))
-      local p = fs.path.new(path)
+      local p = fs.path.new(path, false)
 
       local box, err
       local _, ext = fs.extension_split(p)
       if ext == ".tl" then
-         local result, proc_err = tl.process(path)
+         local result, proc_err = tl.process(path, nil)
          if not result then
             return nil, proc_err
          end
@@ -52,7 +52,7 @@ local function load_script(path)
             #result.type_errors > 0 then
             return nil, result
          end
-         box, err = sandbox.from_string(tl.pretty_print_ast(result.ast), path, _G)
+         box, err = sandbox.from_string(tl.pretty_print_ast(result.ast, nil), path, _G)
       else
          box, err = sandbox.from_file(path, _G)
       end
@@ -146,7 +146,7 @@ function script.emitter(name, ...)
          local loaded = assert(load_cache[path], "Internal error, script was not preloaded before execution")
          local res, err = loaded(full, _tl_table_unpack(args, 1, args.n))
          coroutine.yield(
-         fs.path.new(path),
+         fs.path.new(path, false),
          res == 0,
          err)
 

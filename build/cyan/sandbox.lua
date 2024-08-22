@@ -27,7 +27,7 @@ function Sandbox:run(max_instructions, ...)
          if jit then
 
 
-            debug.sethook()
+            debug.sethook(nil, nil)
          else
             error("Exceeded maximum instructions", 2)
          end

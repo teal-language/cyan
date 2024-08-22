@@ -234,7 +234,7 @@ end
 
 ---@desc
 --- A convenience function to render to a buffer, then concatenate that buffer
-function decoration.render_to_string(render: Renderer, plain_content: string, decor: Decoration): string
+function decoration.render_to_string(render: Renderer, plain_content: string, decor?: Decoration): string
    local buf <const> = {}
    render(buf, plain_content, decor)
    return table.concat(buf)
@@ -325,7 +325,7 @@ local scheme <total>: {SchemeEntry:Decoration | SchemeEntry} = {
 
 local function resolve_scheme_entry(value: Decoration | SchemeEntry): Decoration
    if value is SchemeEntry then
-      return copy(resolve_scheme_entry(scheme[value]))
+      return copy(resolve_scheme_entry(scheme[value]), nil)
    end
    return value
 end
@@ -335,7 +335,7 @@ decoration.scheme = map(scheme, resolve_scheme_entry)
 ---@desc
 --- Decorate using the default decoration for file names and a uri for the path
 function decoration.file_name(path: string): Decorated
-   local d <const> = copy(decoration.scheme.file)
+   local d <const> = copy(decoration.scheme.file, nil)
    d.linked_uri = ("file://%s"):format(path)
    return decoration.decorate(path, d)
 end

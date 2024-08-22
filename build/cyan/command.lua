@@ -86,7 +86,7 @@ end
 
 function command.register_all(p)
    for name, cmd in pairs(commands) do
-      local c = p:command(name, cmd.description)
+      local c = p:command(name, cmd.description, nil)
       if cmd.argparse then
          cmd.argparse(c)
       end

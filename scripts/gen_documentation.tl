@@ -17,16 +17,16 @@ if not has_ltreesitter then
    return
 end
 
-local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "teal")
+local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "teal", nil)
 if not has_teal_parser then
    log.warn("docgen requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
    return
 end
 
-local template_file <const> = fs.path.new("doc-template.html")
+local template_file <const> = fs.path.new("doc-template.html", false)
 local template <const> = assert(fs.read(template_file:to_real_path()))
 
-local docfile <const> = fs.path.new("docs/index.html")
+local docfile <const> = fs.path.new("docs/index.html", false)
 local type Emitter = function(prefix: {string}, object: ts.Node, output: {string}): string
 
 local function assertf(val: any, fmt: string, ...: any)
@@ -47,8 +47,8 @@ local function html(tags: TagTree): string
    end
    return table.concat(flattened)
 end
-local function tag_wrapper(name: string): function(string | TagTree, {string:string}): TagTree
-   return function(content: string | TagTree, attrs: {string:string}): TagTree
+local function tag_wrapper(name: string): function(string | TagTree, ?{string:string}): TagTree
+   return function(content: string | TagTree, attrs?: {string:string}): TagTree
       if content is string then
          content = { content }
       end
@@ -347,13 +347,15 @@ local function gen_docs(filename: string, module_name: string): string, {string}
    do
       local file <const> = assert(filename, "No filename provided")
       local content <const> = assert(fs.read(file))
-      local tree <const> = assert(teal_parser:parse_string(content))
+      local tree <const> = assert(teal_parser:parse_string(content, nil))
       root = tree:root()
    end
 
    local docs <const>: {Doc} = {}
 
-   for match in query:match(root) do
+   local match_iter = query.match as function(ts.Query, ts.Node): (function(): ts.Match)
+
+   for match in match_iter(query, root) do
       local kind_node <const> = match.captures.kind as ts.Node
       local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
       local comments <const> = match.captures.docs as {ts.Node} or {}
@@ -535,7 +537,7 @@ local final_blob <const> = template:gsub(
    end
 )
 
-local fh <const> = assert(io.open(docfile:to_real_path(), "w"))
+local fh <const>: FILE = io.open(docfile:to_real_path(), "w")
 fh:write(final_blob)
 fh:close()
 info("Wrote ", decoration.file_name(docfile:to_real_path()))

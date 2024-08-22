@@ -20,7 +20,7 @@ end
 
 ---@desc
 --- Sort a table (in place) and return that table
-function tab.sort_in_place<Value>(t: {Value}, fn: function(Value, Value): boolean): {Value}
+function tab.sort_in_place<Value>(t: {Value}, fn?: function(Value, Value): boolean): {Value}
    table.sort(t, fn)
    return t
 end
@@ -193,7 +193,7 @@ end
 --- use `sub` to control how the characters are substituted, by default a special character `x` will be replaced with `%x`
 ---
 --- returns the new string and the number of characters replaced
-function str.esc(s: string, sub: string | function(string): string | {string:string}): string, integer
+function str.esc(s: string, sub?: string | function(string): string | {string:string}): string, integer
    return s:gsub(
       "[%^%$%(%)%%%.%[%]%*%+%-%?]",
       sub as function(string): string

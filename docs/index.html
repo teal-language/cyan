@@ -299,8 +299,8 @@ This documentation is auto-generated and may be incomplete.
 	module_name: <code class=parameter-type>string</code>
 	dont_prune: <code class=parameter-type>{string}</code>
 	scripts: <code class=parameter-type>{string:{string:string|{string}}}</code>
-	gen_compat: <code class=parameter-type>tl.CompatMode</code>
-	gen_target: <code class=parameter-type>tl.TargetMode</code>
+	gen_compat: <code class=parameter-type>tl.GenCompat</code>
+	gen_target: <code class=parameter-type>tl.GenTarget</code>
 	disable_warnings: <code class=parameter-type>{tl.WarningKind}</code>
 	warning_error: <code class=parameter-type>{tl.WarningKind}</code>
 	externals: <code class=parameter-type>{string:any}</code>
@@ -793,8 +793,8 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=common.init_teal_env><code class=bulleted>function common.init_teal_env</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.init_teal_env(
-	<code class=parameter-name>gen_compat</code>: <code class=parameter-type>boolean | tl.CompatMode</code>,
-	<code class=parameter-name>gen_target</code>: <code class=parameter-type>tl.TargetMode</code>,
+	<code class=parameter-name>gen_compat</code>: <code class=parameter-type>boolean | tl.GenCompat</code>,
+	<code class=parameter-name>gen_target</code>: <code class=parameter-type>tl.GenTarget</code>,
 	<code class=parameter-name>env_def</code>: <code class=parameter-type>string</code>
 ): <code class=parameter-type>tl.Env</code>, <code class=parameter-type>string</code></code></pre><p><p>Initialize a strict Teal environment</p></p>
 </div><h3><a name=common.lex_file><code class=bulleted>function common.lex_file</code></a>
@@ -866,7 +866,9 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.type_check_ast(
 	<code class=parameter-name>ast</code>: <code class=parameter-type>Node</code>,
-	<code class=parameter-name>opts</code>: <code class=parameter-type>tl.TypeCheckOptions</code>
+	<code class=parameter-name>filename</code>: <code class=parameter-type>string</code>,
+	<code class=parameter-name>opts</code>: <code class=parameter-type>tl.TypeCheckOptions</code>,
+	<code class=parameter-name>env</code>: <code class=parameter-type>tl.Env</code>
 ): <code class=parameter-type>tl.Result</code>, <code class=parameter-type>string</code></code></pre><p><p>Just type checks an ast</p></p>
 </div><h2><a name=cyan.util>cyan.util</a>
 </h2>

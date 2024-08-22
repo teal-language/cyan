@@ -325,7 +325,7 @@ local scheme = {
 
 local function resolve_scheme_entry(value)
    if type(value) == "string" then
-      return copy(resolve_scheme_entry(scheme[value]))
+      return copy(resolve_scheme_entry(scheme[value]), nil)
    end
    return value
 end
@@ -335,7 +335,7 @@ decoration.scheme = map(scheme, resolve_scheme_entry)
 
 
 function decoration.file_name(path)
-   local d = copy(decoration.scheme.file)
+   local d = copy(decoration.scheme.file, nil)
    d.linked_uri = ("file://%s"):format(path)
    return decoration.decorate(path, d)
 end

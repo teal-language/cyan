@@ -58,7 +58,7 @@ local function get_array_type(val, default)
    if type(val) ~= "table" then
       return type(val)
    end
-   local ts = get_types_in_array(val)
+   local ts = get_types_in_array(val, nil)
    if #ts == 0 then
       ts[1] = default
    end
@@ -66,7 +66,7 @@ local function get_array_type(val, default)
 end
 
 local function get_map_type(val, default_key, default_value)
-   local key_types = get_types_in_array(from(keys(val)))
+   local key_types = get_types_in_array(from(keys(val)), nil)
    if #key_types == 0 then
       key_types[1] = default_key
    end
@@ -177,7 +177,7 @@ function config.is_config(c)
 
          return
       end
-      local as_path = fs.path.new(val)
+      local as_path = fs.path.new(val, false)
       if as_path:is_absolute() then
          table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_real_path()))
       end
@@ -218,7 +218,7 @@ function config.load()
    if not b then
       return nil, { ferr }, {}
    end
-   local ok, err = b:run()
+   local ok, err = b:run(nil)
    if not ok then
       return nil, { err }, {}
    end

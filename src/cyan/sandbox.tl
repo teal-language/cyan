@@ -27,7 +27,7 @@ function Sandbox:run(max_instructions: integer, ...: any): boolean, string
          if jit then
             -- luajit has a "feature" with debug.sethook that causes the hook to be set on the main thread
             -- so instead of the coroutine gracefully stopping in a controlled way, cyan just errors out
-            debug.sethook()
+            debug.sethook(nil, nil)
          else
             error("Exceeded maximum instructions", 2)
          end

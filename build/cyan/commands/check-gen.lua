@@ -75,12 +75,14 @@ local function command_exec(should_compile)
             exit = 1
             return
          end
-         local result, err = common.type_check_ast(parsed.ast, {
-            filename = real_path,
-            env = env,
+         local result, err = common.type_check_ast(parsed.ast, real_path, {
+
+            feat_lax = "off",
+            feat_arity = "on",
+
             gen_compat = loaded_config.gen_compat,
             gen_target = loaded_config.gen_target,
-         })
+         }, env)
          if not result then
             log.err("Could not type check ", disp_file, ":\n   ", err)
             exit = 1

@@ -24,7 +24,7 @@ end
 ---@desc
 --- Change the current directory to `p`
 function fs.chdir(p: string | Path): boolean, string
-   return lfs.chdir(ensure(p):to_real_path())
+   return lfs.chdir(ensure(p, false):to_real_path())
 end
 
 ---@desc
@@ -33,7 +33,7 @@ end
 --- By default, will not include paths that start with '.'
 function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
    local iter <const>, data <const> = lfs.dir(
-      ensure(dir):to_real_path()
+      ensure(dir, false):to_real_path()
    ) as (function(any): (string), any)
    return function(): Path
       local p: string
@@ -42,7 +42,7 @@ function fs.dir(dir: string | Path, include_dotfiles: boolean): function(): Path
          or (include_dotfiles and p ~= "." and p ~= "..")
          or p:sub(1, 1) ~= "."
 
-      return path.new(p)
+      return path.new(p, false)
    end
 end
 
@@ -91,7 +91,7 @@ end
 --- Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
 ---
 --- For information on path patterns, see the `Path:match()` method
-function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}, include_directories: boolean): function(): Path
+function fs.scan_dir(dir: string | Path, include?: {string}, exclude?: {string}, include_directories?: boolean): function(): Path
    include = include or {}
    exclude = exclude or {}
    local function matches(to_match: Path): boolean
@@ -107,8 +107,8 @@ function fs.scan_dir(dir: string | Path, include: {string}, exclude: {string}, i
       return inc ~= nil
    end
    local function dir_iter(_d: string | Path)
-      local d <const> = ensure(_d)
-      for p in fs.dir(d) do
+      local d <const> = ensure(_d, false)
+      for p in fs.dir(d, false) do
          -- dont bother putting "./foo", just do "foo"
          local full <const> = #d > 0 and d .. p
             or p
@@ -141,11 +141,11 @@ end
 --- fs.extension_split("foo.d.tl", 2) => "foo", ".d.tl"
 --- fs.extension_split("foo.D.TL", 2) => "foo", ".d.tl"
 ---@@end
-function fs.extension_split(p: Path | string, ndots: integer): string, string
+function fs.extension_split(p: Path | string, ndots?: integer): string, string
    if not p then
       return nil
    end
-   local head <const>, tail <const> = ensure(p):extension_split(ndots)
+   local head <const>, tail <const> = ensure(p, false):extension_split(ndots)
    return head:to_real_path(), tail
 end
 

@@ -21,7 +21,7 @@ local function lint()
       return
    end
 
-   local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "teal")
+   local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "teal", nil)
    if not has_teal_parser then
       warn("lint requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
       return
@@ -144,8 +144,8 @@ local function lint()
       local real_path <const> = path:to_real_path()
       local disp_path <const> = decoration.file_name(real_path)
       local text <const> = fs.read(real_path)
-      local root <const> = teal_parser:parse_string(text):root()
-      query:exec(root)
+      local root <const> = teal_parser:parse_string(text, nil):root()
+      query:exec(root, nil, nil)
       total_errors = total_errors + #errors
       if #errors > 0 then
          warn(table.unpack(common.make_error_header(real_path, #errors, "lint")))

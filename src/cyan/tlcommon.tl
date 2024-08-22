@@ -16,7 +16,8 @@ local filter <const>, ivalues <const>, set <const>
 local insert <const> = table.insert
 
 -- tl.Node is not exposed :((((((((((
-local type Node = any -- tl.Node
+local interface Node
+end
 
 -- tl.Token also not exposed :((((((((
 local type Token = record
@@ -88,11 +89,11 @@ function common.parse_file(path: string): ParseResult, string
    return parse_cache[path]
 end
 
-local type_check <const> = tl.type_check as function(Node, tl.TypeCheckOptions): (tl.Result, string)
+local type_check <const> = tl.type_check as function(ast: Node, filename: string, opts: tl.TypeCheckOptions, env?: tl.Env): (tl.Result, string)
 ---@desc
 --- Just type checks an ast
-function common.type_check_ast(ast: Node, opts: tl.TypeCheckOptions): tl.Result, string
-   return type_check(ast, opts)
+function common.type_check_ast(ast: Node, filename: string, opts: tl.TypeCheckOptions, env: tl.Env): tl.Result, string
+   return type_check(ast, filename, opts, env)
 end
 
 ---@desc
@@ -189,7 +190,7 @@ end
 --- like keywords, operators, and more.
 function common.syntax_highlight(s: string): {decoration.Decorated}
    local buf <const>: {decoration.Decorated} = {}
-   local tks <const> = tl.lex(s) as {Token}
+   local tks <const> = tl.lex(s, "") as {Token}
    local last_x = 1
    for tk in ivalues(tks) do
       -- account for tabs
@@ -207,7 +208,7 @@ end
 local function prettify_error(e: tl.Error): {decoration.Decorated}
    local ln <const> = fs.get_line(e.filename, e.y)
 
-   local tks <const> = tl.lex(ln)
+   local tks <const> = tl.lex(ln, "")
    local err_tk <const> = {
       x = 1,
       tk = tl.get_token_at(tks, 1, e.x) or " "
@@ -333,12 +334,12 @@ end
 
 ---@desc
 --- Initialize a strict Teal environment
-function common.init_teal_env(gen_compat: boolean | tl.CompatMode, gen_target: tl.TargetMode, env_def: string): tl.Env, string
+function common.init_teal_env(gen_compat: boolean | tl.GenCompat, gen_target: tl.GenTarget, env_def: string): tl.Env, string
    return tl.init_env(false, gen_compat, gen_target, {env_def})
 end
 
-local pretty_print_ast <const> = tl.pretty_print_ast as function(Node, tl.TargetMode): (string, string)
-function common.compile_ast(ast: Node, mode: tl.TargetMode): string, string
+local pretty_print_ast <const> = tl.pretty_print_ast as function(Node, tl.GenTarget): (string, string)
+function common.compile_ast(ast: Node, mode: tl.GenTarget): string, string
    return pretty_print_ast(ast, mode)
 end
 
@@ -364,7 +365,7 @@ function common.type_check_and_load_file(path: string, env: tl.Env, c: config.Co
       return nil
    end
    return load(
-      pretty_print_ast(result.ast),
+      pretty_print_ast(result.ast as Node, nil),
       path,
       "t",
       _G as table
@@ -374,12 +375,12 @@ end
 local found_modules: {string:fs.Path} = {}
 ---@desc
 --- A wrapper around `tl.search_module` but, returns an `fs.Path` and will cache results
-function common.search_module(name: string, search_dtl: boolean): fs.Path
+function common.search_module(name: string, search_dtl?: boolean): fs.Path
    local key <const> = name .. ":" .. (search_dtl and "t" or "f")
    if not found_modules[key] then
       local found, fd = tl.search_module(name, search_dtl)
       if found then fd:close() end
-      found_modules[key] = fs.path.new(found)
+      found_modules[key] = fs.path.new(found, false)
    end
    return found_modules[key]
 end

@@ -32,7 +32,7 @@ local function report_dep_errors(env, source_dir)
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
-      if not fs.path.new(res.filename, true):is_in(source_dir) then
+      if not fs.path.new(res.filename, true):is_in(source_dir, false) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
                common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
@@ -53,12 +53,12 @@ local function build(args, loaded_config, starting_dir)
       return 1
    end
 
-   local source_dir = fs.path.new(loaded_config.source_dir or "./")
+   local source_dir = fs.path.new(loaded_config.source_dir or "./", false)
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
 
-   local build_dir = fs.path.new(loaded_config.build_dir or "./")
+   local build_dir = fs.path.new(loaded_config.build_dir or "./", false)
 
    if not build_dir:exists() then
       local succ, err = build_dir:mkdir()
@@ -153,6 +153,15 @@ local function build(args, loaded_config, starting_dir)
       return exit
    end
 
+   local type_check_options = {
+
+      feat_lax = "off",
+      feat_arity = "on",
+
+      gen_compat = loaded_config.gen_compat,
+      gen_target = loaded_config.gen_target,
+   }
+
    local to_write = {}
    local function process_node(n, compile)
       local path = n.input:to_real_path()
@@ -172,10 +181,7 @@ local function build(args, loaded_config, starting_dir)
          return
       end
 
-      local result, check_ast_err = common.type_check_ast(parsed.ast, {
-         filename = path,
-         env = env,
-      })
+      local result, check_ast_err = common.type_check_ast(parsed.ast, path, type_check_options, env)
       if not result then
          log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
          exit = 1

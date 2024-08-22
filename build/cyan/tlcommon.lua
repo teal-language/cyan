@@ -28,6 +28,7 @@ local insert = table.insert
 
 
 
+
 local ParseResult = {}
 
 
@@ -91,8 +92,8 @@ end
 local type_check = tl.type_check
 
 
-function common.type_check_ast(ast, opts)
-   return type_check(ast, opts)
+function common.type_check_ast(ast, filename, opts, env)
+   return type_check(ast, filename, opts, env)
 end
 
 
@@ -189,12 +190,12 @@ end
 
 function common.syntax_highlight(s)
    local buf = {}
-   local tks = tl.lex(s)
+   local tks = tl.lex(s, "")
    local last_x = 1
    for tk in ivalues(tks) do
 
       local ts = count_tabs(s:sub(last_x, tk.x - 1))
-      local space_count = 
+      local space_count =
       (ts > 0 and 3 * ts or 0) +
       (last_x < tk.x and tk.x - last_x or 0)
       insert(buf, decoration.decorate((" "):rep(space_count), monospace))
@@ -207,7 +208,7 @@ end
 local function prettify_error(e)
    local ln = fs.get_line(e.filename, e.y)
 
-   local tks = tl.lex(ln)
+   local tks = tl.lex(ln, "")
    local err_tk = {
       x = 1,
       tk = tl.get_token_at(tks, 1, e.x) or " ",
@@ -364,7 +365,7 @@ function common.type_check_and_load_file(path, env, c)
       return nil
    end
    return load(
-   pretty_print_ast(result.ast),
+   pretty_print_ast(result.ast, nil),
    path,
    "t",
    _G)
@@ -379,7 +380,7 @@ function common.search_module(name, search_dtl)
    if not found_modules[key] then
       local found, fd = tl.search_module(name, search_dtl)
       if found then fd:close() end
-      found_modules[key] = fs.path.new(found)
+      found_modules[key] = fs.path.new(found, false)
    end
    return found_modules[key]
 end

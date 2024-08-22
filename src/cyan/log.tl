@@ -276,7 +276,7 @@ local function create_logger(
    verbosity_threshold: Verbosity,
    prefix: string | decoration.Decorated,
    cont: string | decoration.Decorated,
-   inspector: function(any): string
+   inspector?: function(any): string
 ): Logger
    local result: Logger = {
       stream = stream,

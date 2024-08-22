@@ -184,7 +184,7 @@ end
 --- assert(p == path.new "foo/baz")
 ---@@end
 function Path:append(other: string | Path)
-   local p = other is string and path.new(other) or other as Path
+   local p = other is string and path.new(other, false) or other as Path
    if p:is_absolute() then
       error("Attempt to append absolute path", 2)
    end
@@ -197,7 +197,7 @@ function Path:prepend(other: string | Path)
    if self:is_absolute() then
       error("Attempt to prepend to absolute path", 2)
    end
-   other = path.ensure(other)
+   other = path.ensure(other, false)
    local other_len <const> = #other
    table.move(self, 1, #self, other_len + 1)
    for i = 1, other_len do
@@ -299,7 +299,7 @@ end
 ---
 --- Will error if you attempt to mix absolute and non-absolute paths
 function Path:remove_leading(p: string | Path)
-   local leading <const> = p is string and path.new(p) or p as Path
+   local leading <const> = p is string and path.new(p, false) or p as Path
    if xor(leading:is_absolute(), self:is_absolute()) then
       error(("Attempt to mix absolute and non-absolute path: (%s) and (%s)"):format(self:tostring(), leading:tostring()), 2)
    end
@@ -403,7 +403,7 @@ end
 local pattern_cache <const>: {string:{string}} = setmetatable({}, { __mode = "kv" })
 local function get_patt(patt: string): {string}
    if not pattern_cache[patt] then
-      local path_patt <const> = parse_string_path(patt)
+      local path_patt <const> = parse_string_path(patt, false)
 
       -- clear redundant **/, as they're technically valid, but its easier to process without them
       -- /foo/bar/**/**/baz -> /foo/bar/**/baz

@@ -18,8 +18,8 @@ local record Args
    include_dir: {string}
    wdisable: {string}
    werror: {string}
-   gen_compat: tl.CompatMode
-   gen_target: tl.TargetMode
+   gen_compat: tl.GenCompat
+   gen_target: tl.GenTarget
    quiet: boolean
    global_env_def: string
    verbosity: log.Verbosity
@@ -86,7 +86,7 @@ end
 --- Install all commands created with `command.new` into the given parser
 function command.register_all(p: argparse.Parser)
    for name, cmd in pairs(commands) do
-      local c <const> = p:command(name, cmd.description)
+      local c <const> = p:command(name, cmd.description, nil)
       if cmd.argparse then
          cmd.argparse(c)
       end

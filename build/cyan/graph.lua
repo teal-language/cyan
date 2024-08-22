@@ -184,13 +184,13 @@ local function unchecked_insert(dag, f, in_dir)
 
       local search_result = common.search_module(mod_name)
       if search_result then
-         if in_dir and search_result:is_absolute() and search_result:is_in(in_dir) then
+         if in_dir and search_result:is_absolute() and search_result:is_in(in_dir, false) then
             search_result = search_result:relative_to(in_dir)
             assert(not search_result:is_absolute())
          end
          n.modules[mod_name] = search_result
 
-         if not in_dir or search_result:is_in(in_dir) then
+         if not in_dir or search_result:is_in(in_dir, false) then
             unchecked_insert(dag, search_result, in_dir)
          end
       end
@@ -232,10 +232,10 @@ end
 function Dag:insert_file(fstr, in_dir)
    local f = type(fstr) == "table" and
    fstr or
-   fs.path.new(fstr)
+   fs.path.new(fstr, false)
 
    assert(f, "No path given")
-   unchecked_insert(self, f, fs.path.ensure(in_dir))
+   unchecked_insert(self, f, fs.path.ensure(in_dir, false))
    local cycles = check_for_cycles(self)
    if cycles then
       return false, cycles
@@ -246,7 +246,7 @@ end
 
 
 function Dag:find(fstr)
-   local f = fs.path.ensure(fstr)
+   local f = fs.path.ensure(fstr, false)
    return self._nodes_by_filename[f:to_real_path()]
 end
 
@@ -259,7 +259,7 @@ end
 function graph.scan_dir(dir, include, exclude)
    local d = graph.empty()
 
-   dir = fs.path.ensure(dir)
+   dir = fs.path.ensure(dir, false)
    for p in fs.scan_dir(dir, include, exclude) do
       local _, ext = fs.extension_split(p, 2)
       if ext == ".tl" or ext == ".lua" then
