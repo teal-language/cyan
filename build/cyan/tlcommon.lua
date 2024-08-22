@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local load = _tl_compat and _tl_compat.load or load; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 
 
@@ -404,24 +404,6 @@ function common.prepend_to_lua_path(path_str)
    package.cpath
 end
 
-local old_tl_search_module = tl.search_module
-local substitutions = {}
-function common.add_module_substitute(source_dir, mod_name)
-   substitutions[source_dir] = "^" .. util.str.esc(mod_name)
-end
-
-tl.search_module = function(module_name, search_dtl)
-   for src, mod in pairs(substitutions) do
-      if module_name:match(mod) then
-         local a, b, c = old_tl_search_module(module_name:gsub(mod, src), search_dtl)
-         if a then
-            return a, b, c
-         end
-      end
-   end
-   return old_tl_search_module(module_name, search_dtl)
-end
-
 
 
 
@@ -430,10 +412,6 @@ function common.init_env_from_config(cfg)
    cfg = cfg or {}
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
-   end
-
-   if cfg.source_dir and cfg.module_name then
-      common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
    local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.global_env_def)

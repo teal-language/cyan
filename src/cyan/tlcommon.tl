@@ -404,24 +404,6 @@ function common.prepend_to_lua_path(path_str: string)
       .. package.cpath
 end
 
-local old_tl_search_module <const> = tl.search_module
-local substitutions <const>: {string:string} = {}
-function common.add_module_substitute(source_dir: string, mod_name: string)
-   substitutions[source_dir] = "^" .. util.str.esc(mod_name)
-end
-
-tl.search_module = function(module_name: string, search_dtl: boolean): string, FILE, {string}
-   for src, mod in pairs(substitutions) do
-      if module_name:match(mod) then
-         local a, b, c = old_tl_search_module(module_name:gsub(mod, src), search_dtl)
-         if a then
-            return a, b, c
-         end
-      end
-   end
-   return old_tl_search_module(module_name, search_dtl)
-end
-
 ---@desc
 --- Initialize a strict Teal environment, using the relevant entries of the config to modify that environment
 ---
@@ -430,10 +412,6 @@ function common.init_env_from_config(cfg: config.Config): tl.Env, string
    cfg = cfg or {}
    for dir in ivalues(cfg.include_dir or {}) do
       common.prepend_to_lua_path(dir)
-   end
-
-   if cfg.source_dir and cfg.module_name then
-      common.add_module_substitute(cfg.source_dir, cfg.module_name)
    end
 
    local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.global_env_def)

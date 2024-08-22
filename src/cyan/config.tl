@@ -22,7 +22,6 @@ local record Config
    exclude: {string}
    global_env_def: string
    include_dir: {string}
-   module_name: string
 
    dont_prune: {string}
 

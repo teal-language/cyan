@@ -12,7 +12,6 @@ This file describes the layout of your project by returning a table with the fol
 | `gen_target`       | `--gen-target`       | `tl.TargetMode`     | Minimum Lua version for generated code. One of `5.1` or `5.3` |
 | `include_dir`      | `-I` `--include-dir` | `{string}`          | Add each path provided to `package.path` and `package.cpath` |
 | `include`          |                      | `{string}`          | A list of [patterns](#Patterns) describing what files to include |
-| `module_name`      |                      | `string`            | Replace `module_name` with `source_dir` in `require` calls |
 | `preload_modules`  | `-l` `--preload`     | `{string}`          | Execute the equivalent of `require(<module>)` for each provided name |
 | `global_env_def`   | `--global-env-def`   | `string`            | Load this file before type checking |
 | `scripts`          |                      | `{string : {string : string | {string}}}` | A map of commands and hooks to filenames, see [scripts](#Scripts) |
