@@ -3,7 +3,8 @@ SRC = \
       $(wildcard src/cyan/*.tl) \
       $(wildcard src/cyan/*/*.tl) \
       $(wildcard src/spec/*.tl) \
-      $(wildcard src/spec/*/*.tl)
+      $(wildcard src/spec/*/*.tl) \
+      $(wildcard src/testing/*.tl)
 LUA = $(SRC:src/%.tl=build/%.lua)
 
 TL = tl
@@ -19,7 +20,7 @@ default: cyan rockspec
 cyan: build_directories $(LUA)
 
 build_directories:
-	mkdir -p build/cyan/{fs,commands,experimental} build/spec/api
+	mkdir -p build/cyan/{fs,commands,experimental} build/spec/api build/testing
 
 all: clean bootstrap docs rockspec test
 
@@ -44,6 +45,7 @@ bootstrap: build/cyan/fs build/cyan/experimental build/cyan/commands $(LUA)
 
 test: default
 	busted
+	busted build/
 
 lint: default
 	./bin/cyan run scripts/lint.tl

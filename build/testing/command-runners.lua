@@ -1,14 +1,14 @@
-local lfs <const> = require("lfs")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local package = _tl_compat and _tl_compat.package or package; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack; local lfs = require("lfs")
 
-local current_dir <const> = assert(lfs.currentdir(), "unable to get current dir")
-local cyan_executable <const> = current_dir .. "/bin/cyan"
-local cmd_prefix <const> = (function(): string
-   local buf <const> = { string.format("LUA_PATH=%q", package.path) }
+local current_dir = assert(lfs.currentdir(), "unable to get current dir")
+local cyan_executable = current_dir .. "/bin/cyan"
+local cmd_prefix = (function()
+   local buf = { string.format("LUA_PATH=%q", package.path) }
    for i = 1, 4 do
       table.insert(buf, string.format("LUA_PATH_5_%d=%q", i, package.path))
    end
 
-   -- find the lua interpreter
+
    local first_arg = 0
    while arg[first_arg - 1] do
       first_arg = first_arg - 1
@@ -19,103 +19,103 @@ local cmd_prefix <const> = (function(): string
    return table.concat(buf, " ")
 end)()
 
-local Batch <const> = require("testing.batch-assertion")
-local temporary_files <const> = require("testing.temporary-files")
+local Batch = require("testing.batch-assertion")
+local temporary_files = require("testing.temporary-files")
 
-local luassert <const> = require("luassert")
+local luassert = require("luassert")
 
-local enum CyanCommand
-   "gen"
-   "check"
-   "run"
-   "build"
-   "init"
-   "warnings"
-end
 
-local record Array<T>
-   {T}
-   n: integer
-end
 
-local record ProjectDescription
-   cmd: CyanCommand
-   args: {string}
-   dir_structure: temporary_files.Directory
-   generated_files: temporary_files.Directory
 
-   cmd_output_match: string
-   cmd_output_not_match: string
-   cmd_output: string
-   cmd_output_match_lines: Array<string>
 
-   exit_code: integer
-end
 
-local runners <const> = {
+
+
+
+
+
+
+
+
+
+local ProjectDescription = {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+local runners = {
    ProjectDescription = ProjectDescription,
 }
 
--- NOTE: T can't be a table type
+
 local function insert_into(
-   destination: temporary_files.DirectorySet,
-   source: temporary_files.Directory
-)
+   destination,
+   source)
+
    for k, v in pairs(source) do
       if type(v) == "table" then
          if not destination[k] then
             destination[k] = {}
          end
          insert_into(
-            destination[k] as temporary_files.DirectorySet,
-            v as temporary_files.Directory
-         )
+         destination[k],
+         v)
+
       else
          destination[k] = true
       end
    end
 end
 
-local function cyan_cmd(c: CyanCommand, ...: string): string
+local function cyan_cmd(c, ...)
    return table.concat({ cmd_prefix, c, ... }, " ")
 end
 
 function runners.run_mock_project(
-   fin: function(function()),
-   project: ProjectDescription
-)
-   local expected_dir_structure: temporary_files.DirectorySet
+   fin,
+   project)
+
+   local expected_dir_structure
    if project.generated_files then
       expected_dir_structure = {}
       insert_into(expected_dir_structure, project.dir_structure)
       insert_into(expected_dir_structure, project.generated_files)
    end
 
-   local actual_dir_name <const> = temporary_files.write_directory(fin, project.dir_structure)
+   local actual_dir_name = temporary_files.write_directory(fin, project.dir_structure)
 
-   local pd: FILE
-   local actual_output: string
-   local actual_dir_structure: temporary_files.DirectorySet
+   local pd
+   local actual_output
+   local actual_dir_structure
 
    temporary_files.do_in(actual_dir_name, function()
-      local cmd <const> = cyan_cmd(project.cmd, table.unpack(project.args)) .. " 2>&1"
+      local cmd = cyan_cmd(project.cmd, _tl_table_unpack(project.args)) .. " 2>&1"
       pd = assert(io.popen(cmd, "r"))
       actual_output = pd:read("a")
       if expected_dir_structure then
          actual_dir_structure = temporary_files.get_dir_structure(".")
       end
    end)
-   local show_output <const> = "Full output:\n" .. actual_output
+   local show_output = "Full output:\n" .. actual_output
 
-   local batch <const> = Batch:new("Mock project")
-   local _, _, code <const> = pd:close()
+   local batch = Batch:new("Mock project")
+   local _, _, code = pd:close()
    if _VERSION ~= "Lua 5.1" then
       batch:add(
-         luassert.are_equal,
-         project.exit_code,
-         code,
-         string.format("Expected exit code %d, got %d\n%s", project.exit_code, code, show_output)
-      )
+      luassert.are_equal,
+      project.exit_code,
+      code,
+      string.format("Expected exit code %d, got %d\n%s", project.exit_code, code, show_output))
+
    end
 
    if project.cmd_output_match then
@@ -133,11 +133,11 @@ function runners.run_mock_project(
          i = i + 1
          if project.cmd_output_match_lines[i] then
             batch:add(
-               luassert.match,
-               project.cmd_output_match_lines[i],
-               ln, 1, false, "Line " .. i .. " of output didn't match",
-               show_output
-            )
+            luassert.match,
+            project.cmd_output_match_lines[i],
+            ln, 1, false, "Line " .. i .. " of output didn't match",
+            show_output)
+
          end
       end
       if project.cmd_output_match_lines.n then

@@ -1,5 +1,7 @@
-local util = require("spec.util")
-local path = require("cyan.fs.path")
+local type _ = require("busted")
+local luassert <const> = require("luassert")
+
+local path <const> = require("cyan.fs.path")
 path.separator = '/'
 
 describe("fs.path api", function()
@@ -7,32 +9,32 @@ describe("fs.path api", function()
       it("should split a path on / no matter what path.separator is", function()
          path.separator = "teehee"
          local p = path.new("foo/bar/baz")
-         assert.are.same(p, {"foo", "bar", "baz"})
+         luassert.are_same(p, {"foo", "bar", "baz"})
       end)
       for _, sep in ipairs{'/', '\\'} do
          it("should split a path on os path separators [" .. sep .. "]", function()
             path.separator = sep
             local str = table.concat({"foo", "bar", "baz"}, sep)
             local p = path.new(str, true)
-            assert.are.same({"foo", "bar", "baz"}, p)
+            luassert.are_same({"foo", "bar", "baz"}, p)
             finally(function() path.separator = '/' end)
          end)
       end
       it("should be okay with having traversals (..)", function()
-         assert.are.same({".."}, path.new(".."))
+         luassert.are_same({".."}, path.new(".."))
       end)
    end)
    describe("Path:is_absolute", function()
       it("should be able to check for absolute paths for unix", function()
          local p = path.new("/foo/bar")
-         assert(p:is_absolute())
+         luassert(p:is_absolute())
       end)
       it("should be able to check for absolute paths for windows", function()
          path.separator = '\\'
          local p = path.new("C:\\foo\\bar", true)
          local res = p:is_absolute()
          path.separator = '/'
-         assert(res)
+         luassert(res)
       end)
    end)
    describe("Path:ancestors", function()
@@ -47,14 +49,14 @@ describe("fs.path api", function()
          for ancestor in p:ancestors() do
             table.insert(actual, ancestor)
          end
-         assert.are.same(expected, actual)
+         luassert.are_same(expected, actual)
       end)
    end)
    describe("Path:to_real_path", function()
       it("should concat the path with real path separators", function()
          do
             local p = path.new("foo/bar/baz")
-            assert.are.equal(p:to_real_path(), "foo/bar/baz")
+            luassert.are_equal(p:to_real_path(), "foo/bar/baz")
          end
 
          do
@@ -62,7 +64,7 @@ describe("fs.path api", function()
             local p = path.new("foo\\bar\\baz")
             local res = p:to_real_path()
             path.separator = '/'
-            assert.are.equal(res, "foo\\bar\\baz")
+            luassert.are_equal(res, "foo\\bar\\baz")
          end
       end)
    end)
@@ -70,18 +72,18 @@ describe("fs.path api", function()
       it("should mutate the given path by properly appending the path", function()
          local p = path.new("a/b/c")
          p:append("d/e")
-         assert.are.same(p, {"a", "b", "c", "d", "e"})
+         luassert.are_same(p, {"a", "b", "c", "d", "e"})
          p:append(path.new("f"))
-         assert.are.same(p, {"a", "b", "c", "d", "e", "f"})
+         luassert.are_same(p, {"a", "b", "c", "d", "e", "f"})
       end)
    end)
    describe("Path:prepend", function()
       it("should mutate the given path by properly prepending the path", function()
          local p = path.new("a/b/c")
          p:prepend("d/e")
-         assert.are.same(p, {"d", "e", "a", "b", "c"})
+         luassert.are_same(p, {"d", "e", "a", "b", "c"})
          p:prepend(path.new("f"))
-         assert.are.same(p, {"f", "d", "e", "a", "b", "c"})
+         luassert.are_same(p, {"f", "d", "e", "a", "b", "c"})
       end)
    end)
    describe("Path:remove_leading", function()
@@ -89,13 +91,13 @@ describe("fs.path api", function()
          do
             local p = path.new("foo/bar/baz")
             p:remove_leading("foo/bar")
-            assert.are.same(p, {"baz"})
+            luassert.are_same(p, {"baz"})
          end
 
          do
             local p = path.new("foo/bar/baz")
             p:remove_leading(path.new("foo/bar"))
-            assert.are.same(p, {"baz"})
+            luassert.are_same(p, {"baz"})
          end
       end)
    end)
@@ -104,17 +106,17 @@ describe("fs.path api", function()
          local p = path.new("a/b/c")
          local copy = p:copy()
          p[1] = "d"
-         assert.are["not"].same(p, copy)
+         luassert.are_not_same(p, copy)
       end)
    end)
    describe("Path:match", function()
-      local function assert_match(p, patt)
+      local function assert_match(p: path.Path, patt: string)
          assert(getmetatable(p).__name == "cyan.fs.path.Path", "p is not a Path")
          local res = p:match(patt)
          assert(res, p:tostring() .. " should have matched " .. patt)
       end
 
-      local function assert_not_match(p, patt)
+      local function assert_not_match(p: path.Path, patt: string)
          assert(getmetatable(p).__name == "cyan.fs.path.Path", "p is not a Path")
          local res = p:match(patt)
          assert(not res, p:tostring() .. " should not have matched " .. patt)
@@ -160,8 +162,8 @@ describe("fs.path api", function()
    end)
 
    describe("Path:relative_to", function()
-      local function assert_eq_relative(expected, p, relative_to)
-         assert.are.same(
+      local function assert_eq_relative(expected: string, p: string, relative_to: string)
+         luassert.are_same(
             path.new(expected),
             path.new(p):relative_to(path.new(relative_to))
          )
@@ -189,15 +191,15 @@ describe("fs.path api", function()
 
    describe("Path:is_in", function()
       it("should work with relative paths", function()
-         assert(path.new("foo/bar"):is_in("foo"))
+         luassert(path.new("foo/bar"):is_in("foo"))
       end)
 
       it("should work with absolute paths", function()
-         assert(path.new("/foo/bar"):is_in("/foo"))
+         luassert(path.new("/foo/bar"):is_in("/foo"))
       end)
 
       it("should assume an empty path is the current dir", function()
-         assert(path.new("foo"):is_in(""))
+         luassert(path.new("foo"):is_in(""))
       end)
    end)
 end)

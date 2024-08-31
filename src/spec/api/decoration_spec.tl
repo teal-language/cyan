@@ -1,4 +1,6 @@
-local decoration = require("cyan.decoration")
+local type _ = require("busted")
+local luassert <const> = require("luassert")
+local decoration <const> = require("cyan.decoration")
 
 describe("decoration api", function()
    describe("ansi rendering", function()
@@ -10,7 +12,7 @@ describe("decoration api", function()
          local result = table.concat(buf)
          local expected = "\27[34mhello\27[0m \27[47mworld\27[0m"
 
-         assert.are.equal(expected, result)
+         luassert.are_equal(expected, result)
       end)
    end)
 
@@ -22,7 +24,7 @@ describe("decoration api", function()
          decoration.render_plain(buf, "world", { ansi_background_color = 7 })
          local result = table.concat(buf)
 
-         assert.are.equal("hello world", result)
+         luassert.are_equal("hello world", result)
       end)
    end)
 end)

@@ -1,10 +1,12 @@
+local type _ = require("busted")
+local luassert <const> = require("luassert")
 
-local util = require("spec.util")
-local graph = require("cyan.graph")
+local temporary_files <const> = require("testing.temporary-files")
+local graph <const> = require("cyan.graph")
 
 describe("dependency graph builder", function()
    it("should properly count node dependents", function()
-      util.do_in(util.write_tmp_dir(finally, {
+      temporary_files.do_in(temporary_files.write_directory(finally, {
          ["a.tl"] = [[]],
          ["b.tl"] = [[require"a"]],
          ["c.tl"] = [[require"b"]],
@@ -16,11 +18,10 @@ describe("dependency graph builder", function()
          ["i.tl"] = [[require"h"]],
          ["j.tl"] = [[require"i"]],
       }), function()
-         local g = graph.scan_dir(".")
-         local iter = g:nodes()
+         local g <const> = graph.scan_dir(".")
 
-         local actual_order = {}
-         local iter = g:nodes()
+         local actual_order <const> = {}
+         local iter <const> = g:nodes()
          for n in iter do
             table.insert(actual_order, n.input:to_real_path())
          end
@@ -37,8 +38,8 @@ describe("dependency graph builder", function()
             "i.tl",
             "j.tl",
          }
-         assert.is["nil"](iter(), "more files found than expected")
-         assert.are.same(expected_order, actual_order)
+         luassert.is_nil(iter(), "more files found than expected")
+         luassert.are_same(expected_order, actual_order)
       end)
    end)
 end)

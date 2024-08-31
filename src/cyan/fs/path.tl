@@ -1,6 +1,8 @@
-
 ---@brief
 --- Object oriented lexical path management
+
+-- TODO: This should not care about the os path separator
+-- It should just be _lexical_ path management
 
 local lfs <const> = require("lfs")
 
@@ -72,7 +74,7 @@ end
 --- The `Path` constructor
 ---
 --- By default uses '/' as a path separator
-function path.new(s: string, use_os_sep: boolean): Path
+function path.new(s: string, use_os_sep?: boolean): Path
    if not s then return nil end
    return setmt(parse_string_path(s, use_os_sep))
 end
@@ -82,7 +84,7 @@ end
 ---
 --- If s is a string, parse it into a path
 --- otherwise return s unmodified
-function path.ensure(s: string | Path, use_os_sep: boolean): Path
+function path.ensure(s: string | Path, use_os_sep?: boolean): Path
    if s is string then
       return path.new(s, use_os_sep)
    end
@@ -533,7 +535,7 @@ end
 ---
 --- If dirname is a `string`, a path will be constructed using `path.new` with
 --- `use_os_sep`
-function Path:is_in(dirname: string | Path, use_os_sep: boolean): boolean
+function Path:is_in(dirname: string | Path, use_os_sep?: boolean): boolean
    if not dirname then return false end
    local dir <const> = path.ensure(dirname, use_os_sep)
 

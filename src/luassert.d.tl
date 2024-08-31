@@ -201,6 +201,8 @@ local record asserts
    level:function(self:asserts, integer)
 
    has_property:function(any, string)
+
+   metamethod __call: function(any...): any...
 end
 
 return asserts

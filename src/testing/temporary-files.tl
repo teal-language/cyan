@@ -59,7 +59,7 @@ function temporary_files.new_name(): string
 end
 
 function temporary_files.write_directory(
-   finally: function(function()),
+   fin: function(function()),
    dir_structure: Directory<string>
 ): string
    local full_name <const> = temporary_files.new_name() .. "/"
@@ -92,7 +92,7 @@ function temporary_files.write_directory(
    end
 
    if clean_up_temp_files then
-      on_finally(finally, function()
+      on_finally(fin, function()
          for file_name in ivalues(files_to_remove) do
             assert(os.remove(file_name))
          end
@@ -123,6 +123,16 @@ function temporary_files.get_dir_structure(dir_name: string): DirectorySet
       end
    end
    return launder(dir_structure)
+end
+
+function temporary_files.do_in(dir: string, func: function())
+   local cdir <const> = assert(lfs.currentdir())
+   assert(lfs.chdir(dir), "unable to chdir into " .. dir)
+   local ok <const>, err <const> = pcall(func) as (boolean, any)
+   assert(lfs.chdir(cdir), "unable to chdir into " .. cdir)
+   if not ok then
+      error(err, 2)
+   end
 end
 
 return temporary_files

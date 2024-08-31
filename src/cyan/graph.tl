@@ -229,7 +229,7 @@ end
 ---
 --- Returns `false` if inserting the file introduced a circular dependency along
 --- with a list of the filenames in the cycle
-function Dag:insert_file(fstr: string | fs.Path, in_dir: string | fs.Path): boolean, {string}
+function Dag:insert_file(fstr: string | fs.Path, in_dir?: string | fs.Path): boolean, {string}
    local f <const> = fstr is fs.Path
       and fstr
       or fs.path.new(fstr as string, false)
@@ -256,7 +256,7 @@ end
 ---
 --- Returns `nil` if a circular dependency was found, along
 --- with a list of the filenames in the cycle
-function graph.scan_dir(dir: string | fs.Path, include: {string}, exclude: {string}): Dag, {string}
+function graph.scan_dir(dir: string | fs.Path, include?: {string}, exclude?: {string}): Dag, {string}
    local d <const> = graph.empty()
 
    dir = fs.path.ensure(dir, false)
