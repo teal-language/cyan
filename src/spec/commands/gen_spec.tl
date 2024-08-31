@@ -1,9 +1,9 @@
-
-local util = require("spec.util")
+local type _ = require("busted")
+local command_runners <const> = require("testing.command-runners")
 
 describe("gen command", function()
    it("should not compile when there are type errors", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "gen",
          args = { "foo.tl" },
          dir_structure = {
@@ -16,13 +16,13 @@ describe("gen command", function()
    end)
 
    it("should compile when there are no type errors", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "gen",
          args = { "foo.tl" },
          dir_structure = {
             ["foo.tl"] = [[local _x: string = "hello"]]
          },
-         generated_files = { "foo.lua" },
+         generated_files = { ["foo.lua"] = true },
          cmd_output_match_lines = {
             [1] = "Type checked .*foo%.tl",
             [2] = "Wrote .*foo%.lua",
@@ -33,13 +33,13 @@ describe("gen command", function()
 
    describe("--output", function()
       it("should map a single input to a single output", function()
-         util.run_mock_project(finally, {
+         command_runners.run_mock_project(finally, {
             cmd = "gen",
             args = { "foo.tl", "-o", "bar.lua" },
             dir_structure = {
                ["foo.tl"] = [[]],
             },
-            generated_files = { "bar.lua" },
+            generated_files = { ["bar.lua"] = true },
             cmd_output_match_lines = {
                [1] = "Type checked .*foo%.tl",
                [2] = "Wrote .*bar%.lua",
@@ -49,7 +49,7 @@ describe("gen command", function()
       end)
 
       it("should error with multiple inputs", function()
-         util.run_mock_project(finally, {
+         command_runners.run_mock_project(finally, {
             cmd = "gen",
             args = { "foo.tl", "bar.tl", "-o", "baz.lua" },
             dir_structure = {

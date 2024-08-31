@@ -15,12 +15,12 @@ end
 function Batch:new(name)
    return setmetatable({
       name = name or "???",
-      _on_fail = "",
+      _on_fail = nil,
    }, batch_mt)
 end
 
 function Batch:show_on_failure(to_show)
-   assert(not self._on_fail)
+   assert(not self._on_fail, "Internal error: show_on_failure called multiple times")
    self._on_fail = to_show
 end
 

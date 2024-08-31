@@ -76,7 +76,7 @@ local function insert_into(
    end
 end
 
-local function cyan_cmd(c, ...)
+function runners.cyan_command(c, ...)
    return table.concat({ cmd_prefix, c, ... }, " ")
 end
 
@@ -98,7 +98,7 @@ function runners.run_mock_project(
    local actual_dir_structure
 
    temporary_files.do_in(actual_dir_name, function()
-      local cmd = cyan_cmd(project.cmd, _tl_table_unpack(project.args)) .. " 2>&1"
+      local cmd = runners.cyan_command(project.cmd, _tl_table_unpack(project.args or {})) .. " 2>&1"
       pd = assert(io.popen(cmd, "r"))
       actual_output = pd:read("a")
       if expected_dir_structure then
@@ -149,6 +149,16 @@ function runners.run_mock_project(
    end
    batch:show_on_failure("Command Output:\n" .. actual_output)
    batch:assert()
+end
+
+
+
+
+function runners.run_command(cmd)
+   local pd = io.popen(cmd, "r")
+   local output = pd:read("*a")
+   local _, _, exit_code = pd:close()
+   return output, exit_code
 end
 
 return runners

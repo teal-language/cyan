@@ -1,14 +1,15 @@
-local util = require("spec.util")
+local type _ = require("busted")
+local command_runners <const> = require("testing.command-runners")
 
 describe("--no-script", function()
    it("should not run any scripts when provided", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          dir_structure = {
-            [util.configfile] = [[return { scripts = { build = { post = { "foo.lua" } } } }]],
+            ["tlconfig.lua"] = [[return { scripts = { build = { post = { "foo.lua" } } } }]],
             ["foo.lua"] = [[print("hello!")]],
             ["bar.tl"] = [[]]
          },
-         generated_files = { "bar.lua" },
+         generated_files = { ["bar.lua"] = true },
          cmd = "build",
          args = { "--no-script" },
          exit_code = 0,

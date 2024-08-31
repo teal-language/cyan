@@ -1,9 +1,9 @@
-
-local util = require("spec.util")
+local type _ = require("busted")
+local command_runners <const> = require("testing.command-runners")
 
 describe("run command", function()
    it("should run simple files", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "run",
          args = { "foo.tl" },
          dir_structure = {
@@ -15,7 +15,7 @@ describe("run command", function()
    end)
 
    it("should report type errors", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "run",
          args = { "foo.tl" },
          dir_structure = {
@@ -27,7 +27,7 @@ describe("run command", function()
    end)
 
    it("should run files in a sandbox", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "run",
          args = { "foo.tl" },
          dir_structure = {
@@ -39,7 +39,7 @@ describe("run command", function()
    end)
 
    it("should use tl.loader() to load tl files", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "run",
          args = { "foo.tl" },
          dir_structure = {

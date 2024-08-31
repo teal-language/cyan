@@ -42,7 +42,7 @@ local record ProjectDescription
    cmd: CyanCommand
    args: {string}
    dir_structure: temporary_files.Directory
-   generated_files: temporary_files.Directory
+   generated_files: temporary_files.DirectorySet
 
    cmd_output_match: string
    cmd_output_not_match: string
@@ -76,7 +76,7 @@ local function insert_into(
    end
 end
 
-local function cyan_cmd(c: CyanCommand, ...: string): string
+function runners.cyan_command(c: CyanCommand, ...: string): string
    return table.concat({ cmd_prefix, c, ... }, " ")
 end
 
@@ -88,7 +88,7 @@ function runners.run_mock_project(
    if project.generated_files then
       expected_dir_structure = {}
       insert_into(expected_dir_structure, project.dir_structure)
-      insert_into(expected_dir_structure, project.generated_files)
+      insert_into(expected_dir_structure, project.generated_files as temporary_files.Directory)
    end
 
    local actual_dir_name <const> = temporary_files.write_directory(fin, project.dir_structure)
@@ -98,7 +98,7 @@ function runners.run_mock_project(
    local actual_dir_structure: temporary_files.DirectorySet
 
    temporary_files.do_in(actual_dir_name, function()
-      local cmd <const> = cyan_cmd(project.cmd, table.unpack(project.args)) .. " 2>&1"
+      local cmd <const> = runners.cyan_command(project.cmd, table.unpack(project.args or {})) .. " 2>&1"
       pd = assert(io.popen(cmd, "r"))
       actual_output = pd:read("a")
       if expected_dir_structure then
@@ -149,6 +149,16 @@ function runners.run_mock_project(
    end
    batch:show_on_failure("Command Output:\n" .. actual_output)
    batch:assert()
+end
+
+-- TODO: #Subprocess
+--
+-- We should have a proper subprocess module to get stdout and stderr
+function runners.run_command(cmd: string): string, integer
+   local pd <const> = io.popen(cmd, "r")
+   local output <const> = pd:read("*a")
+   local _, _, exit_code = pd:close()
+   return output, exit_code as integer
 end
 
 return runners

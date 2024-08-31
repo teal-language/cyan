@@ -1,7 +1,5 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local on_finally = require("testing.finally")
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local on_finally = require("testing.finally")
 local lfs = require("lfs")
-
-local ivalues = require("cyan.util").tab.ivalues
 
 
 
@@ -58,48 +56,51 @@ function temporary_files.new_name()
    return name
 end
 
+function temporary_files.rmdir_recursive(path)
+   for fname in lfs.dir(path) do
+      if fname ~= ".." and fname ~= "." then
+         local full = path .. "/" .. fname
+         local ok, err
+         if lfs.attributes(full, "mode") == "directory" then
+            ok, err = temporary_files.rmdir_recursive(full)
+         else
+            ok, err = os.remove(full)
+         end
+         if not ok then
+            return false, err
+         end
+      end
+   end
+   return true
+end
+
 function temporary_files.write_directory(
    fin,
    dir_structure)
 
    local full_name = temporary_files.new_name() .. "/"
    assert(lfs.mkdir(full_name))
-   local files_to_remove = {}
-   local directories_to_remove = {}
 
    local function traverse_dir(tree, prefix)
       assert(prefix:sub(-1, -1) == "/")
-      table.insert(directories_to_remove, prefix:sub(1, -2))
       for name, content in pairs(tree) do
          local full_item_name = prefix .. name
          if type(content) == "string" then
-            table.insert(files_to_remove, full_item_name)
             local fd = io.open(full_item_name, "w")
             assert(fd)
             fd:write(content)
             fd:close()
          else
             assert(lfs.mkdir(full_item_name))
-            do
-
-               (traverse_dir)(content, full_item_name .. "/")
-            end
+            traverse_dir(content, full_item_name .. "/")
          end
       end
    end
-   do
-      (traverse_dir)(dir_structure, full_name)
-   end
+   traverse_dir(dir_structure, full_name)
 
    if clean_up_temp_files then
       on_finally(fin, function()
-         for file_name in ivalues(files_to_remove) do
-            assert(os.remove(file_name))
-         end
-
-         for i = #directories_to_remove, 1, -1 do
-            assert(lfs.rmdir(directories_to_remove[i]))
-         end
+         assert(temporary_files.rmdir_recursive(full_name))
       end)
    end
 

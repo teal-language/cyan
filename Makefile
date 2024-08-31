@@ -20,7 +20,7 @@ default: cyan rockspec
 cyan: build_directories $(LUA)
 
 build_directories:
-	mkdir -p build/cyan/{fs,commands,experimental} build/spec/api build/testing
+	mkdir -p build/cyan/{fs,commands,experimental} build/spec/{api,commands} build/testing
 
 all: clean bootstrap docs rockspec test
 
@@ -44,7 +44,6 @@ bootstrap: build/cyan/fs build/cyan/experimental build/cyan/commands $(LUA)
 	mv tmp build
 
 test: default
-	busted
 	busted build/
 
 lint: default

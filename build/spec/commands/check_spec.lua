@@ -1,13 +1,15 @@
 
-local util = require("spec.util")
+local luassert = require("luassert")
+local temporary_files = require("testing.temporary-files")
+local command_runners = require("testing.command-runners")
 
 describe("check command", function()
    it("should do basic type checking of a single file", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "check",
          args = { "foo.tl" },
          dir_structure = {
-            ["foo.tl"] = [[local x: number = "hello"]]
+            ["foo.tl"] = [[local x: number = "hello"]],
          },
          cmd_output_match = "Error",
          exit_code = 1,
@@ -15,7 +17,7 @@ describe("check command", function()
    end)
 
    it("should do basic type checking of many files", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "check",
          args = { "foo.tl", "bar.tl" },
          dir_structure = {
@@ -31,21 +33,21 @@ describe("check command", function()
    end)
 
    it("should report errors in dependencies", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "check",
          args = { "foo.tl" },
          dir_structure = {
             ["foo.tl"] = [[require"bar"]],
             ["bar.tl"] = [[local _x: number = "hello"]],
          },
-         -- cmd_output_match_lines = {
-         -- },
+
+
          exit_code = 1,
       })
    end)
 
    it("should handle being told to type check a non-file", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "check",
          args = { "foo" },
          dir_structure = {
@@ -57,20 +59,21 @@ describe("check command", function()
    end)
 
    it("should chdir into the root before checking", function()
-      util.do_in(util.write_tmp_dir(finally, {
-         [util.configfile] = [[return {}]],
+      temporary_files.do_in(temporary_files.write_directory(finally, {
+         ["tlconfig.lua"] = [[return {}]],
          foo = {
             ["bar.tl"] = [[require("foo.baz")]],
             ["baz.tl"] = [[return 10]],
          },
       }), function()
-         local out = util.run_command("cd foo && " .. util.cyan_cmd("check", "bar.tl") .. " 2>&1")
-         assert.match("Type checked", out)
+
+         local out = command_runners.run_command("cd foo && " .. command_runners.cyan_command("check", "bar.tl") .. " 2>&1")
+         luassert.match("Type checked", out)
       end)
    end)
 
    it("should show type errors along with the line that they occur on", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "check",
          args = { "foo.tl" },
          dir_structure = {
@@ -82,11 +85,11 @@ describe("check command", function()
    end)
 
    it("should properly report syntax errors", function()
-      util.run_mock_project(finally, {
+      command_runners.run_mock_project(finally, {
          cmd = "check",
          args = { "foo.tl" },
          dir_structure = {
-            ["foo.tl"] = [[print(1 != 2)]]
+            ["foo.tl"] = [[print(1 != 2)]],
          },
          cmd_output_match = [[syntax error]],
          exit_code = 1,
@@ -94,12 +97,13 @@ describe("check command", function()
    end)
 
    it("should work with a relative path in the parent directory", function()
-      util.do_in(util.write_tmp_dir(finally, {
+      temporary_files.do_in(temporary_files.write_directory(finally, {
          ["foo.tl"] = [[local _: integer = 1]],
          bar = {},
       }), function()
-         local out = util.run_command("cd bar && " .. util.cyan_cmd("check", "../foo.tl") .. " 2>&1")
-         assert.match("Type checked", out)
+
+         local out = command_runners.run_command("cd bar && " .. command_runners.cyan_command("check", "../foo.tl") .. " 2>&1")
+         luassert.match("Type checked", out)
       end)
    end)
 end)

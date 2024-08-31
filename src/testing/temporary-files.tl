@@ -1,8 +1,6 @@
 local on_finally <const> = require("testing.finally")
 local lfs <const> = require("lfs")
 
-local ivalues <const> = require("cyan.util").tab.ivalues
-
 -- Certain systems will actually write out /tmp to disk on shutdown and instead
 -- run a garbage collector over it after files reach a certain age. And windows
 -- is notorious for not cleaning up tmp files.
@@ -58,48 +56,51 @@ function temporary_files.new_name(): string
    return name
 end
 
+function temporary_files.rmdir_recursive(path: string): boolean, string
+   for fname in lfs.dir(path) do
+      if fname ~= ".." and fname ~= "." then
+         local full <const> = path .. "/" .. fname
+         local ok, err: boolean, string
+         if lfs.attributes(full, "mode") == "directory" then
+            ok, err = temporary_files.rmdir_recursive(full)
+         else
+            ok, err = os.remove(full)
+         end
+         if not ok then
+            return false, err
+         end
+      end
+   end
+   return true
+end
+
 function temporary_files.write_directory(
    fin: function(function()),
-   dir_structure: Directory<string>
+   dir_structure: Directory
 ): string
    local full_name <const> = temporary_files.new_name() .. "/"
    assert(lfs.mkdir(full_name))
-   local files_to_remove <const> = {}
-   local directories_to_remove <const> = {}
 
-   local function traverse_dir(tree: Directory<string>, prefix: string)
+   local function traverse_dir(tree: Directory, prefix: string)
       assert(prefix:sub(-1, -1) == "/")
-      table.insert(directories_to_remove, prefix:sub(1, -2))
       for name, content in pairs(tree) do
          local full_item_name = prefix .. name
          if content is string then
-            table.insert(files_to_remove, full_item_name)
             local fd <const> = io.open(full_item_name, "w")
             assert(fd)
             fd:write(content)
             fd:close()
          else
             assert(lfs.mkdir(full_item_name))
-            do
-               -- tl bug: Directory<string> (inferred at ...) is not a Directory<string>
-               (traverse_dir as function)(content, full_item_name .. "/")
-            end
+            traverse_dir(content, full_item_name .. "/")
          end
       end
    end
-   do
-      (traverse_dir as function)(dir_structure, full_name)
-   end
+   traverse_dir(dir_structure, full_name)
 
    if clean_up_temp_files then
       on_finally(fin, function()
-         for file_name in ivalues(files_to_remove) do
-            assert(os.remove(file_name))
-         end
-
-         for i = #directories_to_remove, 1, -1 do
-            assert(lfs.rmdir(directories_to_remove[i]))
-         end
+         assert(temporary_files.rmdir_recursive(full_name))
       end)
    end
 
