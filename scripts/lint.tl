@@ -139,13 +139,14 @@ local function lint()
    local total_errors = 0
    local counts: {string:integer} = {}
 
-   for path in fs.scan_dir(".", {"src/cyan/**/*"}) do
+   for path in fs.scan_dir("src/", {"cyan/**/*", "testing/**/*"}) do
+      path:prepend("src")
       errors = {}
       local real_path <const> = path:to_real_path()
       local disp_path <const> = decoration.file_name(real_path)
       local text <const> = fs.read(real_path)
       local root <const> = teal_parser:parse_string(text, nil):root()
-      query:exec(root, nil, nil)
+      query:exec(root)
       total_errors = total_errors + #errors
       if #errors > 0 then
          warn(table.unpack(common.make_error_header(real_path, #errors, "lint")))

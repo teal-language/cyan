@@ -1,7 +1,7 @@
 return {
    build_dir = "tmp",
    source_dir = "src",
-   include_dir = { "src" },
+   include_dir = { "scripts", "src" },
 
    warning_error = { "unused", "redeclaration" },
 

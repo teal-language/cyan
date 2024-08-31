@@ -174,7 +174,7 @@ end
 --- Split a string by `del`, returning the substring that was matched
 ---
 --- Will error if the delimiter matches the empty string
-function str.split(s: string, del: string, no_patt: boolean): function(): string
+function str.split(s: string, del: string, no_patt?: boolean): function(): string
    local iter <const> = str.split_find(s, del, no_patt)
    return function(): string
       local a, b = iter()

@@ -47,7 +47,8 @@ local info <const> = log.info:copy(
 
 local modules <const> = {}
 local install <const> = {}
-for f in fs.scan_dir("src", {"**/*"}, {"**/*.d.tl"}) do
+for f in fs.scan_dir("src/cyan", {"**/*"}, {"**/*.d.tl"}) do
+   f:prepend("cyan")
    local f_str = f:tostring()
    local mod = f_str:sub(1, -4):gsub("/", ".")
    table.insert(install, {

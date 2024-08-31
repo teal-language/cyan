@@ -1,5 +1,9 @@
 
-SRC = $(wildcard src/cyan/*.tl) $(wildcard src/cyan/*/*.tl)
+SRC = \
+      $(wildcard src/cyan/*.tl) \
+      $(wildcard src/cyan/*/*.tl) \
+      $(wildcard src/spec/*.tl) \
+      $(wildcard src/spec/*/*.tl)
 LUA = $(SRC:src/%.tl=build/%.lua)
 
 TL = tl
@@ -12,14 +16,10 @@ build/%.lua: src/%.tl
 	$(TL) $(TLFLAGS) gen --check $< -o $@
 
 default: cyan rockspec
-cyan: build/cyan/fs build/cyan/experimental build/cyan/commands $(LUA)
+cyan: build_directories $(LUA)
 
-build/cyan/fs:
-	mkdir -p $@
-build/cyan/commands:
-	mkdir -p $@
-build/cyan/experimental:
-	mkdir -p $@
+build_directories:
+	mkdir -p build/cyan/{fs,commands,experimental} build/spec/api
 
 all: clean bootstrap docs rockspec test
 

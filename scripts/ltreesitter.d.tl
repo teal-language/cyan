@@ -47,8 +47,8 @@ local record ltreesitter
    end
    record Query userdata
       capture: function(Query, Node, start: integer | Point, end_: integer | Point): function(): (Node, string)  -- csrc/query.c:514
-      exec: function(Query, Node, start: integer | Point, end_: integer | Point)  -- csrc/query.c:602
-      match: function(Query, Node, start: integer | Point, end_: integer | Point): function(): Match  -- csrc/query.c:468
+      exec: function(Query, Node, start?: integer | Point, end_?: integer | Point)  -- csrc/query.c:602
+      match: function(Query, Node, start?: integer | Point, end_?: integer | Point): function(): Match  -- csrc/query.c:468
       source: function(Query): string  -- csrc/query.c:657
       with: function(Query, {string:function(...: string | Node | {Node}): any...}): Query  -- csrc/query.c:543
    end
