@@ -14,7 +14,6 @@ description = {
 dependencies = {
    "argparse",
    "luafilesystem",
-   "tl ~> 0.15",
    "luasystem >= 0.3.0",
 }
 build = {

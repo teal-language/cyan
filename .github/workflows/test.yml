@@ -30,6 +30,7 @@ jobs:
 
       - name: Build
         run: |
+          luarocks install tl --dev --branch=next-compat-api
           luarocks install luafilesystem # TODO: luarocks seems to grab the wrong version with --dev
           luarocks make --dev
           luarocks install busted
