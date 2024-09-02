@@ -6,6 +6,7 @@ return {
    warning_error = { "unused", "redeclaration" },
 
    gen_compat = "required",
+   feat_arity = "off",
 
 --   scripts = {
 --      build = {
