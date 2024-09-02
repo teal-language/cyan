@@ -15,16 +15,8 @@ local filter <const>, ivalues <const>, set <const>
 
 local insert <const> = table.insert
 
--- tl.Node is not exposed :((((((((((
-local type Node = any -- tl.Node
-
--- tl.Token also not exposed :((((((((
-local type Token = record
-   x: integer
-   y: integer
-   tk: string
-   kind: string
-end
+local type Node = tl.Node
+local type Token = tl.Token
 
 ---@desc
 --- The result from parsing source code including the tokens, ast, calls to require, and errors

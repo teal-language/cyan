@@ -20,14 +20,6 @@ local insert = table.insert
 
 
 
-
-
-
-
-
-
-
-
 local ParseResult = {}
 
 
