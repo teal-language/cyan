@@ -4,6 +4,7 @@
 
 local tl <const> = require("tl")
 
+local common <const> = require("cyan.tlcommon")
 local command <const> = require("cyan.command")
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
@@ -44,7 +45,8 @@ local function load_script(path: string): Loaded, string | tl.Result
       local box, err: sandbox.Sandbox, string
       local _, ext <const> = fs.extension_split(p)
       if ext == ".tl" then
-         local result <const>, proc_err <const> = tl.process(path)
+         local env = common.init_env_from_config({ feat_arity = "off" })
+         local result <const>, proc_err <const> = tl.process(path, env)
          if not result then
             return nil, proc_err
          end

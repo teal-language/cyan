@@ -4,6 +4,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local tl = require("tl")
 
+local common = require("cyan.tlcommon")
 local command = require("cyan.command")
 local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
@@ -44,7 +45,8 @@ local function load_script(path)
       local box, err
       local _, ext = fs.extension_split(p)
       if ext == ".tl" then
-         local result, proc_err = tl.process(path)
+         local env = common.init_env_from_config({ feat_arity = "off" })
+         local result, proc_err = tl.process(path, env)
          if not result then
             return nil, proc_err
          end
