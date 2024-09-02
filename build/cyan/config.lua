@@ -39,6 +39,7 @@ local Config = {}
 
 
 
+
 local config = {
    Config = Config,
 
@@ -102,6 +103,7 @@ function config.is_config(c)
 
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true, ["5.4"] = true },
+      feat_arity = { ["off"] = true, ["on"] = true },
 
       disable_warnings = "{string}",
       warning_error = "{string}",

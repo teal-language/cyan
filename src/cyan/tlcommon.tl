@@ -432,6 +432,8 @@ function common.init_env_from_config(cfg: config.Config): tl.Env, string
       return nil, err
    end
 
+   env.defaults.feat_arity = cfg.feat_arity
+
    return env
 end
 
