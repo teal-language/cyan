@@ -7,13 +7,13 @@ return {
 
    gen_compat = "required",
 
-   scripts = {
-      build = {
-         post = {
-            "scripts/gen_rockspec.tl",
-            "scripts/gen_documentation.tl",
-            "scripts/lint.tl",
-         },
-      },
-   },
+--   scripts = {
+--      build = {
+--         post = {
+--            "scripts/gen_rockspec.tl",
+--            "scripts/gen_documentation.tl",
+--            "scripts/lint.tl",
+--         },
+--      },
+--   },
 }
