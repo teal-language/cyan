@@ -273,9 +273,9 @@ Logger.inspector = tostring
 --- Creates a Logger as described above
 local function create_logger(
    stream: FILE,
-   verbosity_threshold: Verbosity,
-   prefix: string | decoration.Decorated,
-   cont: string | decoration.Decorated,
+   verbosity_threshold?: Verbosity,
+   prefix?: string | decoration.Decorated,
+   cont?: string | decoration.Decorated,
    inspector?: function(any): string
 ): Logger
    local result: Logger = {
