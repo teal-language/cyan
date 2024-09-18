@@ -28,6 +28,7 @@ local record Config
    -- { Command Name -> { Hook Name -> File(s) } }
    scripts: {string:{string:string|{string}}}
 
+   feat_arity: tl.Feat
    gen_compat: tl.GenCompat
    gen_target: tl.GenTarget
    disable_warnings: {tl.WarningKind}
@@ -99,6 +100,7 @@ function config.is_config(c: any): Config, {string}, {string}
       global_env_def = "string",
       scripts = "{string : {string : (string | {string}) }}",
 
+      feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true, ["5.4"] = true },
 

@@ -154,9 +154,8 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
 
    local type_check_options <const> = {
-      -- TODO: command line feature flags
       feat_lax = "off",
-      feat_arity = "on",
+      feat_arity = loaded_config.feat_arity,
 
       gen_compat = loaded_config.gen_compat,
       gen_target = loaded_config.gen_target,

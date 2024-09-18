@@ -38,6 +38,7 @@ local Config = {}
 
 
 
+
 local config = {
    Config = Config,
 
@@ -99,6 +100,7 @@ function config.is_config(c)
       global_env_def = "string",
       scripts = "{string : {string : (string | {string}) }}",
 
+      feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
       gen_target = { ["5.1"] = true, ["5.3"] = true, ["5.4"] = true },
 

@@ -154,9 +154,8 @@ local function build(args, loaded_config, starting_dir)
    end
 
    local type_check_options = {
-
       feat_lax = "off",
-      feat_arity = "on",
+      feat_arity = loaded_config.feat_arity,
 
       gen_compat = loaded_config.gen_compat,
       gen_target = loaded_config.gen_target,

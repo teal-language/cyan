@@ -5,6 +5,7 @@ return {
 
    warning_error = { "unused", "redeclaration" },
 
+   feat_arity = "on",
    gen_compat = "required",
 
    scripts = {

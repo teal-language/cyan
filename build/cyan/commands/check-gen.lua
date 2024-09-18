@@ -80,7 +80,7 @@ local function command_exec(should_compile)
          local result, err = tl.check(parsed.ast, real_path, {
 
             feat_lax = "off",
-            feat_arity = "on",
+            feat_arity = loaded_config.feat_arity,
 
             gen_compat = loaded_config.gen_compat,
             gen_target = loaded_config.gen_target,

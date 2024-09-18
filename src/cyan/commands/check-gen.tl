@@ -80,7 +80,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
          local result <const>, err <const> = tl.check(parsed.ast, real_path, {
             -- TODO: feature flags
             feat_lax = "off",
-            feat_arity = "on",
+            feat_arity = loaded_config.feat_arity,
 
             gen_compat = loaded_config.gen_compat,
             gen_target = loaded_config.gen_target,
