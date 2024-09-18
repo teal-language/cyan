@@ -21,15 +21,16 @@ jobs:
       - uses: actions/checkout@main
 
       - name: Install Lua
-        uses: leafo/gh-actions-lua@v10.0.0
+        uses: hishamhm/gh-actions-lua@master
         with:
           luaVersion: ${{ matrix.luaVersion }}
 
       - name: Install LuaRocks
-        uses: leafo/gh-actions-luarocks@v4.3.0
+        uses: hishamhm/gh-actions-luarocks@master
 
       - name: Build
         run: |
+          luarocks install tl --dev --branch=next
           luarocks install luafilesystem # TODO: luarocks seems to grab the wrong version with --dev
           luarocks make --dev
           luarocks install busted
