@@ -44,7 +44,7 @@ local function load_script(path: string): Loaded, string | tl.Result
       local box, err: sandbox.Sandbox, string
       local _, ext <const> = fs.extension_split(p)
       if ext == ".tl" then
-         local result <const>, proc_err <const> = tl.process(path, nil)
+         local result <const>, proc_err <const> = tl.check_file(path, nil)
          if not result then
             return nil, proc_err
          end
@@ -52,7 +52,12 @@ local function load_script(path: string): Loaded, string | tl.Result
             or #result.type_errors > 0 then
             return nil, result
          end
-         box, err = sandbox.from_string(tl.pretty_print_ast(result.ast, nil), path, _G)
+         local generated: string
+         generated, err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+         if not generated then
+            return nil, err
+         end
+         box, err = sandbox.from_string(generated, path, _G)
       else
          box, err = sandbox.from_file(path, _G)
       end

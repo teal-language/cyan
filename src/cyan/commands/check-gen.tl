@@ -5,6 +5,7 @@
 
 local argparse <const> = require("argparse")
 
+local tl <const> = require("tl")
 local config <const> = require("cyan.config")
 local common <const> = require("cyan.tlcommon")
 local command <const> = require("cyan.command")
@@ -75,7 +76,8 @@ local function command_exec(should_compile: boolean): command.CommandFn
             exit = 1
             return
          end
-         local result <const>, err <const> = common.type_check_ast(parsed.ast, real_path, {
+
+         local result <const>, err <const> = tl.check(parsed.ast, real_path, {
             -- TODO: feature flags
             feat_lax = "off",
             feat_arity = "on",
@@ -126,7 +128,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
          for data in ivalues(to_write) do
             local fh <const>, err <const> = io.open(data.outfile:to_real_path(), "w")
             if fh then
-               local generated <const>, gen_err <const> = common.compile_ast(data.output_ast, loaded_config.gen_target)
+               local generated <const>, gen_err <const> = tl.generate(data.output_ast, loaded_config.gen_target) -- TODO: gen_options
                if generated then
                   fh:write(generated, "\n")
                   fh:close()

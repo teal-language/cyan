@@ -15,23 +15,11 @@ local filter <const>, ivalues <const>, set <const>
 
 local insert <const> = table.insert
 
--- tl.Node is not exposed :((((((((((
-local interface Node
-end
-
--- tl.Token also not exposed :((((((((
-local type Token = record
-   x: integer
-   y: integer
-   tk: string
-   kind: string
-end
-
 ---@desc
 --- The result from parsing source code including the tokens, ast, calls to require, and errors
 local record ParseResult
-   tks: {Token}
-   ast: Node
+   tks: {tl.Token}
+   ast: tl.Node
    reqs: {string}
    errs: {tl.Error}
 end
@@ -40,24 +28,23 @@ local common <const> = {
    ParseResult = ParseResult,
 }
 
-local lex_cache <const>: {string:{{Token}, {tl.Error}}} = {}
+local lex_cache <const>: {string:{{tl.Token}, {tl.Error}}} = {}
 
 ---@desc
 --- reads a file, calls `tl.lex` on its contents, caches and returns the results
-function common.lex_file(path: string): {Token}, {tl.Error}, string
+function common.lex_file(path: string): {tl.Token}, {tl.Error}, string
    if not lex_cache[path] then
       local src <const>, read_err <const> = fs.read(path)
       if not src then
          return nil, nil, read_err
       end
-      local tks <const>, errs <const> = tl.lex(src, path) as ({Token}, {tl.Error})
+      local tks <const>, errs <const> = tl.lex(src, path) as ({tl.Token}, {tl.Error})
       lex_cache[path] = {tks, errs}
       return tks, errs
    end
    return lex_cache[path][1], lex_cache[path][2]
 end
 
-local parse_program <const> = tl.parse_program as function({Token}, {tl.Error}, string): (Node, {string})
 local parse_cache <const>: {string:ParseResult} = {}
 
 ---@desc
@@ -76,7 +63,7 @@ function common.parse_file(path: string): ParseResult, string
          }
       else
          local errs <const>: {tl.Error} = {}
-         local ast <const>, reqs <const> = parse_program(tks, errs, path)
+         local ast <const>, reqs <const> = tl.parse_program(tks, errs, path)
 
          parse_cache[path] = {
             tks = tks,
@@ -87,13 +74,6 @@ function common.parse_file(path: string): ParseResult, string
       end
    end
    return parse_cache[path]
-end
-
-local type_check <const> = tl.type_check as function(ast: Node, filename: string, opts: tl.TypeCheckOptions, env?: tl.Env): (tl.Result, string)
----@desc
---- Just type checks an ast
-function common.type_check_ast(ast: Node, filename: string, opts: tl.TypeCheckOptions, env: tl.Env): tl.Result, string
-   return type_check(ast, filename, opts, env)
 end
 
 ---@desc
@@ -175,7 +155,7 @@ local decoration_by_kind <const>: {string:decoration.Decoration} = {
 
 local monospace <const>: decoration.Decoration = { monospace = true }
 
-local function decorate_token(tk: Token): decoration.Decorated
+local function decorate_token(tk: tl.Token): decoration.Decorated
    if decoration_by_content[tk.tk] then
       return decoration.decorate(tk.tk, decoration_by_content[tk.tk])
    end
@@ -190,7 +170,7 @@ end
 --- like keywords, operators, and more.
 function common.syntax_highlight(s: string): {decoration.Decorated}
    local buf <const>: {decoration.Decorated} = {}
-   local tks <const> = tl.lex(s, "") as {Token}
+   local tks <const> = tl.lex(s, "")
    local last_x = 1
    for tk in ivalues(tks) do
       -- account for tabs
@@ -338,11 +318,6 @@ function common.init_teal_env(gen_compat: boolean | tl.GenCompat, gen_target: tl
    return tl.init_env(false, gen_compat, gen_target, {env_def})
 end
 
-local pretty_print_ast <const> = tl.pretty_print_ast as function(Node, tl.GenTarget): (string, string)
-function common.compile_ast(ast: Node, mode: tl.GenTarget): string, string
-   return pretty_print_ast(ast, mode)
-end
-
 ---@desc
 --- use `log.warn` and `log.err` to report errors and warnings from `config.load`
 function common.report_config_errors(errs: {string}, warnings: {string}): boolean
@@ -357,19 +332,19 @@ function common.report_config_errors(errs: {string}, warnings: {string}): boolea
 end
 
 function common.type_check_and_load_file(path: string, env: tl.Env, c: config.Config): function, string
-   local result <const>, err <const> = tl.process(path, env)
+   local result <const>, err <const> = tl.check_file(path, env)
    if not result then
       return nil, err
    end
    if not common.report_result(result, c) then
       return nil
    end
-   return load(
-      pretty_print_ast(result.ast as Node, nil),
-      path,
-      "t",
-      _G as table
-   )
+
+   local generated <const>, gen_err <const> = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+   if not generated then
+      return nil, gen_err
+   end
+   return load(generated, path, "t", _G as table)
 end
 
 local found_modules: {string:fs.Path} = {}

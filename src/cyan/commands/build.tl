@@ -181,7 +181,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          return
       end
 
-      local result <const>, check_ast_err <const> = common.type_check_ast(parsed.ast, path, type_check_options, env)
+      local result <const>, check_ast_err <const> = tl.check(parsed.ast, path, type_check_options, env)
       if not result then
          log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
          exit = 1
@@ -230,7 +230,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          log.err("Error opening file ", display_filename(n.output), ": ", err)
          exit = 1
       else
-         local generated <const>, gen_err <const> = common.compile_ast(ast, loaded_config.gen_target)
+         local generated <const>, gen_err <const> = tl.generate(ast, loaded_config.gen_target) -- TODO: gen_options
          if generated then
             fh:write(generated, "\n")
             fh:close()

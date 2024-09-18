@@ -17,18 +17,6 @@ local insert = table.insert
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 local ParseResult = {}
 
 
@@ -57,7 +45,6 @@ function common.lex_file(path)
    return lex_cache[path][1], lex_cache[path][2]
 end
 
-local parse_program = tl.parse_program
 local parse_cache = {}
 
 
@@ -76,7 +63,7 @@ function common.parse_file(path)
          }
       else
          local errs = {}
-         local ast, reqs = parse_program(tks, errs, path)
+         local ast, reqs = tl.parse_program(tks, errs, path)
 
          parse_cache[path] = {
             tks = tks,
@@ -87,13 +74,6 @@ function common.parse_file(path)
       end
    end
    return parse_cache[path]
-end
-
-local type_check = tl.type_check
-
-
-function common.type_check_ast(ast, filename, opts, env)
-   return type_check(ast, filename, opts, env)
 end
 
 
@@ -338,11 +318,6 @@ function common.init_teal_env(gen_compat, gen_target, env_def)
    return tl.init_env(false, gen_compat, gen_target, { env_def })
 end
 
-local pretty_print_ast = tl.pretty_print_ast
-function common.compile_ast(ast, mode)
-   return pretty_print_ast(ast, mode)
-end
-
 
 
 function common.report_config_errors(errs, warnings)
@@ -357,19 +332,19 @@ function common.report_config_errors(errs, warnings)
 end
 
 function common.type_check_and_load_file(path, env, c)
-   local result, err = tl.process(path, env)
+   local result, err = tl.check_file(path, env)
    if not result then
       return nil, err
    end
    if not common.report_result(result, c) then
       return nil
    end
-   return load(
-   pretty_print_ast(result.ast, nil),
-   path,
-   "t",
-   _G)
 
+   local generated, gen_err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+   if not generated then
+      return nil, gen_err
+   end
+   return load(generated, path, "t", _G)
 end
 
 local found_modules = {}

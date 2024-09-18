@@ -235,8 +235,8 @@ emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string
    local body <const> = n:child_by_field_name("record_body")
    assertf(body, "record_body is nil for %s", tostring(n))
 
-   local fields <const> = {}
-   local private_fields <const> = {}
+   local fields <const>: {string} = {}
+   local private_fields <const>: {string} = {}
 
    for c in body:named_children() do
       if c:type() == "field" then

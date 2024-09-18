@@ -5,6 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local argparse = require("argparse")
 
+local tl = require("tl")
 local config = require("cyan.config")
 local common = require("cyan.tlcommon")
 local command = require("cyan.command")
@@ -75,7 +76,8 @@ local function command_exec(should_compile)
             exit = 1
             return
          end
-         local result, err = common.type_check_ast(parsed.ast, real_path, {
+
+         local result, err = tl.check(parsed.ast, real_path, {
 
             feat_lax = "off",
             feat_arity = "on",
@@ -126,7 +128,7 @@ local function command_exec(should_compile)
          for data in ivalues(to_write) do
             local fh, err = io.open(data.outfile:to_real_path(), "w")
             if fh then
-               local generated, gen_err = common.compile_ast(data.output_ast, loaded_config.gen_target)
+               local generated, gen_err = tl.generate(data.output_ast, loaded_config.gen_target)
                if generated then
                   fh:write(generated, "\n")
                   fh:close()
