@@ -36,10 +36,10 @@ end
 --- is provided.
 function interaction.yes_no_prompt(
    prompt: string | decoration.Decorated,
-   logger: log.Logger,
-   default: boolean,
-   affirm: {string},
-   deny: {string}
+   logger?: log.Logger,
+   default?: boolean,
+   affirm?: {string},
+   deny?: {string}
 ): boolean
    logger = logger or log.info
    affirm = affirm or yesses
