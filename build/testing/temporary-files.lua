@@ -107,10 +107,6 @@ function temporary_files.write_directory(
    return full_name
 end
 
-local function launder(x)
-   return x
-end
-
 function temporary_files.get_dir_structure(dir_name)
 
    local dir_structure = {}
@@ -123,7 +119,7 @@ function temporary_files.get_dir_structure(dir_name)
          end
       end
    end
-   return launder(dir_structure)
+   return dir_structure
 end
 
 function temporary_files.do_in(dir, func)

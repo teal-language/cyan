@@ -107,13 +107,9 @@ function temporary_files.write_directory(
    return full_name
 end
 
-local function launder<T>(x: any): T
-   return x as T
-end
-
 function temporary_files.get_dir_structure(dir_name: string): DirectorySet
    -- basically run `tree` and put it into a table
-   local dir_structure: table = {}
+   local dir_structure: DirectorySet = {}
    for fname in lfs.dir(dir_name) do
       if fname ~= ".." and fname ~= "." then
          if lfs.attributes(dir_name .. "/" .. fname, "mode") == "directory" then
@@ -123,7 +119,7 @@ function temporary_files.get_dir_structure(dir_name: string): DirectorySet
          end
       end
    end
-   return launder(dir_structure)
+   return dir_structure
 end
 
 function temporary_files.do_in(dir: string, func: function())
