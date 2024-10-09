@@ -100,7 +100,7 @@ function runners.run_mock_project(
    temporary_files.do_in(actual_dir_name, function()
       local cmd <const> = runners.cyan_command(project.cmd, table.unpack(project.args or {})) .. " 2>&1"
       pd = assert(io.popen(cmd, "r"))
-      actual_output = pd:read("a")
+      actual_output = pd:read("*a")
       if expected_dir_structure then
          actual_dir_structure = temporary_files.get_dir_structure(".")
       end
