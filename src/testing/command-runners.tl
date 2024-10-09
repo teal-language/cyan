@@ -154,6 +154,10 @@ end
 -- TODO: #Subprocess
 --
 -- We should have a proper subprocess module to get stdout and stderr
+-- for now, the returned exit code may be nil due to luajit's behavior
+--
+-- see:
+-- https://github.com/LuaJIT/LuaJIT/blob/97813fb924edf822455f91a5fbbdfdb349e5984f/src/lib_io.c#L105-L107
 function runners.run_command(cmd: string): string, integer
    local pd <const> = io.popen(cmd, "r")
    local output <const> = pd:read("*a")

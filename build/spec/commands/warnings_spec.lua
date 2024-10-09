@@ -6,7 +6,9 @@ local command_runners = require("testing.command-runners")
 describe("warnings command", function()
    it("should display all warnings the compiler can generate (and display them only once)", function()
       local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings"))
-      luassert.are_equal(exit_code, 0)
+      if exit_code then
+         luassert.are_equal(0, exit_code)
+      end
       luassert(out)
       local kinds = {}
       for k, v in pairs(tl.warning_kinds) do
@@ -23,7 +25,9 @@ describe("warnings command", function()
 
    it("should show all warnings as disabled with '--wdisable all'", function()
       local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings", "--wdisable", "all"))
-      luassert.are_equal(exit_code, 0)
+      if exit_code then
+         luassert.are_equal(0, exit_code)
+      end
       luassert(out)
       local kinds = {}
       for k, v in pairs(tl.warning_kinds) do
@@ -41,7 +45,9 @@ describe("warnings command", function()
 
    it("should show all warnings as errors with '--werror all'", function()
       local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings", "--werror", "all"))
-      luassert.are_equal(exit_code, 0)
+      if exit_code then
+         luassert.are_equal(0, exit_code)
+      end
       luassert(out)
       local kinds = {}
       for k, v in pairs(tl.warning_kinds) do
