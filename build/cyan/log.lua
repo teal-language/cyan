@@ -300,7 +300,8 @@ end
 
 
 
-function Logger:copy(   new_prefix,
+function Logger:copy(
+   new_prefix,
    new_continuation)
 
    return create_logger(
