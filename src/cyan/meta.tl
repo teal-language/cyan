@@ -2,5 +2,5 @@
 --- Meta information about Cyan itself
 
 return {
-   version = "0.3.1+dev",
+   version = "0.4.0",
 }
