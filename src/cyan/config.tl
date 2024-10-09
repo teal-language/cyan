@@ -89,7 +89,6 @@ function config.is_config(c: any): Config, {string}, {string}
    local valid_keys <const>: {string:string|{string:boolean}} = {
       build_dir = "string",
       source_dir = "string",
-      module_name = "string",
 
       include = "{string}",
       exclude = "{string}",

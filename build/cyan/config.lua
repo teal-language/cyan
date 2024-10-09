@@ -89,7 +89,6 @@ function config.is_config(c)
    local valid_keys = {
       build_dir = "string",
       source_dir = "string",
-      module_name = "string",
 
       include = "{string}",
       exclude = "{string}",
