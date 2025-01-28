@@ -21,6 +21,7 @@ dependencies = {
    "luafilesystem",
    "tl >= 0.24.0",
    "luasystem >= 0.3.0",
+   "lexical-path ~> 0.1",
 }
 build = {
    type = "builtin",
@@ -40,6 +41,7 @@ build = {
 
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
+local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 
 local info <const> = log.info:copy(
@@ -49,17 +51,16 @@ local info <const> = log.info:copy(
 
 local modules <const> = {}
 local install <const> = {}
-for f in fs.scan_dir("src/cyan", {"**/*"}, {"**/*.d.tl"}) do
-   f:prepend("cyan")
-   local f_str = f:tostring()
-   local mod = f_str:sub(1, -4):gsub("/", ".")
+for f in fs.scan_directory(lexical_path.from_unix("src/cyan"), {"**/*"}, {"**/*.d.tl"}) do
+   local f_str <const> = f:to_string("/")
+   local mod <const> = "cyan." .. f_str:sub(1, -4):gsub("/", ".")
    table.insert(install, {
       mod,
-      "src/" .. f_str,
+      "src/cyan/" .. f_str,
    })
    table.insert(modules, {
       mod,
-      "build/" .. f_str:gsub("%.tl$", ".lua"),
+      "build/cyan/" .. f_str:gsub("%.tl$", ".lua"),
    })
 end
 local function cmp(a: {string, string}, b: {string, string}): boolean

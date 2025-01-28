@@ -9,6 +9,7 @@ local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
 local tl = require("tl")
+local lexical_path = require("lexical-path")
 
 local filter, ivalues, set =
 util.tab.filter, util.tab.ivalues, util.tab.set
@@ -354,8 +355,10 @@ function common.search_module(name, search_dtl)
    local key = name .. ":" .. (search_dtl and "t" or "f")
    if not found_modules[key] then
       local found, fd = tl.search_module(name, search_dtl)
-      if found then fd:close() end
-      found_modules[key] = fs.path.new(found, false)
+      if found then
+         fd:close()
+         found_modules[key] = lexical_path.from_os(found)
+      end
    end
    return found_modules[key]
 end
@@ -365,17 +368,17 @@ end
 
 
 function common.prepend_to_lua_path(path_str)
-   if path_str:sub(-1) == fs.path.separator then
+   if path_str:sub(-1) == fs.path_separator then
       path_str = path_str:sub(1, -2)
    end
 
-   path_str = path_str .. fs.path.separator
+   path_str = path_str .. fs.path_separator
 
    package.path = path_str .. "?.lua;" ..
-   path_str .. "?" .. fs.path.separator .. "init.lua;" ..
+   path_str .. "?" .. fs.path_separator .. "init.lua;" ..
    package.path
 
-   package.cpath = path_str .. "?." .. fs.path.shared_lib_ext .. ";" ..
+   package.cpath = path_str .. "?." .. fs.shared_lib_extension .. ";" ..
    package.cpath
 end
 

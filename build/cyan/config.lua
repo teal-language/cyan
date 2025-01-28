@@ -7,9 +7,15 @@ local tl = require("tl")
 local fs = require("cyan.fs")
 local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
+local lexical_path = require("lexical-path")
 
 local keys, sort, from, values, ivalues =
 util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
+
+
+
+
+
 
 
 
@@ -178,9 +184,9 @@ function config.is_config(c_in)
 
          return
       end
-      local as_path = fs.path.new(val, false)
-      if as_path:is_absolute() then
-         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_real_path()))
+      local as_path = lexical_path.from_unix(val)
+      if as_path.is_absolute then
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string()))
       end
    end
    verify_non_absolute_path("source_dir")
@@ -218,7 +224,7 @@ end
 
 
 function config.find()
-   return fs.search_parent_dirs(fs.cwd(), config.filename)
+   return fs.search_parent_dirs(fs.current_directory(), config.filename)
 end
 
 
@@ -239,7 +245,7 @@ function config.load()
 
    local cfg, errs, warnings = config.is_config(maybe_config)
    if cfg then
-      cfg.loaded_from = fs.cwd() .. config.filename
+      cfg.loaded_from = fs.current_directory() .. config.filename
    end
    return cfg, errs, warnings
 end

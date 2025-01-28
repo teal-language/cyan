@@ -7,6 +7,7 @@ local fs = require("cyan.fs")
 local log = require("cyan.log")
 local sandbox = require("cyan.sandbox")
 local tl = require("tl")
+local lexical_path = require("lexical-path")
 
 local function add_to_argparser(cmd)
    cmd:argument("script", "The Teal script to run."):
@@ -21,7 +22,7 @@ local function run(args, loaded_config, starting_dir)
    end
 
    do
-      local ok, err = fs.chdir(starting_dir)
+      local ok, err = fs.change_directory(starting_dir)
       if not ok then
          log.err("Could not change directory: ", err)
          return 1

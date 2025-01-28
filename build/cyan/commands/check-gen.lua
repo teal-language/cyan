@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -13,6 +13,7 @@ local decoration = require("cyan.decoration")
 local log = require("cyan.log")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
+local lexical_path = require("lexical-path")
 
 local map_ipairs, ivalues =
 util.tab.map_ipairs, util.tab.ivalues
@@ -26,18 +27,18 @@ local function command_exec(should_compile)
 
       local function get_output_filename(path)
          if args["output"] then
-            local p = fs.path.new(args["output"], true)
-            if not p:is_absolute() then
-               p:prepend(starting_dir)
+            local p = lexical_path.from_os(args["output"])
+            if not p.is_absolute then
+               p = starting_dir .. p
             end
             return p
          end
          local new = path:copy()
-         local base, ext = fs.extension_split(path[#path])
-         if ext == ".lua" then
-            new[#new] = base .. ".out.lua"
+         local ext = path:extension():lower()
+         if ext == "lua" then
+            new[#new] = new[#new]:sub(1, -#ext - 2) .. ".out.lua"
          else
-            new[#new] = base .. ".lua"
+            new[#new] = new[#new]:sub(1, -#ext - 2) .. ".lua"
          end
          return new
       end
@@ -50,19 +51,23 @@ local function command_exec(should_compile)
 
       local exit = 0
 
-      local current_dir = fs.cwd()
+      local current_dir = fs.current_directory()
+      local function ensure_abs_path(p)
+         if p.is_absolute then return p end
+         return current_dir .. p
+      end
       local to_write = {}
       local function process_file(path)
-         local disp_file = decoration.file_name(path:relative_to(starting_dir):tostring())
-         if not path:is_file() then
+         local disp_file = decoration.file_name(assert(ensure_abs_path(path):relative_to(starting_dir)))
+         if not fs.is_file(path) then
             log.err(disp_file, " is not a file")
             exit = 1
             return
          end
 
-         local real_path = path:to_real_path()
+         local real_path = path:to_string()
          local outfile = get_output_filename(path)
-         local disp_outfile = decoration.file_name(outfile:relative_to(starting_dir):tostring())
+         local disp_outfile = decoration.file_name((assert(ensure_abs_path(outfile):relative_to(starting_dir))))
 
          local parsed, perr = common.parse_file(real_path)
          if not parsed then
@@ -106,10 +111,9 @@ local function command_exec(should_compile)
       end
 
       local function fix_path(f)
-         local p = fs.path.new(f, true)
-         if not p:is_absolute() then
-            p:prepend(starting_dir)
-            p:remove_leading(current_dir)
+         local p = lexical_path.from_os(f)
+         if not p.is_absolute then
+            p = assert((starting_dir .. p):relative_to(current_dir))
          end
          return p
       end
@@ -126,7 +130,7 @@ local function command_exec(should_compile)
          if exit ~= 0 then return exit end
 
          for data in ivalues(to_write) do
-            local fh, err = io.open(data.outfile:to_real_path(), "w")
+            local fh, err = io.open(data.outfile:to_string(), "w")
             if fh then
                local generated, gen_err = tl.generate(data.output_ast, loaded_config.gen_target)
                if generated then

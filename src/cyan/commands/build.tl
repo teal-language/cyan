@@ -11,28 +11,29 @@ local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
 local log <const> = require("cyan.log")
 local script <const> = require("cyan.script")
+local lexical_path <const> = require("lexical-path")
 local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
 
-local function exists_and_is_dir(prefix: string, p: fs.Path): boolean
-   if not p:exists() then
-      log.err(string.format("%s %q does not exist", prefix, p:to_real_path()))
+local function exists_and_is_dir(prefix: string, p: lexical_path.Path): boolean
+   if not fs.exists(p) then
+      log.err(prefix, " \"", decoration.file_name(p), "\" does not exist")
       return false
    end
-   if not p:is_directory() then
-      log.err(string.format("%s %q is not a directory", prefix, p:to_real_path()))
+   if not fs.is_directory(p) then
+      log.err(prefix, " \"", decoration.file_name(p), "\" is not a directory")
       return false
    end
    return true
 end
 
 -- in the event that an out of project dependency has a type error, we should report it
-local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
+local function report_dep_errors(env: tl.Env, source_dir: lexical_path.Path): boolean
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res <const> = env.loaded[name]
-      if not fs.path.new(res.filename, true):is_in(source_dir, false) then
+      if not lexical_path.from_os(res.filename):is_in(source_dir) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
                common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
@@ -47,29 +48,40 @@ local function report_dep_errors(env: tl.Env, source_dir: fs.Path): boolean
    return ok
 end
 
-local function build(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
+local function build(args: command.Args, loaded_config: config.Config, starting_dir: lexical_path.Path): integer
    if not loaded_config.loaded_from then
       log.err(config.filename, " not found")
       return 1
    end
 
-   local source_dir <const> = fs.path.new(loaded_config.source_dir or "./", false)
+   -- TODO: #ConfigPaths
+   local source_dir <const> = lexical_path.from_unix(loaded_config.source_dir or ".")
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
+   assert(not source_dir.is_absolute)
 
-   local build_dir <const> = fs.path.new(loaded_config.build_dir or "./", false)
-
-   if not build_dir:exists() then
-      local succ <const>, err <const> = build_dir:mkdir()
+   local build_dir <const> = lexical_path.from_unix(loaded_config.build_dir or ".")
+   assert(not build_dir.is_absolute)
+   if not fs.exists(build_dir) then
+      local succ <const>, err <const> = fs.make_directory(build_dir)
       if not succ then
-         log.err(string.format("Failed to create build dir %q: %s", build_dir:to_real_path(), err))
+         log.err("Failed to create build dir ", decoration.file_name(build_dir), ": ", err)
          return 1
       end
-   elseif not build_dir:is_directory() then
-      log.err(string.format("Build dir %q is not a directory", build_dir:to_real_path()))
+   elseif not fs.is_directory(build_dir) then
+      log.err("Build dir \"", decoration.file_name(build_dir), "\" is not a directory")
       return 1
    end
+
+   local current_dir <const> = fs.current_directory()
+   local function ensure_abs_path(p: lexical_path.Path): lexical_path.Path
+      if p.is_absolute then return p end
+      return current_dir .. p
+   end
+
+   local abs_build_dir <const> = ensure_abs_path(build_dir)
+   local abs_source_dir <const> = ensure_abs_path(source_dir)
 
    local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
    if not env then
@@ -83,12 +95,12 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
 
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude and { table.unpack(loaded_config.exclude) } or {}
-   if source_dir == starting_dir then
+   if abs_source_dir == starting_dir then
       table.insert(exclude, "tlconfig.lua")
    end
    local dont_write_lua_files <const> = source_dir == build_dir
 
-   local dag <const>, cycles <const> = graph.scan_dir(source_dir, include, exclude)
+   local dag <const>, cycles <const> = graph.scan_directory(source_dir, include, exclude)
    if not dag then
       log.err(
          "Circular dependency detected in the following files:\n   ",
@@ -106,34 +118,32 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          else
             log.debug:cont("   ", k, " has dependents:")
             for dependent in pairs(v.dependents) do
-               log.debug:cont("      ", dependent.input:tostring())
+               log.debug:cont("      ", dependent.input:to_string())
             end
          end
       end
    end
 
-   local function display_filename(f: fs.Path, trailing_slash?: boolean): decoration.Decorated
-      return decoration.file_name(f:relative_to(starting_dir):tostring() .. (trailing_slash and "/" or ""))
+   local function display_filename(f: lexical_path.Path, trailing_slash?: boolean): decoration.Decorated
+      return decoration.file_name(assert(ensure_abs_path(f):relative_to(starting_dir)):to_string() .. (trailing_slash and fs.path_separator or ""))
    end
 
-   local function get_output_name(src: fs.Path): fs.Path
-      local out <const> = src:copy()
-      out:remove_leading(source_dir)
-      out:prepend(build_dir)
-      local base <const>, ext <const> = fs.extension_split(out[#out])
-      if ext == ".tl" then
-         out[#out] = base .. ".lua"
+   local function get_output_name(src: lexical_path.Path): lexical_path.Path
+      local out <const> = build_dir .. assert(src:relative_to(source_dir))
+      local ext <const> = out:extension():lower()
+      if ext:lower() == "tl" then
+         out[#out] = out[#out]:sub(1, -#ext - 2) .. ".lua"
       end
       return out
    end
 
-   local function source_is_newer(src: fs.Path): boolean
+   local function source_is_newer(src: lexical_path.Path): boolean
       local target <const> = get_output_name(src)
       local newer: boolean
       if args.update_all then
          newer = true
       else
-         local in_t <const>, out_t <const> = src:mod_time(), target:mod_time() or -1
+         local in_t <const>, out_t <const> = fs.mod_time(src), fs.mod_time(target) or -1
          newer = in_t > out_t
       end
       if newer then
@@ -163,7 +173,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
 
    local to_write <const> = {}
    local function process_node(n: graph.Node, compile: boolean)
-      local path <const> = n.input:to_real_path()
+      local path <const> = n.input:to_string()
       local disp_path <const> = display_filename(n.input)
       log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out <const> = get_output_name(n.input)
@@ -197,9 +207,9 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          return
       end
 
-      local is_lua <const> = select(2, fs.extension_split(path)) == ".lua"
+      local is_lua <const> = n.input:extension():lower() == "lua"
       if compile and not (is_lua and dont_write_lua_files) then
-         local ok <const>, err <const> = n.output:mk_parent_dirs()
+         local ok <const>, err <const> = fs.make_parent_directories(n.output)
          if ok then
             table.insert(to_write, {n, parsed.ast})
          else
@@ -224,7 +234,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
 
    for node_ast in ivalues(to_write) do
       local n <const>, ast <const> = node_ast[1], node_ast[2]
-      local fh <const>, err <const> = io.open(n.output:to_real_path(), "w")
+      local fh <const>, err <const> = io.open(n.output:to_string(), "w")
       if not fh then
          log.err("Error opening file ", display_filename(n.output), ": ", err)
          exit = 1
@@ -251,34 +261,34 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       local expected_files <const> = {}
       for n in dag:nodes() do
          log.debug(n.input, " -> ", get_output_name(n.input))
-         local p = get_output_name(n.input)
-         p:remove_leading(build_dir)
-         expected_files[p:tostring()] = true
+         local p <const> = assert(get_output_name(n.input):remove_leading(build_dir))
+         expected_files[p:to_string()] = true
          for ancestor in p:ancestors() do
-            expected_files[ancestor:tostring()] = true
+            expected_files[ancestor:to_string()] = true
          end
       end
 
-      local unexpected_files <const>: {fs.Path} = {}
-      local unexpected_directories <const>: {fs.Path} = {}
-      for p in fs.scan_dir(build_dir, nil, nil, true) do
-         log.debug("checking if ", p:tostring(), " is expected...")
+      local unexpected_files <const>: {lexical_path.Path} = {}
+      local unexpected_directories <const>: {lexical_path.Path} = {}
+      local dont_prune <const> = util.tab.map(loaded_config.dont_prune or {}, lexical_path.parse_pattern)
+      for p in fs.scan_directory(build_dir, nil, nil, true) do
+         log.debug("checking if ", p:to_string(), " is expected...")
          local full <const> = build_dir .. p
-         local _, ignore_patt <const> = full:match_any(loaded_config.dont_prune or {})
-         if ignore_patt then
-            log.debug("   yes (ignored by pattern ", ignore_patt, ")")
-         elseif expected_files[p:tostring()] then
+         local pattern_index <const> = fs.match_any(full, dont_prune)
+         if pattern_index then
+            log.debug("   yes (ignored by pattern ", dont_prune[pattern_index], ")")
+         elseif expected_files[p:to_string()] then
             log.debug("   yes")
          else
             log.debug("   no")
-            table.insert(full:is_directory() and unexpected_directories or unexpected_files, p)
+            table.insert(fs.is_directory(full) and unexpected_directories or unexpected_files, p)
          end
       end
 
       -- sort directory names by length so that more nested directories are removed first
-      table.sort(unexpected_directories, function(a: fs.Path, b: fs.Path): boolean
-         local a_str <const> = a:tostring()
-         local b_str <const> = b:tostring()
+      table.sort(unexpected_directories, function(a: lexical_path.Path, b: lexical_path.Path): boolean
+         local a_str <const> = a:to_string()
+         local b_str <const> = b:to_string()
          if #a_str > #b_str then
             return true
          end
@@ -287,12 +297,12 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
 
       if #unexpected_files > 0 or #unexpected_directories > 0 then
          if args.prune then
-            local cwd <const> = fs.cwd()
-            local function prune(p: fs.Path, kind: string)
-               local file <const> = build_dir .. p
+            local cwd <const> = fs.current_directory()
+            local function prune(p: lexical_path.Path, kind: string)
+               local file <const> = abs_build_dir .. p
                local disp <const> = display_filename(file)
-               local real <const> = file:relative_to(cwd)
-               local ok <const>, err <const> = os.remove(real:to_real_path())
+               local real <const> = assert(file:relative_to(cwd))
+               local ok <const>, err <const> = os.remove(real:to_string())
                if ok then
                   log.info("Pruned ", kind, " ", disp)
                else

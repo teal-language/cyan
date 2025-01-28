@@ -6,9 +6,9 @@ local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
 local config <const> = require("cyan.config")
-local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
+local lexical_path <const> = require("lexical-path")
 
 local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>, ivalues <const>
    = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues
@@ -40,7 +40,7 @@ local record Args
    force: boolean
 end
 
-local type CommandFn = function(Args, config.Config, fs.Path): integer
+local type CommandFn = function(Args, config.Config, lexical_path.Path): integer
 
 ---@desc
 --- The interface

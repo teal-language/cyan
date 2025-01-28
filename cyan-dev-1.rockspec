@@ -18,6 +18,7 @@ dependencies = {
    "luafilesystem",
    "tl >= 0.24.0",
    "luasystem >= 0.3.0",
+   "lexical-path ~> 0.1",
 }
 build = {
    type = "builtin",
@@ -31,8 +32,7 @@ build = {
       ["cyan.commands.warnings"] = "build/cyan/commands/warnings.lua",
       ["cyan.config"] = "build/cyan/config.lua",
       ["cyan.decoration"] = "build/cyan/decoration.lua",
-      ["cyan.fs.init"] = "build/cyan/fs/init.lua",
-      ["cyan.fs.path"] = "build/cyan/fs/path.lua",
+      ["cyan.fs"] = "build/cyan/fs.lua",
       ["cyan.graph"] = "build/cyan/graph.lua",
       ["cyan.interaction"] = "build/cyan/interaction.lua",
       ["cyan.log"] = "build/cyan/log.lua",
@@ -53,8 +53,7 @@ build = {
          ["cyan.commands.warnings"] = "src/cyan/commands/warnings.tl",
          ["cyan.config"] = "src/cyan/config.tl",
          ["cyan.decoration"] = "src/cyan/decoration.tl",
-         ["cyan.fs.init"] = "src/cyan/fs/init.tl",
-         ["cyan.fs.path"] = "src/cyan/fs/path.tl",
+         ["cyan.fs"] = "src/cyan/fs.tl",
          ["cyan.graph"] = "src/cyan/graph.tl",
          ["cyan.interaction"] = "src/cyan/interaction.tl",
          ["cyan.log"] = "src/cyan/log.tl",

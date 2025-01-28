@@ -5,6 +5,7 @@
 --- This is the main driver behind the `build` command
 
 local common <const> = require("cyan.tlcommon")
+local lexical_path <const> = require("lexical-path")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
 
@@ -14,9 +15,9 @@ local values <const>, ivalues <const>, keys <const>, from <const>
 ---@desc
 --- The nodes that are stored in the graph
 local record Node
-   input: fs.Path
-   output: fs.Path
-   modules: {string:fs.Path} -- require argument -> path found
+   input: lexical_path.Path
+   output: lexical_path.Path
+   modules: {string:lexical_path.Path} -- require argument -> path found
    enum Mark
       "typecheck"
       "compile"
@@ -25,7 +26,7 @@ local record Node
    dependents: {Node:boolean}
 end
 
-local function make_node(input: fs.Path): Node
+local function make_node(input: lexical_path.Path): Node
    return {
       input = input,
       modules = {},
@@ -96,7 +97,7 @@ function Dag:nodes(): function(): Node
    for i = 0, most_deps do
       if nodes_by_deps[i] then
          table.sort(nodes_by_deps[i], function(a: Node, b: Node): boolean
-            return a.input:tostring() < b.input:tostring()
+            return a.input:to_string() < b.input:to_string()
          end)
       end
    end
@@ -126,7 +127,7 @@ end
 --- For each node in the graph, if `predicate` returns true for that input
 --- path, the node is marked for compilation, and that node's children are marked
 --- for type checking
-function Dag:mark_each(predicate: function(fs.Path): boolean)
+function Dag:mark_each(predicate: function(lexical_path.Path): boolean)
    for n in self:nodes() do
       if predicate(n.input) then
          mark_for_compile(n)
@@ -169,13 +170,13 @@ local function add_deps(t: {Node:boolean}, n: Node)
    t[n] = true
 end
 
-local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
-   if f:is_absolute() then
+local function unchecked_insert(dag: Dag, f: lexical_path.Path, in_dir: lexical_path.Path)
+   if f.is_absolute then
       -- If a path is absolute, assume it is out of the project
       return
    end
 
-   local real_path <const> = f:to_real_path()
+   local real_path <const> = f:to_string()
 
    if dag._nodes_by_filename[real_path] then
       -- We already have this in the graph
@@ -192,13 +193,13 @@ local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
       -- anything for them
       local search_result = common.search_module(mod_name)
       if search_result then
-         if in_dir and search_result:is_absolute() and search_result:is_in(in_dir, false) then
-            search_result = search_result:relative_to(in_dir)
-            assert(not search_result:is_absolute())
+         if in_dir and search_result.is_absolute and search_result:is_in(in_dir) then
+            search_result = assert(search_result:relative_to(in_dir))
+            assert(not search_result.is_absolute)
          end
          n.modules[mod_name] = search_result
 
-         if not in_dir or search_result:is_in(in_dir, false) then
+         if not in_dir or search_result:is_in(in_dir) then
             unchecked_insert(dag, search_result, in_dir)
          end
       end
@@ -206,7 +207,7 @@ local function unchecked_insert(dag: Dag, f: fs.Path, in_dir: fs.Path)
 
    for node in values(dag._nodes_by_filename) do
       for mod_path in values(node.modules) do
-         local dep_node = dag._nodes_by_filename[mod_path:to_real_path()]
+         local dep_node = dag._nodes_by_filename[mod_path:to_string()]
          if dep_node then
             add_deps(dep_node.dependents, node)
          end
@@ -237,13 +238,9 @@ end
 ---
 --- Returns `false` if inserting the file introduced a circular dependency along
 --- with a list of the filenames in the cycle
-function Dag:insert_file(fstr: string | fs.Path, in_dir?: string | fs.Path): boolean, {string}
-   local f <const> = fstr is fs.Path
-      and fstr
-      or fs.path.new(fstr as string, false)
-
+function Dag:insert_file(f: lexical_path.Path, in_dir?: lexical_path.Path): boolean, {string}
    assert(f, "No path given")
-   unchecked_insert(self, f, fs.path.ensure(in_dir, false))
+   unchecked_insert(self, f, in_dir)
    local cycles <const> = check_for_cycles(self)
    if cycles then
       return false, cycles
@@ -253,25 +250,23 @@ end
 
 ---@desc
 --- Find a node in the graph with the given path name
-function Dag:find(fstr: string | fs.Path): Node
-   local f <const> = fs.path.ensure(fstr, false)
-   return self._nodes_by_filename[f:to_real_path()]
+function Dag:find(f: lexical_path.Path): Node
+   return self._nodes_by_filename[f:to_string()]
 end
 
 ---@desc
---- Recursively scan a directory (using `fs.scan_dir`) and build up a graph,
+--- Recursively scan a directory (using `fs.scan_directory`) and build up a graph,
 --- respecting the given `include` and `exclude` patterns
 ---
 --- Returns `nil` if a circular dependency was found, along
 --- with a list of the filenames in the cycle
-function graph.scan_dir(dir: string | fs.Path, include?: {string}, exclude?: {string}): Dag, {string}
+function graph.scan_directory(dir: lexical_path.Path, include?: {string}, exclude?: {string}): Dag, {string}
    local d <const> = graph.empty()
 
-   dir = fs.path.ensure(dir, false)
-   for p in fs.scan_dir(dir, include, exclude) do
-      local _, ext = fs.extension_split(p, 2)
-      if ext == ".tl" or ext == ".lua" then
-         unchecked_insert(d, (dir as fs.Path) .. p, dir as fs.Path)
+   for p in fs.scan_directory(dir, include, exclude) do
+      local ext <const> = p:extension(2):lower()
+      if ext == "tl" or ext == "lua" then
+         unchecked_insert(d, dir .. p, dir)
       end
    end
 

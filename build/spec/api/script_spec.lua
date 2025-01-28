@@ -29,7 +29,10 @@ describe("script", function()
             script.register(scriptname, "run", "pre")
             local ok, err = script.ensure_loaded_for_command("run")
             luassert.falsy(ok)
-            luassert.is_table(err)
+            luassert.is_true(
+            type(err) == "string" or
+            type(err) == "table")
+
          end)
       end)
    end)
