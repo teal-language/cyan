@@ -7,14 +7,20 @@ local tl <const> = require("tl")
 local fs <const> = require("cyan.fs")
 local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
+local lexical_path <const> = require("lexical-path")
 
 local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
    = util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
 
+-- TODO: #ConfigPaths
+-- path parsing should be done by the cli and config reader
+-- the config reader should only accept a specific format while the cli
+-- should accept the native path format
+
 ---@desc
 --- The config data
 local record Config
-   loaded_from: fs.Path
+   loaded_from: lexical_path.Path
 
    build_dir: string
    source_dir: string
@@ -178,9 +184,9 @@ function config.is_config(c_in: any): Config, {string}, {string}
          -- error already generated an error or wasn't provided
          return
       end
-      local as_path = fs.path.new(val, false)
-      if as_path:is_absolute() then
-         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_real_path()))
+      local as_path = lexical_path.from_unix(val)
+      if as_path.is_absolute then
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string()))
       end
    end
    verify_non_absolute_path("source_dir")
@@ -217,8 +223,8 @@ end
 
 ---@desc
 --- Find `config.filename` in the current or parent directories
-function config.find(): fs.Path
-   return fs.search_parent_dirs(fs.cwd(), config.filename)
+function config.find(): lexical_path.Path
+   return fs.search_parent_dirs(fs.current_directory(), config.filename)
 end
 
 ---@desc
@@ -239,7 +245,7 @@ function config.load(): Config, {string}, {string}
 
    local cfg <const>, errs <const>, warnings <const> = config.is_config(maybe_config)
    if cfg then
-      cfg.loaded_from = fs.cwd() .. config.filename
+      cfg.loaded_from = fs.current_directory() .. config.filename
    end
    return cfg, errs, warnings
 end

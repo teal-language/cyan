@@ -105,13 +105,13 @@ command.new({
    end,
 })
 
-local starting_dir = fs.cwd()
+local starting_dir = fs.current_directory()
 local config_path = config.find()
 if config_path then
    local config_dir = config_path:copy()
    table.remove(config_dir)
    log.debug("Changing directory into: ", config_dir)
-   fs.chdir(config_dir)
+   fs.change_directory(config_dir)
 end
 
 local loaded_config, config_errors, config_warnings =

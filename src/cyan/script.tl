@@ -6,7 +6,7 @@ local tl <const> = require("tl")
 
 local command <const> = require("cyan.command")
 local decoration <const> = require("cyan.decoration")
-local fs <const> = require("cyan.fs")
+local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
@@ -39,11 +39,11 @@ local load_cache <const>: {string:Loaded} = {}
 local function load_script(path: string): Loaded, string | tl.Result
    if not load_cache[path] then
       log.extra("Loading script: ", decoration.file_name(path))
-      local p <const> = fs.path.new(path, false)
+      local p <const> = lexical_path.from_unix(path)
 
       local box, err: sandbox.Sandbox, string
-      local _, ext <const> = fs.extension_split(p)
-      if ext == ".tl" then
+      local ext <const> = p:extension():lower()
+      if ext == "tl" then
          local result <const>, proc_err <const> = tl.check_file(path, nil)
          if not result then
             return nil, proc_err
@@ -136,7 +136,7 @@ end
 --- Returns an iterator that will run the next script when called and returns
 --- the path to the script, whether the script was loaded and ran with no
 --- errors, and an error message if it didn't
-function script.emitter(name: string, ...: any): function(): fs.Path, boolean, string
+function script.emitter(name: string, ...: any): function(): lexical_path.Path, boolean, string
    assert(name, "Cannot emit nil hook")
    assert(command.running, "Attempt to emit_hook with no running command")
    assert(
@@ -151,12 +151,12 @@ function script.emitter(name: string, ...: any): function(): fs.Path, boolean, s
          local loaded <const> = assert(load_cache[path], "Internal error, script was not preloaded before execution")
          local res <const>, err <const> = loaded(full, table.unpack(args, 1, args.n))
          coroutine.yield(
-            fs.path.new(path, false),
+            lexical_path.from_unix(path),
             res == 0,
             err
          )
       end
-   end) as function(): fs.Path, boolean, string
+   end) as function(): lexical_path.Path, boolean, string
 end
 
 ---@desc
@@ -167,9 +167,9 @@ function script.emit_hook(name: string, ...: any): boolean, string
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
       if ok then
-         log.info("Ran script ", decoration.file_name(s:to_real_path()))
+         log.info("Ran script ", decoration.file_name(s))
       else
-         log.err("Error in script ", decoration.file_name(s:to_real_path()), ":\n   ", err)
+         log.err("Error in script ", decoration.file_name(s), ":\n   ", err)
          return false, err
       end
    end
@@ -180,7 +180,7 @@ end
 --- Make everything in this library a no-op, there is currently no way to re-enable this
 function script.disable()
    script.emit_hook = function(): boolean, string return true end
-   script.emitter = function(): function(): fs.Path, boolean, string end
+   script.emitter = function(): function(): lexical_path.Path, boolean, string end
    script.ensure_loaded_for_command = function(): boolean, string return true end
    script.register = function() end
 end

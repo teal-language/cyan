@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
@@ -8,6 +8,7 @@ local command = require("cyan.command")
 local config = require("cyan.config")
 local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
+local lexical_path = require("lexical-path")
 local log = require("cyan.log")
 local util = require("cyan.util")
 
@@ -17,37 +18,38 @@ local function exec(args, loaded_config, starting_dir)
    if not args.force and loaded_config.loaded_from then
       log.err(
       "Already in a project!\n   Found config file at ",
-      decoration.file_name(loaded_config.loaded_from:relative_to(starting_dir):to_real_path()))
+      decoration.file_name((assert(loaded_config.loaded_from:relative_to(starting_dir)))))
 
       return 1
    end
 
-   local directory = fs.path.new(args.directory or "./", true)
-   local source = fs.path.new(args.source_dir or "src", true)
-   local build = fs.path.new(args.build_dir or "build", true)
 
-   if source:is_absolute() then
-      log.err("Source directory should not be absolute (", decoration.file_name(source:to_real_path()), ")")
+   local directory = lexical_path.from_os(args.directory or ".")
+   local source = lexical_path.from_os(args.source_dir or "src")
+   local build = lexical_path.from_os(args.build_dir or "build")
+
+   if source.is_absolute then
+      log.err("Source directory should not be absolute (", decoration.file_name(source), ")")
       return 1
    end
-   if build:is_absolute() then
-      log.err("Build directory should not be absolute (", decoration.file_name(build:to_real_path()), ")")
+   if build.is_absolute then
+      log.err("Build directory should not be absolute (", decoration.file_name(build), ")")
       return 1
    end
 
    local function try_mkdir(p)
-      if p:exists() then
-         if not p:is_directory() then
-            log.err(decoration.file_name(p:to_real_path()), " exists and is not a directory")
+      if fs.exists(p) then
+         if not fs.is_directory(p) then
+            log.err(decoration.file_name(p), " exists and is not a directory")
             return false
          end
       else
-         local ok, err = p:mkdir()
+         local ok, err = fs.make_directory(p)
          if ok then
-            log.info("Created directory ", decoration.file_name(p:to_real_path()))
+            log.info("Created directory ", decoration.file_name(p))
             return true
          end
-         log.err("Unable to create directory ", decoration.file_name(p:to_real_path()), ":\n   ", err)
+         log.err("Unable to create directory ", decoration.file_name(p), ":\n   ", err)
          return false
       end
       return true
@@ -66,8 +68,8 @@ local function exec(args, loaded_config, starting_dir)
       table.insert(config_content, string.format(s, ...))
    end
 
-   ins(1, "build_dir = %q,\n", build:tostring())
-   ins(1, "source_dir = %q,\n", source:tostring())
+   ins(1, "build_dir = %q,\n", build:to_string("/"))
+   ins(1, "source_dir = %q,\n", source:to_string("/"))
    local function add_str_array(name, arr)
       if #arr == 0 then
          return
@@ -84,8 +86,8 @@ local function exec(args, loaded_config, starting_dir)
 
    ins(0, "}")
 
-   local config_path = (directory .. config.filename):to_real_path()
-   local fh, err = io.open(config_path, "w")
+   local config_path = directory .. config.filename
+   local fh, err = io.open(config_path:to_string(), "w")
    if not fh then
       log.err("Unable to open ", decoration.file_name(config_path), ":\n", err)
       return 1

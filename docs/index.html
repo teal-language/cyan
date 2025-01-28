@@ -114,7 +114,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#config.is_config>config.is_config</a>
 <br><a href=#config.load>config.load</a>
 </p>
-<p><a class=module-name href=#cyan.decoration>cyan.decoration</a>
+</td><td valign=top><p><a class=module-name href=#cyan.decoration>cyan.decoration</a>
 <br><a href=#Color>Color</a>
 <br><a href=#Decorated:copy>Decorated:copy</a>
 <br><a href=#Decorated>Decorated</a>
@@ -130,42 +130,22 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#decoration.render_to_string>decoration.render_to_string</a>
 <br><a href=#decoration.rgb>decoration.rgb</a>
 </p>
-<p><a class=module-name href=#cyan.fs.path>cyan.fs.path</a>
-<br><a href=#Path.eq>Path.eq</a>
-<br><a href=#Path:ancestors>Path:ancestors</a>
-<br><a href=#Path:append>Path:append</a>
-<br><a href=#Path:copy>Path:copy</a>
-<br><a href=#Path:exists>Path:exists</a>
-<br><a href=#Path:is_absolute>Path:is_absolute</a>
-<br><a href=#Path:is_directory>Path:is_directory</a>
-<br><a href=#Path:is_file>Path:is_file</a>
-<br><a href=#Path:is_in>Path:is_in</a>
-<br><a href=#Path:match>Path:match</a>
-<br><a href=#Path:match_any>Path:match_any</a>
-<br><a href=#Path:mk_parent_dirs>Path:mk_parent_dirs</a>
-<br><a href=#Path:mkdir>Path:mkdir</a>
-<br><a href=#Path:mod_time>Path:mod_time</a>
-<br><a href=#Path:normalize>Path:normalize</a>
-<br><a href=#Path:prepend>Path:prepend</a>
-<br><a href=#Path:relative_to>Path:relative_to</a>
-<br><a href=#Path:remove_leading>Path:remove_leading</a>
-<br><a href=#Path:to_absolute>Path:to_absolute</a>
-<br><a href=#Path:to_real_path>Path:to_real_path</a>
-<br><a href=#Path:tostring>Path:tostring</a>
-<br><a href=#Path>Path</a>
-<br><a href=#path.ensure>path.ensure</a>
-<br><a href=#path.new>path.new</a>
-</p>
-</td><td valign=top><p><a class=module-name href=#cyan.fs>cyan.fs</a>
-<br><a href=#fs.chdir>fs.chdir</a>
+<p><a class=module-name href=#cyan.fs>cyan.fs</a>
+<br><a href=#fs.change_directory>fs.change_directory</a>
 <br><a href=#fs.copy>fs.copy</a>
-<br><a href=#fs.cwd>fs.cwd</a>
-<br><a href=#fs.dir>fs.dir</a>
-<br><a href=#fs.extension_split>fs.extension_split</a>
+<br><a href=#fs.current_directory>fs.current_directory</a>
+<br><a href=#fs.exists>fs.exists</a>
 <br><a href=#fs.get_line>fs.get_line</a>
-<br><a href=#fs.path_concat>fs.path_concat</a>
+<br><a href=#fs.is_directory>fs.is_directory</a>
+<br><a href=#fs.is_file>fs.is_file</a>
+<br><a href=#fs.iterate_directory>fs.iterate_directory</a>
+<br><a href=#fs.make_directory>fs.make_directory</a>
+<br><a href=#fs.make_parent_directories>fs.make_parent_directories</a>
+<br><a href=#fs.match_any>fs.match_any</a>
+<br><a href=#fs.mod_time>fs.mod_time</a>
+<br><a href=#fs.normalize>fs.normalize</a>
 <br><a href=#fs.read>fs.read</a>
-<br><a href=#fs.scan_dir>fs.scan_dir</a>
+<br><a href=#fs.scan_directory>fs.scan_directory</a>
 <br><a href=#fs.search_parent_dirs>fs.search_parent_dirs</a>
 </p>
 <p><a class=module-name href=#cyan.graph>cyan.graph</a>
@@ -177,12 +157,12 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#Dag>Dag</a>
 <br><a href=#Node>Node</a>
 <br><a href=#graph.empty>graph.empty</a>
-<br><a href=#graph.scan_dir>graph.scan_dir</a>
+<br><a href=#graph.scan_directory>graph.scan_directory</a>
 </p>
 <p><a class=module-name href=#cyan.interaction>cyan.interaction</a>
 <br><a href=#interaction.yes_no_prompt>interaction.yes_no_prompt</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.log>cyan.log</a>
+<p><a class=module-name href=#cyan.log>cyan.log</a>
 <br><a href=#ColorMode>ColorMode</a>
 <br><a href=#Logger:cont>Logger:cont</a>
 <br><a href=#Logger:cont_nonl>Logger:cont_nonl</a>
@@ -198,7 +178,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#log.set_prefix_padding>log.set_prefix_padding</a>
 <br><a href=#log.set_verbosity>log.set_verbosity</a>
 </p>
-<p><a class=module-name href=#cyan.meta>cyan.meta</a>
+</td><td valign=top><p><a class=module-name href=#cyan.meta>cyan.meta</a>
 <br></p>
 <p><a class=module-name href=#cyan.sandbox>cyan.sandbox</a>
 <br></p>
@@ -290,7 +270,7 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=Config><code class=bulleted>type Config</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Config
-	loaded_from: <code class=parameter-type>fs.Path</code>
+	loaded_from: <code class=parameter-type>lexical_path.Path</code>
 	build_dir: <code class=parameter-type>string</code>
 	source_dir: <code class=parameter-type>string</code>
 	include: <code class=parameter-type>{string}</code>
@@ -308,7 +288,7 @@ This documentation is auto-generated and may be incomplete.
 <code class=keyword>end</code></code></pre><p><p>The config data</p></p>
 </div><h3><a name=config.find><code class=bulleted>function config.find</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> config.find(): <code class=parameter-type>fs.Path</code></code></pre><p><p>Find <code>config.filename</code> in the current or parent directories</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> config.find(): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>Find <code>config.filename</code> in the current or parent directories</p></p>
 </div><h3><a name=config.is_config><code class=bulleted>function config.is_config</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> config.is_config(
@@ -405,7 +385,7 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=decoration.file_name><code class=bulleted>function decoration.file_name</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> decoration.file_name(
-	<code class=parameter-name>path</code>: <code class=parameter-type>string</code>
+	<code class=parameter-name>path</code>: <code class=parameter-type>string | lexical_path.Path</code>
 ): <code class=parameter-type>Decorated</code></code></pre><p><p>Decorate using the default decoration for file names and a uri for the path</p></p>
 </div><h3><a name=decoration.render_ansi><code class=bulleted>function decoration.render_ansi</code></a>
 </h3>
@@ -435,189 +415,113 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-name>green</code>: <code class=parameter-type>integer</code>,
 	<code class=parameter-name>blue</code>: <code class=parameter-type>integer</code>
 ): <code class=parameter-type>Color</code></code></pre><p><p>Positional constructor for <code>Color</code></p></p>
-</div><h2><a name=cyan.fs.path>cyan.fs.path</a>
-</h2>
-<p><p>Object oriented lexical path management</p></p>
-<h3><a name=Path.eq><code class=bulleted>function Path.eq</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path.eq(
-	<code class=parameter-name>a</code>: <code class=parameter-type>Path | string</code>,
-	<code class=parameter-name>b</code>: <code class=parameter-type>Path | string</code>,
-	<code class=parameter-name>use_os_sep</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>boolean</code></code></pre><p><p>Check if two paths are equal</p><p>This function is used for the __eq metamethod with use_os_sep as false</p></p>
-</div><h3><a name=Path:ancestors><code class=bulleted>method Path:ancestors</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:ancestors(): <code class=parameter-type>function(): Path</code></code></pre><p><p>Iterate over the leading folders in a path</p><p>ex: <code>path.new(<code>"foo/bar/baz/bat"</code>):ancestors()</code> will construct <code>Path</code> objects from <code>"foo"</code>, <code>"foo/bar"</code>, <code>"foo/bar/baz"</code></p></p>
-</div><h3><a name=Path:append><code class=bulleted>method Path:append</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:append(
-	<code class=parameter-name>other</code>: <code class=parameter-type>string | Path</code>
-)</code></pre><p><p>Mutate the given <code>Path</code> by appending another path to it</p><p>Traversals in the <code>other</code> path will be normalized</p><p></p><pre> local p = path.new <code>"foo/bar"</code><br> p:append <code>"../baz"</code><br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre><p></p></p>
-</div><h3><a name=Path:copy><code class=bulleted>method Path:copy</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:copy(): <code class=parameter-type>Path</code></code></pre><p><p>Create a copy of the given path</p></p>
-</div><h3><a name=Path:exists><code class=bulleted>method Path:exists</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:exists(): <code class=parameter-type>boolean</code></code></pre><p><p>Check if the path exists</p></p>
-</div><h3><a name=Path:is_absolute><code class=bulleted>method Path:is_absolute</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:is_absolute(): <code class=parameter-type>boolean</code></code></pre><p><p>Returns whether the path is absolute</p><p>On windows, checks for paths like <code>"C:\..."</code>, elsewhere looks for <code>"/..."</code></p></p>
-</div><h3><a name=Path:is_directory><code class=bulleted>method Path:is_directory</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:is_directory(): <code class=parameter-type>boolean</code></code></pre><p><p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"directory"</code></p></p>
-</div><h3><a name=Path:is_file><code class=bulleted>method Path:is_file</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:is_file(): <code class=parameter-type>boolean</code></code></pre><p><p>Get whether the <code>"mode"</code> attribute of the given path is set to <code>"file"</code></p></p>
-</div><h3><a name=Path:is_in><code class=bulleted>method Path:is_in</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:is_in(
-	<code class=parameter-name>dirname</code>: <code class=parameter-type>string | Path</code>,
-	<code class=parameter-name>use_os_sep</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>boolean</code></code></pre><p><p>returns true if the path is inside the given directory</p><p>If relative and absolute paths are mixed, the relative path is assumed to be in the current working directory (as determined by <code>lfs.currentdir()</code>)</p><p>If dirname is a <code>string</code>, a path will be constructed using <code>path.new</code> with <code>use_os_sep</code></p></p>
-</div><h3><a name=Path:match><code class=bulleted>method Path:match</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:match(
-	<code class=parameter-name>patt</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>boolean</code></code></pre><p><p>See if the given path matches the pattern</p><p>Path separators in patterns are always represented with <code>'/'</code>.</p><p><code>*</code> characters represent any number of non-path-separator characters</p><p><code>**/</code> represent any number of directories</p></p>
-</div><h3><a name=Path:match_any><code class=bulleted>method Path:match_any</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:match_any(
-	<code class=parameter-name>patts</code>: <code class=parameter-type>{string}</code>
-): <code class=parameter-type>integer</code>, <code class=parameter-type>string</code></code></pre><p><p>See if the given path matches any of the given patterns</p></p>
-</div><h3><a name=Path:mk_parent_dirs><code class=bulleted>method Path:mk_parent_dirs</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:mk_parent_dirs(): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Attempt to create the leading directories of a given path</p></p>
-</div><h3><a name=Path:mkdir><code class=bulleted>method Path:mkdir</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:mkdir(): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code>, <code class=parameter-type>integer</code></code></pre><p><p>Attempt to create a directory at the given path, creating the parent directories if needed. Can be seen as an equivalent to <code>mkdir -p</code></p></p>
-</div><h3><a name=Path:mod_time><code class=bulleted>method Path:mod_time</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:mod_time(): <code class=parameter-type>integer</code></code></pre><p><p>Get the <code>"modification"</code> attribute of a file</p></p>
-</div><h3><a name=Path:normalize><code class=bulleted>method Path:normalize</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:normalize()</code></pre><p><p>Modify path in place to remove any traversals that it can</p><p></p><pre> local p = path.new <code>"foo/bar/../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"foo/baz"</code>)<br> </pre><p></p><p>if a traversal can't be removed it will remain </p><pre> local p = path.new <code>"../baz"</code><br> p:normalize()<br> assert(p == path.new <code>"../baz"</code>)<br> </pre><p></p></p>
-</div><h3><a name=Path:prepend><code class=bulleted>method Path:prepend</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:prepend(
-	<code class=parameter-name>other</code>: <code class=parameter-type>string | Path</code>
-)</code></pre><p><p>Mutate the given <code>Path</code> by prepending another path to it</p></p>
-</div><h3><a name=Path:relative_to><code class=bulleted>method Path:relative_to</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:relative_to(
-	<code class=parameter-name>other</code>: <code class=parameter-type>Path</code>
-): <code class=parameter-type>Path</code></code></pre><p><p>Expresses a path in terms of another path. If any relative paths are given, they are treated as though they are in the current directory</p><p>for example: <code>path.new(<code>"/foo/bar/baz"</code>):relative_to(path.new(<code>"/foo/bat"</code>)) == path.new <code>"../bar/baz"</code></code></p></p>
-</div><h3><a name=Path:remove_leading><code class=bulleted>method Path:remove_leading</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:remove_leading(
-	<code class=parameter-name>p</code>: <code class=parameter-type>string | Path</code>
-)</code></pre><p><p>Mutate the given path by removing the leading parts from the given path</p><p>Will error if you attempt to mix absolute and non-absolute paths</p></p>
-</div><h3><a name=Path:to_absolute><code class=bulleted>method Path:to_absolute</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:to_absolute()</code></pre><p><p>Modify a path in place to become an absolute path</p><p>When the path is already absolute, does nothing</p><p>Otherwise, prepends the current directory</p></p>
-</div><h3><a name=Path:to_real_path><code class=bulleted>method Path:to_real_path</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:to_real_path(): <code class=parameter-type>string</code></code></pre><p><p>Convert a <code>Path</code> to a string describing a real path</p></p>
-</div><h3><a name=Path:tostring><code class=bulleted>method Path:tostring</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Path:tostring(): <code class=parameter-type>string</code></code></pre><p><p>Convert a path to a string. Always uses <code>'/'</code> as a path separator. Intended for displaying purposes. For an actual path in the filesystem, use <code>Path:to_real_path()</code></p><p>Used for the __tostring metamethod</p></p>
-</div><h3><a name=Path><code class=bulleted>type Path</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>record</code> Path
-	<code class=parameter-type>{string}</code>
-
-	<code class=keyword>metamethod</code> __concat: <code class=parameter-type>function(Path | string, Path | string): Path</code>
-	<code class=keyword>metamethod</code> __eq: <code class=parameter-type>function(Path | string, Path | string): boolean</code>
-<code class=keyword>end</code></code></pre><p><p>The main path object. Basically just an array of strings with some methods and metamethods to interact with other paths</p></p>
-</div><h3><a name=path.ensure><code class=bulleted>function path.ensure</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> path.ensure(
-	<code class=parameter-name>s</code>: <code class=parameter-type>string | Path</code>,
-	<code class=parameter-name>use_os_sep</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>Path</code></code></pre><p><p>Ensures <code>s</code> is a Path.</p><p>If s is a string, parse it into a path otherwise return s unmodified</p></p>
-</div><h3><a name=path.new><code class=bulleted>function path.new</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> path.new(
-	<code class=parameter-name>s</code>: <code class=parameter-type>string</code>,
-	<code class=parameter-name>use_os_sep</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>Path</code></code></pre><p><p>The <code>Path</code> constructor</p><p>By default uses <code>'/'</code> as a path separator</p></p>
 </div><h2><a name=cyan.fs>cyan.fs</a>
 </h2>
 <p><p>Filesystem and path management</p></p>
-<h3><a name=fs.chdir><code class=bulleted>function fs.chdir</code></a>
+<h3><a name=fs.change_directory><code class=bulleted>function fs.change_directory</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.chdir(
-	<code class=parameter-name>p</code>: <code class=parameter-type>string | Path</code>
-): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Change the current directory to <code>p</code></p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.change_directory(
+	<code class=parameter-name>p</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Attempt to change the current directory to the directory referred to by the given path. On success returns true. On failure returns nil and an error message.</p></p>
 </div><h3><a name=fs.copy><code class=bulleted>function fs.copy</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.copy(
-	<code class=parameter-name>source</code>: <code class=parameter-type>string | Path</code>,
-	<code class=parameter-name>dest</code>: <code class=parameter-type>string | Path</code>
+	<code class=parameter-name>source_path</code>: <code class=parameter-type>lexical_path.Path</code>,
+	<code class=parameter-name>dest_path</code>: <code class=parameter-type>lexical_path.Path</code>
 ): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Copy a file</p><p>uses <code>fs.read</code> internally to get and cache the contents of <code>source</code></p></p>
-</div><h3><a name=fs.cwd><code class=bulleted>function fs.cwd</code></a>
+</div><h3><a name=fs.current_directory><code class=bulleted>function fs.current_directory</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.cwd(): <code class=parameter-type>Path</code></code></pre><p><p>Get the current working directory as an <code>fs.Path</code></p></p>
-</div><h3><a name=fs.dir><code class=bulleted>function fs.dir</code></a>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.current_directory(): <code class=parameter-type>lexical_path.Path</code>, <code class=parameter-type>string</code></code></pre><p><p>On success returns the current working directory as a lexical path. On error returns nil and an error message</p></p>
+</div><h3><a name=fs.exists><code class=bulleted>function fs.exists</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.dir(
-	<code class=parameter-name>dir</code>: <code class=parameter-type>string | Path</code>,
-	<code class=parameter-name>include_dotfiles</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>function(): Path</code></code></pre><p><p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p></p>
-</div><h3><a name=fs.extension_split><code class=bulleted>function fs.extension_split</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.extension_split(
-	<code class=parameter-name>p</code>: <code class=parameter-type>Path | string</code>,
-	<code class=parameter-name>ndots</code>: <code class=parameter-type>integer</code>
-): <code class=parameter-type>string</code>, <code class=parameter-type>string</code></code></pre><p><p>Split a path on its extension. Forces the extension to be lowercase.</p><p>the <code>ndots</code> argument lets you specify the upper limit of how many dots the extension can have</p><p>ex: </p><pre> fs.extension_split(<code>"foo.d.tl"</code>) => <code>"foo.d"</code>, <code>".tl"</code><br> fs.extension_split(<code>"foo.d.tl"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> fs.extension_split(<code>"foo.D.TL"</code>, 2) => <code>"foo"</code>, <code>".d.tl"</code><br> </pre><p></p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.exists(
+	<code class=parameter-name>p</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>boolean</code></code></pre><p><p>Attempt to see if the path referred to by <code>p</code> exists.</p></p>
 </div><h3><a name=fs.get_line><code class=bulleted>function fs.get_line</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.get_line(
 	<code class=parameter-name>p</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>n</code>: <code class=parameter-type>integer</code>
 ): <code class=parameter-type>string</code>, <code class=parameter-type>string</code></code></pre><p><p>Gets line <code>n</code> of a file.</p><p>if the file is less than <code>n</code> lines, returns <code>nil</code></p><p>if there was an error opening the file, returns <code>nil</code>, err</p><p>Uses <code>fs.read()</code> internally, which caches reads</p></p>
-</div><h3><a name=fs.path_concat><code class=bulleted>function fs.path_concat</code></a>
+</div><h3><a name=fs.is_directory><code class=bulleted>function fs.is_directory</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.path_concat(
-	<code class=parameter-name>a</code>: <code class=parameter-type>string</code>,
-	<code class=parameter-name>b</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>string</code></code></pre><p><p>Concatenate two strings using the os path separator</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.is_directory(
+	<code class=parameter-name>p</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Return if the file referred to by the given path is a directory.</p><p>On failure, returns nil and an error message</p></p>
+</div><h3><a name=fs.is_file><code class=bulleted>function fs.is_file</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.is_file(
+	<code class=parameter-name>p</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Return if the file referred to by the given path is a regular file</p></p>
+</div><h3><a name=fs.iterate_directory><code class=bulleted>function fs.iterate_directory</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.iterate_directory(
+	<code class=parameter-name>dir</code>: <code class=parameter-type>lexical_path.Path</code>,
+	<code class=parameter-name>include_dotfiles</code>: <code class=parameter-type>boolean</code>
+): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p></p>
+</div><h3><a name=fs.make_directory><code class=bulleted>function fs.make_directory</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.make_directory(
+	<code class=parameter-name>path</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Create a directory with the given path, creating any ancestor directories</p><p>In unixy terms, this is <code>mkdir -p</code></p></p>
+</div><h3><a name=fs.make_parent_directories><code class=bulleted>function fs.make_parent_directories</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.make_parent_directories(
+	<code class=parameter-name>of</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>For each ancestor of the given path, <code>mkdir</code> that path</p><p>In unixy terms, this is roughly <code>mkdir -p path/..</code></p></p>
+</div><h3><a name=fs.match_any><code class=bulleted>function fs.match_any</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.match_any(
+	<code class=parameter-name>path</code>: <code class=parameter-type>lexical_path.Path</code>,
+	<code class=parameter-name>patterns</code>: <code class=parameter-type>{lexical_path.Pattern}</code>
+): <code class=parameter-type>integer</code></code></pre><p><p>If the given path matches any of the patterns in <code>patterns</code>, returns the index of the matched pattern otherwise returns <code>nil</code></p></p>
+</div><h3><a name=fs.mod_time><code class=bulleted>function fs.mod_time</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.mod_time(
+	<code class=parameter-name>of</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>integer</code>, <code class=parameter-type>string</code></code></pre><p><p>Returns the modification time of the file referred to by the given path</p><p>In case of an error, returns nil, and an error message</p></p>
+</div><h3><a name=fs.normalize><code class=bulleted>function fs.normalize</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.normalize(
+	<code class=parameter-name>p</code>: <code class=parameter-type>string</code>
+): <code class=parameter-type>string</code></code></pre><p><p>Normalizes a given path via the <code>lexical_path</code> library</p></p>
 </div><h3><a name=fs.read><code class=bulleted>function fs.read</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.read(
 	<code class=parameter-name>p</code>: <code class=parameter-type>string</code>
 ): <code class=parameter-type>string</code>, <code class=parameter-type>string</code></code></pre><p><p>Open a file, read it, close the file, return the contents or <code>nil</code> and an error if it couldn't be opened</p><p>Additionally caches results so multiple locations can read the same file for minimal cost. There is currently no way to clear out this cache.</p></p>
-</div><h3><a name=fs.scan_dir><code class=bulleted>function fs.scan_dir</code></a>
+</div><h3><a name=fs.scan_directory><code class=bulleted>function fs.scan_directory</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.scan_dir(
-	<code class=parameter-name>dir</code>: <code class=parameter-type>string | Path</code>,
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.scan_directory(
+	<code class=parameter-name>dir</code>: <code class=parameter-type>lexical_path.Path</code>,
 	<code class=parameter-name>include</code>: <code class=parameter-type>{string}</code>,
 	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string}</code>,
 	<code class=parameter-name>include_directories</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>function(): Path</code></code></pre><p><p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><p>For information on path patterns, see the <code>Path:match()</code> method</p></p>
+): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><p>For information on path patterns, see the <code>Path:match()</code> method</p></p>
 </div><h3><a name=fs.search_parent_dirs><code class=bulleted>function fs.search_parent_dirs</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.search_parent_dirs(
-	<code class=parameter-name>start_path</code>: <code class=parameter-type>string | Path</code>,
+	<code class=parameter-name>start_path</code>: <code class=parameter-type>lexical_path.Path</code>,
 	<code class=parameter-name>fname</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>Path</code></code></pre><p><p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == path.new <code>"/foo/bar/file.txt"</code></code></p></p>
+): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == path.new <code>"/foo/bar/file.txt"</code></code></p></p>
 </div><h2><a name=cyan.graph>cyan.graph</a>
 </h2>
 <p><p>A utility for building directed acyclic graphs of Teal source files</p><p>This is the main driver behind the <code>build</code> command</p></p>
 <h3><a name=Dag:find><code class=bulleted>method Dag:find</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Dag:find(
-	<code class=parameter-name>fstr</code>: <code class=parameter-type>string | fs.Path</code>
+	<code class=parameter-name>f</code>: <code class=parameter-type>lexical_path.Path</code>
 ): <code class=parameter-type>Node</code></code></pre><p><p>Find a node in the graph with the given path name</p></p>
 </div><h3><a name=Dag:insert_file><code class=bulleted>method Dag:insert_file</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Dag:insert_file(
-	<code class=parameter-name>fstr</code>: <code class=parameter-type>string | fs.Path</code>,
-	<code class=parameter-name>in_dir</code>: <code class=parameter-type>string | fs.Path</code>
+	<code class=parameter-name>f</code>: <code class=parameter-type>lexical_path.Path</code>,
+	<code class=parameter-name>in_dir</code>: <code class=parameter-type>lexical_path.Path</code>
 ): <code class=parameter-type>boolean</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Inserts a file and its dependencies into a graph</p><p>Ignores absolute paths and non <code>.tl</code> or <code>.lua</code> files</p><p>If in_dir is provided, dependencies of the given file will not be added to the graph unless they are inside of the given dir</p><p>Returns <code>false</code> if inserting the file introduced a circular dependency along with a list of the filenames in the cycle</p></p>
 </div><h3><a name=Dag:mark_each><code class=bulleted>method Dag:mark_each</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Dag:mark_each(
-	<code class=parameter-name>predicate</code>: <code class=parameter-type>function(fs.Path): boolean</code>
+	<code class=parameter-name>predicate</code>: <code class=parameter-type>function(lexical_path.Path): boolean</code>
 )</code></pre><p><p>For each node in the graph, if <code>predicate</code> returns true for that input path, the node is marked for compilation, and that node's children are marked for type checking</p></p>
 </div><h3><a name=Dag:marked_nodes><code class=bulleted>method Dag:marked_nodes</code></a>
 </h3>
@@ -634,22 +538,22 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=Node><code class=bulleted>type Node</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Node
-	input: <code class=parameter-type>fs.Path</code>
-	output: <code class=parameter-type>fs.Path</code>
-	modules: <code class=parameter-type>{string:fs.Path}</code>
+	input: <code class=parameter-type>lexical_path.Path</code>
+	output: <code class=parameter-type>lexical_path.Path</code>
+	modules: <code class=parameter-type>{string:lexical_path.Path}</code>
 	mark: <code class=parameter-type>Mark</code>
 	dependents: <code class=parameter-type>{Node:boolean}</code>
 <code class=keyword>end</code></code></pre><p><p>The nodes that are stored in the graph</p></p>
 </div><h3><a name=graph.empty><code class=bulleted>function graph.empty</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> graph.empty(): <code class=parameter-type>Dag</code></code></pre><p><p>Initializes an empty graph</p></p>
-</div><h3><a name=graph.scan_dir><code class=bulleted>function graph.scan_dir</code></a>
+</div><h3><a name=graph.scan_directory><code class=bulleted>function graph.scan_directory</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> graph.scan_dir(
-	<code class=parameter-name>dir</code>: <code class=parameter-type>string | fs.Path</code>,
+<div class=description><pre class=signature><code><code class=keyword>function</code> graph.scan_directory(
+	<code class=parameter-name>dir</code>: <code class=parameter-type>lexical_path.Path</code>,
 	<code class=parameter-name>include</code>: <code class=parameter-type>{string}</code>,
 	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string}</code>
-): <code class=parameter-type>Dag</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Recursively scan a directory (using <code>fs.scan_dir</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p></p>
+): <code class=parameter-type>Dag</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Recursively scan a directory (using <code>fs.scan_directory</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p></p>
 </div><h2><a name=cyan.interaction>cyan.interaction</a>
 </h2>
 <p><p>Module for handling when input from the user is needed</p></p>
@@ -774,7 +678,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> script.emitter(
 	<code class=parameter-name>name</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>...</code>: <code class=parameter-type>any</code>
-): <code class=parameter-type>function(): fs.Path, boolean, string</code></code></pre><p><p>Emit a hook to load and run all registered scripts that run on the given hook.</p><p>This function will assert that <code>ensure_loaded_for_command</code> was called before.</p><p>Returns an iterator that will run the next script when called and returns the path to the script, whether the script was loaded and ran with no errors, and an error message if it didn't</p></p>
+): <code class=parameter-type>function(): lexical_path.Path, boolean, string</code></code></pre><p><p>Emit a hook to load and run all registered scripts that run on the given hook.</p><p>This function will assert that <code>ensure_loaded_for_command</code> was called before.</p><p>Returns an iterator that will run the next script when called and returns the path to the script, whether the script was loaded and ran with no errors, and an error message if it didn't</p></p>
 </div><h3><a name=script.ensure_loaded_for_command><code class=bulleted>function script.ensure_loaded_for_command</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> script.ensure_loaded_for_command(
@@ -869,7 +773,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.search_module(
 	<code class=parameter-name>name</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>search_dtl</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>fs.Path</code></code></pre><p><p>A wrapper around <code>tl.search_module</code> but, returns an <code>fs.Path</code> and will cache results</p></p>
+): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>A wrapper around <code>tl.search_module</code> but, returns an <code>lexical_path.Path</code> and will cache results</p></p>
 </div><h3><a name=common.syntax_highlight><code class=bulleted>function common.syntax_highlight</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.syntax_highlight(

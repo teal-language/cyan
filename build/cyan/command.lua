@@ -6,9 +6,9 @@ local tl = require("tl")
 local argparse = require("argparse")
 
 local config = require("cyan.config")
-local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
+local lexical_path = require("lexical-path")
 
 local merge_list, sort, from, keys, contains, ivalues =
 util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues

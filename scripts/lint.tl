@@ -3,7 +3,7 @@ local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
-
+local lexical_path <const> = require("lexical-path")
 
 local function lint()
    local info <const> = log.info:copy(
@@ -139,10 +139,11 @@ local function lint()
    local total_errors = 0
    local counts: {string:integer} = {}
 
-   for path in fs.scan_dir("src/", {"cyan/**/*", "testing/**/*"}) do
-      path:prepend("src")
+   local src_dir <const> = lexical_path.from_os("src")
+   for path in fs.scan_dir(src_dir, {"cyan/**/*", "testing/**/*"}) do
+      path = src_dir .. path
       errors = {}
-      local real_path <const> = path:to_real_path()
+      local real_path <const> = path:to_string()
       local disp_path <const> = decoration.file_name(real_path)
       local text <const> = fs.read(real_path)
       local root <const> = teal_parser:parse_string(text, nil):root()
