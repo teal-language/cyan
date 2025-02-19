@@ -14,7 +14,7 @@ This file describes the layout of your project by returning a table with the fol
 | `include`          |                      | `{string}`          | A list of [patterns](#Patterns) describing what files to include |
 | `preload_modules`  | `-l` `--preload`     | `{string}`          | Execute the equivalent of `require(<module>)` for each provided name |
 | `global_env_def`   | `--global-env-def`   | `string`            | Load this file before type checking |
-| `scripts`          |                      | `{string : {string : string | {string}}}` | A map of commands and hooks to filenames, see [scripts](#Scripts) |
+| `scripts`          |                      | <code>{string : {string : string &#124; {string}}}</code> | A map of commands and hooks to filenames, see [scripts](#Scripts) |
 |                    | `--no-script`        |                     | Disables scripts, see [scripts](#Scripts) |
 | `source_dir`       |                      | `string`            | Where to find source files |
 | `warning_error`    | `--werror`           | `{tl.WarningKind}`  | Promote the provided warnings to errors |
