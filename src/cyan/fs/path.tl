@@ -217,7 +217,7 @@ function Path:to_absolute()
    if self:is_absolute() then
       return
    end
-   self:prepend(lfs.currentdir())
+   self:prepend((lfs.currentdir()))
 end
 
 ---@desc
@@ -288,7 +288,7 @@ end
 ---@desc
 --- Attempt to create a directory at the given path, creating the parent directories
 --- if needed. Can be seen as an equivalent to `mkdir -p`
-function Path:mkdir(): boolean, string
+function Path:mkdir(): boolean, string, integer
    local succ <const>, err <const> = self:mk_parent_dirs()
    if succ then
       return lfs.mkdir(self:to_real_path())
