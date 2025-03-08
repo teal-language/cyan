@@ -54,6 +54,13 @@ choices({ "5.1", "5.3", "5.4" })
 parser:flag("--no-script", "Do not run any scripts."):
 action(script.disable)
 
+parser:option("--color", "Colorize the output.", nil, nil, nil, nil):
+choices({ "never", "always", "auto" }):
+default("auto"):
+action(function(_, __, val)
+   log.set_color_mode(val)
+end)
+
 parser:mutex(
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr. (Same as --verbosity quiet)."):
 action(function()
