@@ -54,6 +54,13 @@ parser:option("--gen-target", "Minimum targeted Lua version for generated code."
 parser:flag("--no-script", "Do not run any scripts.")
       :action(script.disable)
 
+parser:option("--color", "Colorize the output.", nil, nil, nil, nil)
+      :choices({ "never", "always", "auto" })
+      :default("auto")
+      :action(function(_: argparse.Args, __: string, val: string|boolean|{string})
+         log.set_color_mode(val as log.ColorMode)
+      end)
+
 parser:mutex(
    parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr. (Same as --verbosity quiet).")
          :action(function()

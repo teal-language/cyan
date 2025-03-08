@@ -1,4 +1,5 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local io = _tl_compat and _tl_compat.io or io; local math = _tl_compat and _tl_compat.math or math; local os = _tl_compat and _tl_compat.os or os; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local type = type
+
 
 
 
@@ -45,7 +46,7 @@ local no_color_env = os.getenv("NO_COLOR") ~= nil
 
 
 
-local Verbosity = {}
+
 
 
 
@@ -65,7 +66,16 @@ local verbosity_to_int = {
    debug = 3,
 }
 
+
+
+
+
+
+
+
+
 local verbosity = "normal"
+local color_mode = "auto"
 local prefix_padding = 10
 
 local inspect
@@ -101,6 +111,22 @@ local function is_a_tty(file)
 end
 
 local function renderer(stream)
+   if color_mode == "always" then
+      if not is_a_tty(stream) then
+         return function(buf, content, decor)
+            if decor then
+               decor.linked_uri = nil
+            end
+            decoration.render_ansi(buf, content, decor)
+         end
+      end
+
+      return decoration.render_ansi
+   end
+   if color_mode == "never" then
+      return decoration.render_plain
+   end
+
    if no_color_env or not is_a_tty(stream) then
       return decoration.render_plain
    end
@@ -348,6 +374,7 @@ local log = {
    create_logger = create_logger,
    verbosities = verbosities,
    Verbosity = Verbosity,
+   ColorMode = ColorMode,
    Logger = Logger,
 }
 
@@ -355,6 +382,12 @@ local log = {
 
 function log.set_verbosity(level)
    verbosity = level
+end
+
+
+
+function log.set_color_mode(mode)
+   color_mode = mode
 end
 
 

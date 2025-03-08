@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local type = type; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall
 
 
 
@@ -53,6 +53,13 @@ choices({ "5.1", "5.3", "5.4" })
 
 parser:flag("--no-script", "Do not run any scripts."):
 action(script.disable)
+
+parser:option("--color", "Colorize the output.", nil, nil, nil, nil):
+choices({ "never", "always", "auto" }):
+default("auto"):
+action(function(_, __, val)
+   log.set_color_mode(val)
+end)
 
 parser:mutex(
 parser:flag("-q --quiet", "Do not print information messages to stdout. Errors may still be printed to stderr. (Same as --verbosity quiet)."):
