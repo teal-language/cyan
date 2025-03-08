@@ -65,7 +65,16 @@ local verbosity_to_int <total>: {Verbosity:integer} = {
    debug = 3,
 }
 
+---@desc
+--- Whether to apply color to the output
+local enum ColorMode
+   "always"
+   "never"
+   "auto"
+end
+
 local verbosity: Verbosity = "normal"
+local color_mode: ColorMode = "auto"
 local prefix_padding: integer = 10
 
 local inspect: function(any): string
@@ -101,6 +110,13 @@ local function is_a_tty(file: FILE): boolean
 end
 
 local function renderer(stream: FILE): decoration.Renderer
+   if color_mode == "always" then
+      return decoration.render_ansi
+   end
+   if color_mode == "never" then
+      return decoration.render_plain
+   end
+
    if no_color_env or not is_a_tty(stream) then
       return decoration.render_plain
    end
@@ -348,6 +364,7 @@ local log <const> = {
    create_logger = create_logger,
    verbosities = verbosities,
    Verbosity = Verbosity,
+   ColorMode = ColorMode,
    Logger = Logger,
 }
 
@@ -355,6 +372,12 @@ local log <const> = {
 --- Globally set the verbosity of the logging module.
 function log.set_verbosity(level: Verbosity)
    verbosity = level
+end
+
+---@desc
+--- Globally set the color behavior of the logging module.
+function log.set_color_mode(mode: ColorMode)
+   color_mode = mode
 end
 
 ---@desc

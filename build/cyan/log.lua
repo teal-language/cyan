@@ -65,7 +65,16 @@ local verbosity_to_int = {
    debug = 3,
 }
 
+
+
+
+
+
+
+
+
 local verbosity = "normal"
+local color_mode = "auto"
 local prefix_padding = 10
 
 local inspect
@@ -101,6 +110,13 @@ local function is_a_tty(file)
 end
 
 local function renderer(stream)
+   if color_mode == "always" then
+      return decoration.render_ansi
+   end
+   if color_mode == "never" then
+      return decoration.render_plain
+   end
+
    if no_color_env or not is_a_tty(stream) then
       return decoration.render_plain
    end
@@ -348,6 +364,7 @@ local log = {
    create_logger = create_logger,
    verbosities = verbosities,
    Verbosity = Verbosity,
+   ColorMode = ColorMode,
    Logger = Logger,
 }
 
@@ -355,6 +372,12 @@ local log = {
 
 function log.set_verbosity(level)
    verbosity = level
+end
+
+
+
+function log.set_color_mode(mode)
+   color_mode = mode
 end
 
 
