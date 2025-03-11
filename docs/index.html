@@ -130,7 +130,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#decoration.render_to_string>decoration.render_to_string</a>
 <br><a href=#decoration.rgb>decoration.rgb</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.fs.path>cyan.fs.path</a>
+<p><a class=module-name href=#cyan.fs.path>cyan.fs.path</a>
 <br><a href=#Path.eq>Path.eq</a>
 <br><a href=#Path:ancestors>Path:ancestors</a>
 <br><a href=#Path:append>Path:append</a>
@@ -156,7 +156,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#path.ensure>path.ensure</a>
 <br><a href=#path.new>path.new</a>
 </p>
-<p><a class=module-name href=#cyan.fs>cyan.fs</a>
+</td><td valign=top><p><a class=module-name href=#cyan.fs>cyan.fs</a>
 <br><a href=#fs.chdir>fs.chdir</a>
 <br><a href=#fs.copy>fs.copy</a>
 <br><a href=#fs.cwd>fs.cwd</a>
@@ -179,10 +179,10 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#graph.empty>graph.empty</a>
 <br><a href=#graph.scan_dir>graph.scan_dir</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.interaction>cyan.interaction</a>
+<p><a class=module-name href=#cyan.interaction>cyan.interaction</a>
 <br><a href=#interaction.yes_no_prompt>interaction.yes_no_prompt</a>
 </p>
-<p><a class=module-name href=#cyan.log>cyan.log</a>
+</td><td valign=top><p><a class=module-name href=#cyan.log>cyan.log</a>
 <br><a href=#Logger:cont>Logger:cont</a>
 <br><a href=#Logger:cont_nonl>Logger:cont_nonl</a>
 <br><a href=#Logger:copy>Logger:copy</a>
@@ -622,7 +622,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> Dag:marked_nodes(): <code class=parameter-type>function(): Node</code></code></pre><p><p>Iterate over every node that has been marked, no matter what the mark is</p></p>
 </div><h3><a name=Dag:nodes><code class=bulleted>method Dag:nodes</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Dag:nodes(): <code class=parameter-type>function(): Node</code></code></pre><p><p>Iterate over nodes in order of dependents</p><p>If two nodes have the same number of dependent nodes, the order of iteration between those two nodes is not guaranteed</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> Dag:nodes(): <code class=parameter-type>function(): Node</code></code></pre><p><p>Iterate over nodes in order of dependents</p><p>If two nodes have the same number of dependent nodes, they are sorted by input filename lexicographically</p></p>
 </div><h3><a name=Dag><code class=bulleted>type Dag</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Dag

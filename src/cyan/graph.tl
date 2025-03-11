@@ -72,8 +72,8 @@ end
 ---@desc
 --- Iterate over nodes in order of dependents
 ---
---- If two nodes have the same number of dependent nodes, the order of
---- iteration between those two nodes is not guaranteed
+--- If two nodes have the same number of dependent nodes, they are sorted by
+--- input filename lexicographically
 function Dag:nodes(): function(): Node
    local count <const> = make_dependent_counter()
    local most_deps = 0
@@ -92,6 +92,14 @@ function Dag:nodes(): function(): Node
    end
 
    setmetatable(nodes_by_deps, nil)
+
+   for i = 0, most_deps do
+      if nodes_by_deps[i] then
+         table.sort(nodes_by_deps[i], function(a: Node, b: Node): boolean
+            return a.input:tostring() < b.input:tostring()
+         end)
+      end
+   end
 
    local i = most_deps
    if not nodes_by_deps[i] then

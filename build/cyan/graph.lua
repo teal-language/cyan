@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local type = type
 
 
 
@@ -92,6 +92,14 @@ function Dag:nodes()
    end
 
    setmetatable(nodes_by_deps, nil)
+
+   for i = 0, most_deps do
+      if nodes_by_deps[i] then
+         table.sort(nodes_by_deps[i], function(a, b)
+            return a.input:tostring() < b.input:tostring()
+         end)
+      end
+   end
 
    local i = most_deps
    if not nodes_by_deps[i] then
