@@ -56,7 +56,6 @@ local runners <const> = {
    ProjectDescription = ProjectDescription,
 }
 
--- NOTE: T can't be a table type
 local function insert_into(
    destination: temporary_files.DirectorySet,
    source: temporary_files.Directory
