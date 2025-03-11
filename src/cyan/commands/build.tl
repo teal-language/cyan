@@ -275,6 +275,16 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
          end
       end
 
+      -- sort directory names by length so that more nested directories are removed first
+      table.sort(unexpected_directories, function(a: fs.Path, b: fs.Path): boolean
+         local a_str <const> = a:tostring()
+         local b_str <const> = b:tostring()
+         if #a_str > #b_str then
+            return true
+         end
+         return a_str > b_str
+      end)
+
       if #unexpected_files > 0 or #unexpected_directories > 0 then
          if args.prune then
             local cwd <const> = fs.cwd()

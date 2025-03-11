@@ -275,6 +275,16 @@ local function build(args, loaded_config, starting_dir)
          end
       end
 
+
+      table.sort(unexpected_directories, function(a, b)
+         local a_str = a:tostring()
+         local b_str = b:tostring()
+         if #a_str > #b_str then
+            return true
+         end
+         return a_str > b_str
+      end)
+
       if #unexpected_files > 0 or #unexpected_directories > 0 then
          if args.prune then
             local cwd = fs.cwd()
