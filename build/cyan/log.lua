@@ -330,7 +330,7 @@ local log = {
    warn = create_logger(
    io.stderr,
    "quiet",
-   decoration.decorate("Error", decoration.scheme.warn),
+   decoration.decorate("Warn", decoration.scheme.warn),
    decoration.decorate("...", decoration.scheme.warn)),
 
    info = create_logger(
