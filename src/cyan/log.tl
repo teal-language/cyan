@@ -308,10 +308,7 @@ local function copy_decorated(maybe_decorated: string | decoration.Decorated): s
    if maybe_decorated is string then
       return maybe_decorated
    end
-   return {
-      plain_content = maybe_decorated.plain_content,
-      decoration = maybe_decorated.decoration
-   }
+   return maybe_decorated:copy()
 end
 
 ---@desc
