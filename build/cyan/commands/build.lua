@@ -54,15 +54,12 @@ local function build(args, loaded_config, starting_dir)
       return 1
    end
 
-
-   local source_dir = lexical_path.from_unix(loaded_config.source_dir or ".")
+   local source_dir = loaded_config.source_dir and loaded_config.source_dir:copy() or lexical_path.from_unix(".")
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
-   assert(not source_dir.is_absolute)
 
-   local build_dir = lexical_path.from_unix(loaded_config.build_dir or ".")
-   assert(not build_dir.is_absolute)
+   local build_dir = loaded_config.build_dir and loaded_config.build_dir:copy() or lexical_path.from_unix(".")
    if not fs.exists(build_dir) then
       local succ, err = fs.make_directory(build_dir)
       if not succ then

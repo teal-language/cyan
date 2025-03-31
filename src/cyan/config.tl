@@ -22,8 +22,8 @@ local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
 local record Config
    loaded_from: lexical_path.Path
 
-   build_dir: string
-   source_dir: string
+   build_dir: lexical_path.Path
+   source_dir: lexical_path.Path
    include: {string}
    exclude: {string}
    global_env_def: string
@@ -85,6 +85,18 @@ local function get_map_type(val: table, default_key: string, default_value: stri
    return table.concat(key_types, " | "), table.concat(val_types, " | ")
 end
 
+local function copy<T>(x: T, no_tables?: boolean): T
+   if x is table then
+      assert(not no_tables)
+      local result = {}
+      for k, v in pairs(x) do
+         result[copy(k, true)] = copy(v)
+      end
+      return result as T
+   end
+   return x
+end
+
 ---@desc
 --- Check if `c` conforms to the `Config` type and return any errors and warnings generated from checking
 function config.is_config(c_in: any): Config, {string}, {string}
@@ -104,7 +116,7 @@ function config.is_config(c_in: any): Config, {string}, {string}
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string : {string : (string | {string}) }}",
+      scripts = "{string : { string : (string | {string}) }}",
 
       feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -112,6 +124,8 @@ function config.is_config(c_in: any): Config, {string}, {string}
 
       disable_warnings = "{string}",
       warning_error = "{string}",
+
+      externals = "{string:any}",
    }
 
    local errs <const>: {string} = {}
@@ -178,6 +192,8 @@ function config.is_config(c_in: any): Config, {string}, {string}
       end
    end
 
+   local result <const>: Config = {}
+
    local function verify_non_absolute_path(key: string)
       local val = (c as {string:string})[key]
       if type(val) ~= "string" then
@@ -188,6 +204,7 @@ function config.is_config(c_in: any): Config, {string}, {string}
       if as_path.is_absolute then
          table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string()))
       end
+      (result as {string:any})[key] = as_path
    end
    verify_non_absolute_path("source_dir")
    verify_non_absolute_path("build_dir")
@@ -218,7 +235,15 @@ function config.is_config(c_in: any): Config, {string}, {string}
       return nil, errs, warnings
    end
 
-   return c as Config, nil, warnings
+   for k in pairs(valid_keys) do
+      if k == "externals" then
+         result.externals = c.externals as {string:any}
+      elseif (result as {string:any})[k] == nil then
+         (result as {string:any})[k] = copy(c[k])
+      end
+   end
+
+   return result, nil, warnings
 end
 
 ---@desc
