@@ -70,4 +70,37 @@ describe("config loading", function()
       luassert.are_same(errs, { "Expected a non-absolute path for build_dir, got /b" })
       luassert.are_same(warnings, {})
    end)
+
+   describe("Paths traversing outside of the current directory", function()
+      it("should error when source_dir traverses outside of the current directory", function()
+         local c = { source_dir = "../foo/bar" }
+         local res, errs, warnings = config.is_config(c)
+         luassert.is_nil(res)
+         luassert.are_same(errs, { "Expected source_dir to not go outside the directory of tlconfig.lua, got ../foo/bar" })
+         luassert.are_same(warnings, {})
+      end)
+
+      it("should error when build_dir traverses outside of the current directory", function()
+         local c = { build_dir = "../../" }
+         local res, errs, warnings = config.is_config(c)
+         luassert.is_nil(res)
+         luassert.are_same(errs, { "Expected build_dir to not go outside the directory of tlconfig.lua, got ../.." })
+         luassert.are_same(warnings, {})
+      end)
+
+      it("should error when include_dir entries traverse outside of the current directory", function()
+         local c = { include_dir = {
+            "../../",
+            "..",
+            "a/b",
+         } }
+         local res, errs, warnings = config.is_config(c)
+         luassert.is_nil(res)
+         luassert.are_same(errs, {
+            "Expected 1st entry in include_dir to not go outside the directory of tlconfig.lua, got ../..",
+            "Expected 2nd entry in include_dir to not go outside the directory of tlconfig.lua, got ..",
+         })
+         luassert.are_same(warnings, {})
+      end)
+   end)
 end)
