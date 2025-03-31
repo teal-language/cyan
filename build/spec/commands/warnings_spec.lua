@@ -3,9 +3,12 @@ local luassert = require("luassert")
 local tl = require("tl")
 local command_runners = require("testing.command-runners")
 
+
+local temp_dir = "/tmp"
+
 describe("warnings command", function()
    it("should display all warnings the compiler can generate (and display them only once)", function()
-      local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings"))
+      local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings"), temp_dir)
       if exit_code then
          luassert.are_equal(0, exit_code)
       end
@@ -24,7 +27,7 @@ describe("warnings command", function()
    end)
 
    it("should show all warnings as disabled with '--wdisable all'", function()
-      local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings", "--wdisable", "all"))
+      local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings", "--wdisable", "all"), temp_dir)
       if exit_code then
          luassert.are_equal(0, exit_code)
       end
@@ -44,7 +47,7 @@ describe("warnings command", function()
    end)
 
    it("should show all warnings as errors with '--werror all'", function()
-      local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings", "--werror", "all"))
+      local out, exit_code = command_runners.run_command(command_runners.cyan_command("warnings", "--werror", "all"), temp_dir)
       if exit_code then
          luassert.are_equal(0, exit_code)
       end
