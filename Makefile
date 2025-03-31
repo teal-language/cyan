@@ -27,7 +27,7 @@ all: clean bootstrap docs rockspec test
 clean:
 	rm -rf build tmp docs/index.html cyan-dev-1.rockspec
 
-bootstrap: build/cyan/fs build/cyan/experimental build/cyan/commands $(LUA)
+bootstrap: build_directories $(LUA)
 	@echo "Initial build"
 	$(BOOTSTRAP1) build
 	@echo "Replacing code"

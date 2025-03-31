@@ -1,3 +1,23 @@
+# 0.4.1
+2025-03-30
+
+A minor release for some minor changes and fixes.
+
+Changes:
+ - Add `--color={always,never,auto}` flag
+ - Output will not emit OSC 8 for links to files when `--color=always` but the output is not a TTY
+ - `source_dir` is now implicitly included in `include_dir` for `tlconfig.lua`
+ - `cyan build` will now run in a deterministic order between invocations. Cyan
+   determines build order by counting the number of dependents each file has
+   and iterating from highest number of dependents to the lowest. Previously,
+   if two files had the same number of dependents, the iteration order between
+   them was not guaranteed, but now they are sorted lexicographically.
+
+Fixes:
+ - Fixed a copy-paste issue that made warnings prefixed with "Error"
+ - `cyan build --prune` will try to remove the most nested directories first,
+   hopefully eliminating errors when trying remove non-empty directories
+
 # 0.4.0
 2024-10-09
 
