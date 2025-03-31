@@ -207,9 +207,13 @@ function config.is_config(c_in)
 
          return
       end
-      local as_path = lexical_path.from_unix(val)
+      local as_path, norm = lexical_path.from_unix(val)
       if as_path.is_absolute then
-         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string()))
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string("/")))
+      elseif norm ~= "normal" then
+         table.insert(errs, string.format("Expected a normalized path for %s, %s should be %s", key, val, as_path:to_string("/")))
+      elseif as_path[1] == ".." then
+         table.insert(errs, string.format("Expected %s to not go outside the directory of %s, got %s", key, config.filename, as_path:to_string("/")))
       end
       (result)[key] = as_path
    end
@@ -220,14 +224,23 @@ function config.is_config(c_in)
       result.include_dir = {}
       for i, v in ipairs(c.include_dir) do
          if type(v) == "string" then
-            local path, _norm = lexical_path.from_unix(v)
+            local path, norm = lexical_path.from_unix(v)
             if path.is_absolute then
                table.insert(errs, string.format(
                "Expected a non-absolute path for %s%s entry in include_dir, got %s",
                i, ordinal_indicator(i), v))
 
-            end
+            elseif norm ~= "normal" then
+               table.insert(errs, string.format(
+               "Expected a normalized path for %s%s entry in include_dir, %s should be %s",
+               i, ordinal_indicator(i), v, path:to_string("/")))
 
+            elseif path[1] == ".." then
+               table.insert(errs, string.format(
+               "Expected %s%s entry in include_dir to not go outside the directory of %s, got %s",
+               i, ordinal_indicator(i), config.filename, path:to_string("/")))
+
+            end
             result.include_dir[i] = path
          end
       end
@@ -259,10 +272,9 @@ function config.is_config(c_in)
       return nil, errs, warnings
    end
 
+   result.externals = c.externals
    for k in pairs(valid_keys) do
-      if k == "externals" then
-         result.externals = c.externals
-      elseif (result)[k] == nil then
+      if (result)[k] == nil then
          (result)[k] = copy(c[k])
       end
    end
