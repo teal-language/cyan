@@ -81,10 +81,11 @@ end
 
 ---@desc
 --- Check if `c` conforms to the `Config` type and return any errors and warnings generated from checking
-function config.is_config(c: any): Config, {string}, {string}
-   if type(c) ~= "table" then
-      return nil, {"Expected table, got " .. type(c)}, {}
+function config.is_config(c_in: any): Config, {string}, {string}
+   if type(c_in) ~= "table" then
+      return nil, {"Expected table, got " .. type(c_in)}, {}
    end
+   local c <const> = c_in as table
 
    local valid_keys <const>: {string:string|{string:boolean}} = {
       build_dir = "string",
@@ -197,6 +198,15 @@ function config.is_config(c: any): Config, {string}, {string}
    end
    verify_warnings("disable_warnings")
    verify_warnings("warning_error")
+
+   if c.source_dir and type(c.source_dir) == "string" and c.include_dir and type(c.include_dir) == "table" then
+      for included in ivalues(c.include_dir as {any}) do
+         if c.source_dir == included then
+            table.insert(warnings, "source_dir is included by default and does not need to be in include_dir")
+            break
+         end
+      end
+   end
 
    if #errs > 0 then
       return nil, errs, warnings

@@ -227,7 +227,7 @@ describe("build command", function()
       command_runners.run_mock_project(finally, {
          cmd = "build",
          dir_structure = {
-            ["tlconfig.lua"] = [[return { build_dir = "build", source_dir = "src", include_dir = { "src" } }]],
+            ["tlconfig.lua"] = [[return { build_dir = "build", source_dir = "src" }]],
             build = {},
             src = {
                ["a.tl"] = [[require "b"]],
