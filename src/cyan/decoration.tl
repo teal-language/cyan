@@ -108,7 +108,7 @@ end
 
 ---@desc
 --- Deep copy a `Decoration`, but copy values from `delta` when present
-function decoration.copy(to_be_copied: Decoration, delta: Decoration): Decoration
+function decoration.copy(to_be_copied: Decoration, delta?: Decoration): Decoration
    to_be_copied = to_be_copied or {}
    delta = delta or {}
    local result <const>: Decoration = {}
@@ -148,7 +148,7 @@ end
 
 ---@desc
 --- Deeply copy the decoration of a decorated string
-function Decorated:copy(delta: Decoration): Decorated
+function Decorated:copy(delta?: Decoration): Decorated
    return decoration.decorate(
       self.plain_content,
       decoration.copy(self.decoration, delta)
