@@ -157,11 +157,21 @@ end
 --
 -- see:
 -- https://github.com/LuaJIT/LuaJIT/blob/97813fb924edf822455f91a5fbbdfdb349e5984f/src/lib_io.c#L105-L107
-function runners.run_command(cmd: string): string, integer
-   local pd <const> = io.popen(cmd, "r")
-   local output <const> = pd:read("*a")
-   local _, _, exit_code = pd:close()
-   return output, exit_code as integer
+function runners.run_command(cmd: string, in_dir?: string): string, integer
+   local output: string
+   local exit_code: integer
+   local function run(): string, integer
+      local pd <const> = io.popen(cmd, "r")
+      output = pd:read("*a")
+      local _, _, code = pd:close()
+      exit_code = code as integer
+   end
+   if in_dir then
+      temporary_files.do_in(in_dir, run)
+   else
+      run()
+   end
+   return output, exit_code
 end
 
 return runners

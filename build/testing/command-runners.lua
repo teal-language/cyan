@@ -157,10 +157,20 @@ end
 
 
 
-function runners.run_command(cmd)
-   local pd = io.popen(cmd, "r")
-   local output = pd:read("*a")
-   local _, _, exit_code = pd:close()
+function runners.run_command(cmd, in_dir)
+   local output
+   local exit_code
+   local function run()
+      local pd = io.popen(cmd, "r")
+      output = pd:read("*a")
+      local _, _, code = pd:close()
+      exit_code = code
+   end
+   if in_dir then
+      temporary_files.do_in(in_dir, run)
+   else
+      run()
+   end
    return output, exit_code
 end
 
