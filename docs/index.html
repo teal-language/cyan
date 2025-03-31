@@ -183,6 +183,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#interaction.yes_no_prompt>interaction.yes_no_prompt</a>
 </p>
 </td><td valign=top><p><a class=module-name href=#cyan.log>cyan.log</a>
+<br><a href=#ColorMode>ColorMode</a>
 <br><a href=#Logger:cont>Logger:cont</a>
 <br><a href=#Logger:cont_nonl>Logger:cont_nonl</a>
 <br><a href=#Logger:copy>Logger:copy</a>
@@ -193,6 +194,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#Logger>Logger</a>
 <br><a href=#Verbosity>Verbosity</a>
 <br><a href=#create_logger>create_logger</a>
+<br><a href=#log.set_color_mode>log.set_color_mode</a>
 <br><a href=#log.set_prefix_padding>log.set_prefix_padding</a>
 <br><a href=#log.set_verbosity>log.set_verbosity</a>
 </p>
@@ -310,7 +312,7 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=config.is_config><code class=bulleted>function config.is_config</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> config.is_config(
-	<code class=parameter-name>c</code>: <code class=parameter-type>any</code>
+	<code class=parameter-name>c_in</code>: <code class=parameter-type>any</code>
 ): <code class=parameter-type>Config</code>, <code class=parameter-type>{string}</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Check if <code>c</code> conforms to the <code>Config</code> type and return any errors and warnings generated from checking</p></p>
 </div><h3><a name=config.load><code class=bulleted>function config.load</code></a>
 </h3>
@@ -663,7 +665,14 @@ This documentation is auto-generated and may be incomplete.
 </div><h2><a name=cyan.log>cyan.log</a>
 </h2>
 <p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p></p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn&apos;t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table><p></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p></p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | decoration.Decorated,<br>    cont: string | decoration.Decorated,<br>    inspector: function(any): string<br> ): Logger<br> </pre><p> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>decoration.Decorated</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>decoration.Decorated</code>) it will not be handled.</p></p>
-<h3><a name=Logger:cont><code class=bulleted>method Logger:cont</code></a>
+<h3><a name=ColorMode><code class=bulleted>type ColorMode</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>enum</code> ColorMode
+	<code class=string>"always"</code>
+	<code class=string>"never"</code>
+	<code class=string>"auto"</code>
+<code class=keyword>end</code></code></pre><p><p>Whether to apply color to the output</p></p>
+</div><h3><a name=Logger:cont><code class=bulleted>method Logger:cont</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Logger:cont(
 	<code class=parameter-name>...</code>: <code class=parameter-type>any</code>
@@ -727,6 +736,11 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-name>cont</code>: <code class=parameter-type>string | decoration.Decorated</code>,
 	<code class=parameter-name>inspector</code>: <code class=parameter-type>function(any): string</code>
 ): <code class=parameter-type>Logger</code></code></pre><p><p>Creates a Logger as described above</p></p>
+</div><h3><a name=log.set_color_mode><code class=bulleted>function log.set_color_mode</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> log.set_color_mode(
+	<code class=parameter-name>mode</code>: <code class=parameter-type>ColorMode</code>
+)</code></pre><p><p>Globally set the color behavior of the logging module.</p></p>
 </div><h3><a name=log.set_prefix_padding><code class=bulleted>function log.set_prefix_padding</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> log.set_prefix_padding(
