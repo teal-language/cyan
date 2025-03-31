@@ -392,7 +392,7 @@ function common.init_env_from_config(cfg: config.Config): tl.Env, string
       common.prepend_to_lua_path(dir)
    end
    if cfg.source_dir then
-      common.prepend_to_lua_path(cfg.source_dir)
+      common.prepend_to_lua_path(cfg.source_dir:to_string())
    end
 
    local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.global_env_def)

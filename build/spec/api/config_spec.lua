@@ -22,7 +22,7 @@ describe("config loading", function()
       c.externals[{}] = {}
 
       local res, errs, warnings = config.is_config(c)
-      luassert.are_equal(c, res)
+      luassert.are_equal(res.externals, c.externals)
       luassert.is_nil(errs)
       luassert.are_same(warnings, {})
    end)
@@ -32,7 +32,7 @@ describe("config loading", function()
          uhhhhh = "wat",
       }
       local res, errs, warnings = config.is_config(c)
-      luassert.are_equal(c, res)
+      luassert.are_same({}, res)
       luassert.is_nil(errs)
       luassert.are_same(warnings, { "Unknown key 'uhhhhh'" })
    end)

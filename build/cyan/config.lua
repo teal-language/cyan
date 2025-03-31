@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local type = type
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local type = type
 
 
 
@@ -85,6 +85,18 @@ local function get_map_type(val, default_key, default_value)
    return table.concat(key_types, " | "), table.concat(val_types, " | ")
 end
 
+local function copy(x, no_tables)
+   if type(x) == "table" then
+      assert(not no_tables)
+      local result = {}
+      for k, v in pairs(x) do
+         result[copy(k, true)] = copy(v)
+      end
+      return result
+   end
+   return x
+end
+
 
 
 function config.is_config(c_in)
@@ -104,7 +116,7 @@ function config.is_config(c_in)
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string : {string : (string | {string}) }}",
+      scripts = "{string : { string : (string | {string}) }}",
 
       feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -112,6 +124,8 @@ function config.is_config(c_in)
 
       disable_warnings = "{string}",
       warning_error = "{string}",
+
+      externals = "{string:any}",
    }
 
    local errs = {}
@@ -178,6 +192,8 @@ function config.is_config(c_in)
       end
    end
 
+   local result = {}
+
    local function verify_non_absolute_path(key)
       local val = (c)[key]
       if type(val) ~= "string" then
@@ -188,6 +204,7 @@ function config.is_config(c_in)
       if as_path.is_absolute then
          table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string()))
       end
+      (result)[key] = as_path
    end
    verify_non_absolute_path("source_dir")
    verify_non_absolute_path("build_dir")
@@ -218,7 +235,15 @@ function config.is_config(c_in)
       return nil, errs, warnings
    end
 
-   return c, nil, warnings
+   for k in pairs(valid_keys) do
+      if k == "externals" then
+         result.externals = c.externals
+      elseif (result)[k] == nil then
+         (result)[k] = copy(c[k])
+      end
+   end
+
+   return result, nil, warnings
 end
 
 

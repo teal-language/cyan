@@ -162,7 +162,7 @@ function fs.scan_directory(dir: lexical_path.Path, include?: {string}, exclude?:
    local function dir_iter(d: lexical_path.Path)
       for p in fs.iterate_directory(d) do
          local full <const> = d .. p
-         local to_match <const> = full:copy():remove_leading(dir)
+         local to_match <const> = full:remove_leading(dir)
          if fs.is_directory(full) then
             if include_directories and matches(to_match) then
                coroutine.yield(to_match)

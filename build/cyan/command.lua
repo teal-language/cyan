@@ -122,8 +122,8 @@ function command.merge_args_into_config(cfg, args)
       cfg.warning_error = merge_list(cfg.warning_error, args.werror)
    end
 
-   cfg.source_dir = args.source_dir or cfg.source_dir
-   cfg.build_dir = args.build_dir or cfg.build_dir
+   cfg.source_dir = args.source_dir and lexical_path.from_os(args.source_dir) or cfg.source_dir
+   cfg.build_dir = args.build_dir and lexical_path.from_os(args.build_dir) or cfg.build_dir
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target
