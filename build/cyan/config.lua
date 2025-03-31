@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local type = type
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local type = type
 
 
 
@@ -11,11 +11,6 @@ local lexical_path = require("lexical-path")
 
 local keys, sort, from, values, ivalues =
 util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
-
-
-
-
-
 
 
 
@@ -95,6 +90,18 @@ local function copy(x, no_tables)
       return result
    end
    return x
+end
+
+local function ordinal_indicator(n)
+   if 11 <= n and n <= 13 then
+      return "th"
+   end
+
+   local digit = n % 10
+   if digit == 1 then return "st" end
+   if digit == 2 then return "nd" end
+   if digit == 3 then return "rd" end
+   return "th"
 end
 
 
@@ -208,6 +215,23 @@ function config.is_config(c_in)
    end
    verify_non_absolute_path("source_dir")
    verify_non_absolute_path("build_dir")
+
+   if c.include_dir then
+      result.include_dir = {}
+      for i, v in ipairs(c.include_dir) do
+         if type(v) == "string" then
+            local path, _norm = lexical_path.from_unix(v)
+            if path.is_absolute then
+               table.insert(errs, string.format(
+               "Expected a non-absolute path for %s%s entry in include_dir, got %s",
+               i, ordinal_indicator(i), v))
+
+            end
+
+            result.include_dir[i] = path
+         end
+      end
+   end
 
    local function verify_warnings(key)
       local arr = (c)[key]

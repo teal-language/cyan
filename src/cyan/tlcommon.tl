@@ -389,7 +389,7 @@ end
 function common.init_env_from_config(cfg: config.Config): tl.Env, string
    cfg = cfg or {}
    for dir in ivalues(cfg.include_dir or {}) do
-      common.prepend_to_lua_path(dir)
+      common.prepend_to_lua_path(dir:to_string())
    end
    if cfg.source_dir then
       common.prepend_to_lua_path(cfg.source_dir:to_string())
