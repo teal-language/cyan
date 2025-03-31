@@ -36,4 +36,38 @@ describe("config loading", function()
       luassert.is_nil(errs)
       luassert.are_same(warnings, { "Unknown key 'uhhhhh'" })
    end)
+
+   it("should error on absolute paths for include_dir", function()
+      local c = {
+         include_dir = {
+            "a", "b",
+            "/foo/bar",
+            "c",
+            "/",
+         },
+      }
+      local res, errs, warnings = config.is_config(c)
+      luassert.is_nil(res)
+      luassert.are_same(errs, {
+         "Expected a non-absolute path for 3rd entry in include_dir, got /foo/bar",
+         "Expected a non-absolute path for 5th entry in include_dir, got /",
+      })
+      luassert.are_same(warnings, {})
+   end)
+
+   it("should error on absolute paths for source_dir", function()
+      local c = { source_dir = "/a" }
+      local res, errs, warnings = config.is_config(c)
+      luassert.is_nil(res)
+      luassert.are_same(errs, { "Expected a non-absolute path for source_dir, got /a" })
+      luassert.are_same(warnings, {})
+   end)
+
+   it("should error on absolute paths for build_dir", function()
+      local c = { build_dir = "/b" }
+      local res, errs, warnings = config.is_config(c)
+      luassert.is_nil(res)
+      luassert.are_same(errs, { "Expected a non-absolute path for build_dir, got /b" })
+      luassert.are_same(warnings, {})
+   end)
 end)

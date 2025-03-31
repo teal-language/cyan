@@ -10,8 +10,8 @@ local log = require("cyan.log")
 local util = require("cyan.util")
 local lexical_path = require("lexical-path")
 
-local merge_list, sort, from, keys, contains, ivalues =
-util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues
+local merge_list, sort, from, keys, contains, ivalues, map =
+util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues, util.tab.map
 
 local Args = {}
 
@@ -110,7 +110,7 @@ function command.merge_args_into_config(cfg, args)
 
    cfg.global_env_def = args.global_env_def or cfg.global_env_def
 
-   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
+   cfg.include_dir = merge_list(cfg.include_dir, map(args.include_dir, lexical_path.from_os))
    if contains(args.wdisable, "all") then
       cfg.disable_warnings = all_warnings
    else

@@ -12,11 +12,6 @@ local lexical_path <const> = require("lexical-path")
 local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
    = util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
 
--- TODO: #ConfigPaths
--- path parsing should be done by the cli and config reader
--- the config reader should only accept a specific format while the cli
--- should accept the native path format
-
 ---@desc
 --- The config data
 local record Config
@@ -27,7 +22,7 @@ local record Config
    include: {string}
    exclude: {string}
    global_env_def: string
-   include_dir: {string}
+   include_dir: {lexical_path.Path}
 
    dont_prune: {string}
 
@@ -95,6 +90,18 @@ local function copy<T>(x: T, no_tables?: boolean): T
       return result as T
    end
    return x
+end
+
+local function ordinal_indicator(n: integer): string
+   if 11 <= n and n <= 13 then
+      return "th"
+   end
+
+   local digit <const> = n % 10
+   if digit == 1 then return "st" end
+   if digit == 2 then return "nd" end
+   if digit == 3 then return "rd" end
+   return "th"
 end
 
 ---@desc
@@ -208,6 +215,23 @@ function config.is_config(c_in: any): Config, {string}, {string}
    end
    verify_non_absolute_path("source_dir")
    verify_non_absolute_path("build_dir")
+
+   if c.include_dir then
+      result.include_dir = {}
+      for i, v in ipairs(c.include_dir as {any}) do
+         if v is string then
+            local path <const>, _norm <const> = lexical_path.from_unix(v)
+            if path.is_absolute then
+               table.insert(errs, string.format(
+                  "Expected a non-absolute path for %s%s entry in include_dir, got %s",
+                  i, ordinal_indicator(i), v
+               ))
+            end
+            -- TODO: if norm == "non-normal" then
+            result.include_dir[i] = path
+         end
+      end
+   end
 
    local function verify_warnings(key: string)
       local arr <const> = (c as {string:{string}})[key]
