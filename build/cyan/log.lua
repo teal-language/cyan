@@ -111,6 +111,15 @@ end
 
 local function renderer(stream)
    if color_mode == "always" then
+      if not is_a_tty(stream) then
+         return function(buf, content, decor)
+            if decor then
+               decor = decoration.copy(decor)
+               decor.linked_uri = nil
+            end
+            decoration.render_ansi(buf, content, decor)
+         end
+      end
       return decoration.render_ansi
    end
    if color_mode == "never" then
