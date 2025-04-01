@@ -458,7 +458,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.iterate_directory(
 	<code class=parameter-name>dir</code>: <code class=parameter-type>lexical_path.Path</code>,
 	<code class=parameter-name>include_dotfiles</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Iterate over the given directory, returning <code>fs.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p></p>
+): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Iterate over the given directory, returning <code>lexical_path.Path</code> objects</p><p>By default, will not include paths that start with <code>'.'</code></p></p>
 </div><h3><a name=fs.make_directory><code class=bulleted>function fs.make_directory</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.make_directory(
@@ -497,7 +497,7 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-name>include</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>,
 	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>,
 	<code class=parameter-name>include_directories</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><p>For information on path patterns, see the <code>Path:match()</code> method</p></p>
+): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><p>For information on path patterns, see the lexical-path module's documentation</p></p>
 </div><h3><a name=fs.search_parent_dirs><code class=bulleted>function fs.search_parent_dirs</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.search_parent_dirs(
