@@ -49,8 +49,8 @@ describe("config loading", function()
       local res, errs, warnings = config.is_config(c)
       luassert.is_nil(res)
       luassert.are_same(errs, {
-         "Expected a non-absolute path for 3rd entry in include_dir, got /foo/bar",
-         "Expected a non-absolute path for 5th entry in include_dir, got /",
+         "Expected a non-absolute path for 3rd include_dir entry, got /foo/bar",
+         "Expected a non-absolute path for 5th include_dir entry, got /",
       })
       luassert.are_same(warnings, {})
    end)
@@ -97,8 +97,8 @@ describe("config loading", function()
          local res, errs, warnings = config.is_config(c)
          luassert.is_nil(res)
          luassert.are_same(errs, {
-            "Expected 1st entry in include_dir to not go outside the directory of tlconfig.lua, got ../..",
-            "Expected 2nd entry in include_dir to not go outside the directory of tlconfig.lua, got ..",
+            "Expected 1st include_dir entry to not go outside the directory of tlconfig.lua, got ../..",
+            "Expected 2nd include_dir entry to not go outside the directory of tlconfig.lua, got ..",
          })
          luassert.are_same(warnings, {})
       end)

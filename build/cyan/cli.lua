@@ -155,12 +155,9 @@ command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
    for hook, filenames in pairs(loaded_config.scripts[command.running.name] or {}) do
-      if type(filenames) == "string" then
-         filenames = { filenames }
-      end
       for f in ivalues(filenames) do
          log.debug("registering file '", f, "' for ", command.running.name, ":", hook)
-         script.register(f, command.running.name, hook)
+         script.register(f:to_string(), command.running.name, hook)
       end
    end
 end
