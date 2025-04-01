@@ -1,3 +1,5 @@
+local lexical_path <const> = require("lexical-path")
+
 local record Dependency
    name: string
    url: string
@@ -20,7 +22,7 @@ local log <const> = require("cyan.log")
 local decoration <const> = require("cyan.decoration")
 local interaction <const> = require("cyan.interaction")
 
-local types_path <const> = fs.path.new("types")
+local types_path <const> = lexical_path.from_os("types")
 
 local dep_info  <const> = log.create_logger(io.stdout, "normal", decoration.decorate("Dep Info",  decoration.scheme.teal),  decoration.decorate("...", decoration.scheme.teal))
 local dep_warn  <const> = log.create_logger(io.stderr, "normal", decoration.decorate("Dep Warn",  decoration.scheme.warn),  decoration.decorate("...", decoration.scheme.warn))
@@ -48,36 +50,35 @@ do
    )
 end
 
-if not types_path:exists() then
-   dep_warn("Directory ", decoration.file_name(types_path:tostring()), " does not exist, attempting to create it")
-   local ok <const>, err <const> = types_path:mkdir()
+if not fs.exists(types_path) then
+   dep_warn("Directory ", decoration.file_name(types_path:to_string()), " does not exist, attempting to create it")
+   local ok <const>, err <const> = fs.make_directory(types_path)
    if not ok then
-      dep_err("Unable to create directory ", decoration.file_name(types_path:tostring()), ":\n   ", err)
+      dep_err("Unable to create directory ", decoration.file_name(types_path:to_string()), ":\n   ", err)
       os.exit(1)
    end
-   dep_extra("Created directory ", decoration.file_name(types_path:tostring()))
-elseif not types_path:is_directory() then
-   dep_err(decoration.file_name(types_path:tostring()), " was expected to be a directory, but is not")
+   dep_extra("Created directory ", decoration.file_name(types_path:to_string()))
+elseif not fs.is_directory(types_path) then
+   dep_err(decoration.file_name(types_path:to_string()), " was expected to be a directory, but is not")
    os.exit(1)
 end
 
 -- types_path exists and is a directory
 
 local record FetchPair
-   destination: fs.Path
+   destination: lexical_path.Path
    url: string
 end
 local to_be_fetched <const>: {FetchPair} = {}
 local missing_str <const>: {string | decoration.Decorated} = { "Missing dependencies:" }
 
 for _, dep in ipairs(deps) do
-   local result_path = types_path:copy()
-   result_path:append(dep.name .. ".d.tl")
+   local result_path = types_path:copy() .. (dep.name .. ".d.tl")
 
-   if force_update or not result_path:exists() then
+   if force_update or not fs.exists(result_path) then
       table.insert(to_be_fetched, { destination = result_path, url = dep.url })
       table.insert(missing_str, "\n   ")
-      table.insert(missing_str, decoration.file_name(result_path:tostring()))
+      table.insert(missing_str, decoration.file_name(result_path:to_string()))
       table.insert(missing_str, " from " .. dep.url)
    end
 end
@@ -134,7 +135,7 @@ local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, 
       if f then
          f:write(table.concat(res, "\n"))
          f:close()
-         dep_err:cont("   Command output written to ", decoration.file_name(fs.path.new(out_filename):tostring()))
+         dep_err:cont("   Command output written to ", decoration.file_name(lexical_path.from_os(out_filename):to_string()))
       end
 
       return false, exit_code
@@ -148,7 +149,7 @@ for _, dep in ipairs(to_be_fetched) do
       if match == "%URL%" then
          return dep.url
       elseif match == "%FILE%" then
-         return dep.destination:to_real_path()
+         return dep.destination:to_string()
       end
       return match
    end)

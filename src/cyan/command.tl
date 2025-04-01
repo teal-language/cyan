@@ -6,12 +6,12 @@ local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
 local config <const> = require("cyan.config")
-local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
+local lexical_path <const> = require("lexical-path")
 
-local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>, ivalues <const>
-   = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues
+local merge_list <const>, sort <const>, from <const>, keys <const>, contains <const>, ivalues <const>, map <const>
+   = util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues, util.tab.map
 
 local record Args
    command: string
@@ -40,7 +40,7 @@ local record Args
    force: boolean
 end
 
-local type CommandFn = function(Args, config.Config, fs.Path): integer
+local type CommandFn = function(Args, config.Config, lexical_path.Path): integer
 
 ---@desc
 --- The interface
@@ -110,7 +110,7 @@ function command.merge_args_into_config(cfg: config.Config, args: Args)
 
    cfg.global_env_def = args.global_env_def or cfg.global_env_def
 
-   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
+   cfg.include_dir = merge_list(cfg.include_dir, map(args.include_dir, lexical_path.from_os))
    if contains(args.wdisable, "all") then
       cfg.disable_warnings = all_warnings
    else
@@ -122,8 +122,8 @@ function command.merge_args_into_config(cfg: config.Config, args: Args)
       cfg.warning_error = merge_list(cfg.warning_error, args.werror as {tl.WarningKind})
    end
 
-   cfg.source_dir = args.source_dir or cfg.source_dir
-   cfg.build_dir = args.build_dir or cfg.build_dir
+   cfg.source_dir = args.source_dir and lexical_path.from_os(args.source_dir) or cfg.source_dir
+   cfg.build_dir = args.build_dir and lexical_path.from_os(args.build_dir) or cfg.build_dir
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target

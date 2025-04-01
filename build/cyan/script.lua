@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local math = _tl_compat and _tl_compat.math or math; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack; local type = type
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local math = _tl_compat and _tl_compat.math or math; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack; local type = type
 
 
 
@@ -6,7 +6,7 @@ local tl = require("tl")
 
 local command = require("cyan.command")
 local decoration = require("cyan.decoration")
-local fs = require("cyan.fs")
+local lexical_path = require("lexical-path")
 local log = require("cyan.log")
 local sandbox = require("cyan.sandbox")
 local util = require("cyan.util")
@@ -39,11 +39,11 @@ local load_cache = {}
 local function load_script(path)
    if not load_cache[path] then
       log.extra("Loading script: ", decoration.file_name(path))
-      local p = fs.path.new(path, false)
+      local p = lexical_path.from_unix(path)
 
       local box, err
-      local _, ext = fs.extension_split(p)
-      if ext == ".tl" then
+      local ext = p:extension():lower()
+      if ext == "tl" then
          local result, proc_err = tl.check_file(path, nil)
          if not result then
             return nil, proc_err
@@ -151,7 +151,7 @@ function script.emitter(name, ...)
          local loaded = assert(load_cache[path], "Internal error, script was not preloaded before execution")
          local res, err = loaded(full, _tl_table_unpack(args, 1, args.n))
          coroutine.yield(
-         fs.path.new(path, false),
+         lexical_path.from_unix(path),
          res == 0,
          err)
 
@@ -167,9 +167,9 @@ function script.emit_hook(name, ...)
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
       if ok then
-         log.info("Ran script ", decoration.file_name(s:to_real_path()))
+         log.info("Ran script ", decoration.file_name(s))
       else
-         log.err("Error in script ", decoration.file_name(s:to_real_path()), ":\n   ", err)
+         log.err("Error in script ", decoration.file_name(s), ":\n   ", err)
          return false, err
       end
    end

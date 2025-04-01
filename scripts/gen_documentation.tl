@@ -1,7 +1,9 @@
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
+local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
+
 local keys <const> = util.tab.keys
 
 local info = log.create_logger(
@@ -23,10 +25,10 @@ if not has_teal_parser then
    return
 end
 
-local template_file <const> = fs.path.new("doc-template.html", false)
-local template <const> = assert(fs.read(template_file:to_real_path()))
+local template_file <const> = lexical_path.from_os("doc-template.html")
+local template <const> = assert(fs.read(template_file:to_string()))
 
-local docfile <const> = fs.path.new("docs/index.html", false)
+local docfile <const> = lexical_path.from_os("docs/index.html")
 local type Emitter = function(prefix: {string}, object: ts.Node, output: {string}): string
 
 local function assertf(val: any, fmt: string, ...: any)
@@ -486,12 +488,12 @@ local table_of_contents <const> = {}
 local table_of_contents_line_count <const>: {integer} = {}
 local total_lines = 0
 local output <const> = {}
-for path in fs.scan_dir("src", {"cyan/**/*"}) do
-   local file <const> = ("src" .. path):to_real_path()
-   local mod <const> = path:tostring():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
+for path in fs.scan_directory(lexical_path.from_os("src"), {"cyan/**/*"}) do
+   local file <const> = ("src" .. path):to_string()
+   local mod <const> = path:to_string():gsub("%.tl$", ""):gsub("/", "."):gsub("%.init$", "")
    local docs <const>, toc <const> = gen_docs(file, mod)
    if docs then
-      info("Processed ", decoration.file_name(path:tostring()))
+      info("Processed ", decoration.file_name(path:to_string()))
       table.insert(table_of_contents, html {
          p { a (mod, { href = ("#%s"):format(mod), class = "module-name" }),
              br,
@@ -537,7 +539,7 @@ local final_blob <const> = template:gsub(
    end
 )
 
-local fh <const>: FILE = io.open(docfile:to_real_path(), "w")
+local fh <const>: FILE = io.open(docfile:to_string(), "w")
 fh:write(final_blob)
 fh:close()
-info("Wrote ", decoration.file_name(docfile:to_real_path()))
+info("Wrote ", decoration.file_name(docfile:to_string()))

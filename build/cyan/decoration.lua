@@ -5,6 +5,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local util = require("cyan.util")
 local ivalues, map = util.tab.ivalues, util.tab.map
 local insert = table.insert
+local lexical_path = require("lexical-path")
 
 
 
@@ -335,9 +336,10 @@ decoration.scheme = map(scheme, resolve_scheme_entry)
 
 
 function decoration.file_name(path)
+   local str_path = type(path) == "table" and assert(path:to_string("/")) or path
    local d = copy(decoration.scheme.file, nil)
-   d.linked_uri = ("file://%s"):format(path)
-   return decoration.decorate(path, d)
+   d.linked_uri = ("file://%s"):format(str_path)
+   return decoration.decorate(str_path, d)
 end
 
 return decoration

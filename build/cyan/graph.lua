@@ -1,10 +1,11 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local type = type
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table
 
 
 
 
 
 local common = require("cyan.tlcommon")
+local lexical_path = require("lexical-path")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
 
@@ -96,7 +97,7 @@ function Dag:nodes()
    for i = 0, most_deps do
       if nodes_by_deps[i] then
          table.sort(nodes_by_deps[i], function(a, b)
-            return a.input:tostring() < b.input:tostring()
+            return a.input:to_string() < b.input:to_string()
          end)
       end
    end
@@ -170,12 +171,12 @@ local function add_deps(t, n)
 end
 
 local function unchecked_insert(dag, f, in_dir)
-   if f:is_absolute() then
+   if f.is_absolute then
 
       return
    end
 
-   local real_path = f:to_real_path()
+   local real_path = f:to_string()
 
    if dag._nodes_by_filename[real_path] then
 
@@ -192,13 +193,13 @@ local function unchecked_insert(dag, f, in_dir)
 
       local search_result = common.search_module(mod_name)
       if search_result then
-         if in_dir and search_result:is_absolute() and search_result:is_in(in_dir, false) then
-            search_result = search_result:relative_to(in_dir)
-            assert(not search_result:is_absolute())
+         if in_dir and search_result.is_absolute and search_result:is_in(in_dir) then
+            search_result = assert(search_result:relative_to(in_dir))
+            assert(not search_result.is_absolute)
          end
          n.modules[mod_name] = search_result
 
-         if not in_dir or search_result:is_in(in_dir, false) then
+         if not in_dir or search_result:is_in(in_dir) then
             unchecked_insert(dag, search_result, in_dir)
          end
       end
@@ -206,7 +207,7 @@ local function unchecked_insert(dag, f, in_dir)
 
    for node in values(dag._nodes_by_filename) do
       for mod_path in values(node.modules) do
-         local dep_node = dag._nodes_by_filename[mod_path:to_real_path()]
+         local dep_node = dag._nodes_by_filename[mod_path:to_string()]
          if dep_node then
             add_deps(dep_node.dependents, node)
          end
@@ -237,13 +238,9 @@ end
 
 
 
-function Dag:insert_file(fstr, in_dir)
-   local f = type(fstr) == "table" and
-   fstr or
-   fs.path.new(fstr, false)
-
+function Dag:insert_file(f, in_dir)
    assert(f, "No path given")
-   unchecked_insert(self, f, fs.path.ensure(in_dir, false))
+   unchecked_insert(self, f, in_dir)
    local cycles = check_for_cycles(self)
    if cycles then
       return false, cycles
@@ -253,9 +250,8 @@ end
 
 
 
-function Dag:find(fstr)
-   local f = fs.path.ensure(fstr, false)
-   return self._nodes_by_filename[f:to_real_path()]
+function Dag:find(f)
+   return self._nodes_by_filename[f:to_string()]
 end
 
 
@@ -264,14 +260,13 @@ end
 
 
 
-function graph.scan_dir(dir, include, exclude)
+function graph.scan_directory(dir, include, exclude)
    local d = graph.empty()
 
-   dir = fs.path.ensure(dir, false)
-   for p in fs.scan_dir(dir, include, exclude) do
-      local _, ext = fs.extension_split(p, 2)
-      if ext == ".tl" or ext == ".lua" then
-         unchecked_insert(d, (dir) .. p, dir)
+   for p in fs.scan_directory(dir, include, exclude) do
+      local ext = p:extension(2):lower()
+      if ext == "tl" or ext == "lua" then
+         unchecked_insert(d, dir .. p, dir)
       end
    end
 

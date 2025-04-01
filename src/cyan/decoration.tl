@@ -5,6 +5,7 @@
 local util <const> = require("cyan.util")
 local ivalues <const>, map <const> = util.tab.ivalues, util.tab.map
 local insert <const> = table.insert
+local lexical_path <const> = require("lexical-path")
 
 ---@desc
 --- A color described by rgb values in [0, 255]
@@ -334,10 +335,11 @@ decoration.scheme = map(scheme, resolve_scheme_entry)
 
 ---@desc
 --- Decorate using the default decoration for file names and a uri for the path
-function decoration.file_name(path: string): Decorated
+function decoration.file_name(path: string | lexical_path.Path): Decorated
+   local str_path = path is lexical_path.Path and assert(path:to_string("/")) or path
    local d <const> = copy(decoration.scheme.file, nil)
-   d.linked_uri = ("file://%s"):format(path)
-   return decoration.decorate(path, d)
+   d.linked_uri = ("file://%s"):format(str_path)
+   return decoration.decorate(str_path, d)
 end
 
 return decoration

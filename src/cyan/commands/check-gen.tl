@@ -13,31 +13,32 @@ local decoration <const> = require("cyan.decoration")
 local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
 local util <const> = require("cyan.util")
+local lexical_path <const> = require("lexical-path")
 
 local map_ipairs <const>, ivalues <const>
    = util.tab.map_ipairs, util.tab.ivalues
 
 local function command_exec(should_compile: boolean): command.CommandFn
-   return function(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
+   return function(args: command.Args, loaded_config: config.Config, starting_dir: lexical_path.Path): integer
       if args["output"] and #args.files ~= 1 then
          log.err("--output can only map 1 input to 1 output")
          return 1
       end
 
-      local function get_output_filename(path: fs.Path): fs.Path
+      local function get_output_filename(path: lexical_path.Path): lexical_path.Path
          if args["output"] then
-            local p <const> = fs.path.new(args["output"] as string, true)
-            if not p:is_absolute() then
-               p:prepend(starting_dir)
+            local p = lexical_path.from_os(args["output"] as string)
+            if not p.is_absolute then
+               p = starting_dir .. p
             end
             return p
          end
          local new <const> = path:copy()
-         local base <const>, ext <const> = fs.extension_split(path[#path])
-         if ext == ".lua" then
-            new[#new] = base .. ".out.lua"
+         local ext <const> = path:extension():lower()
+         if ext == "lua" then
+            new[#new] = new[#new]:sub(1, -#ext - 2) .. ".out.lua"
          else
-            new[#new] = base .. ".lua"
+            new[#new] = new[#new]:sub(1, -#ext - 2) .. ".lua"
          end
          return new
       end
@@ -50,19 +51,23 @@ local function command_exec(should_compile: boolean): command.CommandFn
 
       local exit = 0
 
-      local current_dir <const> = fs.cwd()
+      local current_dir <const> = fs.current_directory()
+      local function ensure_abs_path(p: lexical_path.Path): lexical_path.Path
+         if p.is_absolute then return p end
+         return current_dir .. p
+      end
       local to_write <const> = {}
-      local function process_file(path: fs.Path)
-         local disp_file <const> = decoration.file_name(path:relative_to(starting_dir):tostring())
-         if not path:is_file() then
+      local function process_file(path: lexical_path.Path)
+         local disp_file <const> = decoration.file_name(assert(ensure_abs_path(path):relative_to(starting_dir)))
+         if not fs.is_file(path) then
             log.err(disp_file, " is not a file")
             exit = 1
             return
          end
 
-         local real_path <const> = path:to_real_path()
+         local real_path <const> = path:to_string()
          local outfile <const> = get_output_filename(path)
-         local disp_outfile <const> = decoration.file_name(outfile:relative_to(starting_dir):tostring())
+         local disp_outfile <const> = decoration.file_name((assert(ensure_abs_path(outfile):relative_to(starting_dir))))
 
          local parsed <const>, perr <const> = common.parse_file(real_path)
          if not parsed then
@@ -105,11 +110,10 @@ local function command_exec(should_compile: boolean): command.CommandFn
          })
       end
 
-      local function fix_path(f: string): fs.Path
-         local p <const> = fs.path.new(f, true)
-         if not p:is_absolute() then
-            p:prepend(starting_dir)
-            p:remove_leading(current_dir)
+      local function fix_path(f: string): lexical_path.Path
+         local p = lexical_path.from_os(f)
+         if not p.is_absolute then
+            p = assert((starting_dir .. p):relative_to(current_dir))
          end
          return p
       end
@@ -126,7 +130,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
          if exit ~= 0 then return exit end
 
          for data in ivalues(to_write) do
-            local fh <const>, err <const> = io.open(data.outfile:to_real_path(), "w")
+            local fh <const>, err <const> = io.open(data.outfile:to_string(), "w")
             if fh then
                local generated <const>, gen_err <const> = tl.generate(data.output_ast, loaded_config.gen_target) -- TODO: gen_options
                if generated then

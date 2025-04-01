@@ -105,13 +105,13 @@ command.new{
    end
 }
 
-local starting_dir <const> = fs.cwd()
+local starting_dir <const> = fs.current_directory()
 local config_path <const> = config.find()
 if config_path then
    local config_dir <const> = config_path:copy()
    table.remove(config_dir)
    log.debug("Changing directory into: ", config_dir)
-   fs.chdir(config_dir)
+   fs.change_directory(config_dir)
 end
 
 local loaded_config, config_errors <const>, config_warnings <const>
@@ -155,12 +155,9 @@ command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
    for hook, filenames in pairs(loaded_config.scripts[command.running.name] or {}) do
-      if filenames is string then
-         filenames = { filenames }
-      end
-      for f in ivalues(filenames as {string}) do
+      for f in ivalues(filenames) do
          log.debug("registering file '", f, "' for ", command.running.name, ":", hook)
-         script.register(f, command.running.name, hook)
+         script.register(f:to_string(), command.running.name, hook)
       end
    end
 end

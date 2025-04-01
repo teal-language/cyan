@@ -7,6 +7,7 @@ local tl <const> = require("tl")
 local fs <const> = require("cyan.fs")
 local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
+local lexical_path <const> = require("lexical-path")
 
 local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
    = util.tab.keys, util.tab.sort_in_place, util.tab.from, util.tab.values, util.tab.ivalues
@@ -14,19 +15,20 @@ local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
 ---@desc
 --- The config data
 local record Config
-   loaded_from: fs.Path
+   loaded_from: lexical_path.Path
 
-   build_dir: string
-   source_dir: string
-   include: {string}
-   exclude: {string}
+   build_dir: lexical_path.Path
+   source_dir: lexical_path.Path
+   include: {lexical_path.Pattern}
+   exclude: {lexical_path.Pattern}
    global_env_def: string
-   include_dir: {string}
+   include_dir: {lexical_path.Path}
 
    dont_prune: {string}
 
    -- { Command Name -> { Hook Name -> File(s) } }
-   scripts: {string:{string:string|{string}}}
+   -- parsed/checked as {string:{string:string|{string}}}
+   scripts: {string:{string:{lexical_path.Path}}}
 
    feat_arity: tl.Feat
    gen_compat: tl.GenCompat
@@ -79,6 +81,44 @@ local function get_map_type(val: table, default_key: string, default_value: stri
    return table.concat(key_types, " | "), table.concat(val_types, " | ")
 end
 
+local function copy<T>(x: T, no_tables?: boolean): T
+   if x is table then
+      assert(not no_tables)
+      local result = {}
+      for k, v in pairs(x) do
+         result[copy(k, true)] = copy(v)
+      end
+      return result as T
+   end
+   return x
+end
+
+local function ordinal_indicator(n: integer): string
+   if 11 <= n and n <= 13 then
+      return "th"
+   end
+
+   local digit <const> = n % 10
+   if digit == 1 then return "st" end
+   if digit == 2 then return "nd" end
+   if digit == 3 then return "rd" end
+   return "th"
+end
+
+local enum BadPathReason
+   "non-normal"
+   "absolute"
+   "traversal"
+end
+
+local function check_path(p: string): lexical_path.Path, BadPathReason
+   local as_path <const>, norm <const> = lexical_path.from_unix(p)
+   if as_path.is_absolute then return as_path, "absolute" end
+   if norm ~= "normal" then return as_path, "non-normal" end
+   if as_path[1] == ".." then return as_path, "traversal" end
+   return as_path
+end
+
 ---@desc
 --- Check if `c` conforms to the `Config` type and return any errors and warnings generated from checking
 function config.is_config(c_in: any): Config, {string}, {string}
@@ -98,7 +138,7 @@ function config.is_config(c_in: any): Config, {string}, {string}
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string : {string : (string | {string}) }}",
+      scripts = "{ string : { string : (string | {string}) } }",
 
       feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -106,10 +146,28 @@ function config.is_config(c_in: any): Config, {string}, {string}
 
       disable_warnings = "{string}",
       warning_error = "{string}",
+
+      externals = "{string:any}",
    }
 
    local errs <const>: {string} = {}
    local warnings <const>: {string} = {}
+
+   local result <const>: Config = {}
+
+   local function to_path(src: string, for_what: string): lexical_path.Path
+      local as_path <const>, bad <const> = check_path(src)
+
+      if bad == "absolute" then
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", for_what, as_path:to_string("/")))
+      elseif bad == "non-normal" then
+         table.insert(errs, string.format("Expected a normalized path for %s, %s should be %s", for_what, src, as_path:to_string("/")))
+      elseif bad == "traversal" then
+         table.insert(errs, string.format("Expected %s to not go outside the directory of %s, got %s", for_what, config.filename, as_path:to_string("/")))
+      end
+
+      return as_path
+   end
 
    for k, v in pairs(c as {string:any}) do
       if k == "externals" then
@@ -122,6 +180,8 @@ function config.is_config(c_in: any): Config, {string}, {string}
          if type(v) ~= "table" then
             table.insert(errs, "Expected scripts to be {string : {string : string | {string}}}, got " .. type(v))
          end
+
+         result.scripts = {}
 
          for script_key, value in pairs(v as table) do
             if not script_key is string then
@@ -150,6 +210,19 @@ function config.is_config(c_in: any): Config, {string}, {string}
                )
                break
             end
+            result.scripts[script_key as string] = {}
+            for hook_name, path_or_paths in pairs(value as table) do
+               if hook_name is string then
+                  local t = {}
+                  result.scripts[script_key as string][hook_name] = t
+                  local paths: {any} = path_or_paths is table and path_or_paths or {path_or_paths}
+                  for i, path in ipairs(paths) do
+                     if path is string then
+                        t[i] = to_path(path, ("%s%s %s hook"):format(i, ordinal_indicator(i), hook_name))
+                     end
+                  end
+               end
+            end
          end
       else
          local valid <const> = valid_keys[k]
@@ -157,8 +230,6 @@ function config.is_config(c_in: any): Config, {string}, {string}
             table.insert(warnings, string.format("Unknown key '%s'", k))
          elseif valid is {string:boolean} then
             if not valid[v as string] then
-               -- TODO(tl bug): inlining this call produces this error?
-               -- src/cyan/config.tl:161:117: argument 1: in map key: got string | number, expected string
                local sorted <const> = sort(from(keys(valid)))
                table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sorted, ", "))
             end
@@ -178,13 +249,20 @@ function config.is_config(c_in: any): Config, {string}, {string}
          -- error already generated an error or wasn't provided
          return
       end
-      local as_path = fs.path.new(val, false)
-      if as_path:is_absolute() then
-         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_real_path()))
-      end
+      local as_path <const> = to_path(val, key)
+      (result as {string:any})[key] = as_path
    end
    verify_non_absolute_path("source_dir")
    verify_non_absolute_path("build_dir")
+
+   if c.include_dir then
+      result.include_dir = {}
+      for i, v in ipairs(c.include_dir as {any}) do
+         if v is string then
+            result.include_dir[i] = to_path(v, ("%s%s include_dir entry"):format(i, ordinal_indicator(i)))
+         end
+      end
+   end
 
    local function verify_warnings(key: string)
       local arr <const> = (c as {string:{string}})[key]
@@ -212,13 +290,39 @@ function config.is_config(c_in: any): Config, {string}, {string}
       return nil, errs, warnings
    end
 
-   return c as Config, nil, warnings
+   result.externals = c.externals as {string:any}
+
+   if type(c.include) == "table" then
+      result.include = {}
+      for i, patt in ipairs(c.include as {any}) do
+         if patt is string then
+            result.include[i] = lexical_path.parse_pattern(patt)
+         end
+      end
+   end
+
+   if type(c.exclude) == "table" then
+      result.exclude = {}
+      for i, patt in ipairs(c.exclude as {any}) do
+         if patt is string then
+            result.exclude[i] = lexical_path.parse_pattern(patt)
+         end
+      end
+   end
+
+   for k in pairs(valid_keys) do
+      if (result as {string:any})[k] == nil then
+         (result as {string:any})[k] = copy(c[k])
+      end
+   end
+
+   return result, nil, warnings
 end
 
 ---@desc
 --- Find `config.filename` in the current or parent directories
-function config.find(): fs.Path
-   return fs.search_parent_dirs(fs.cwd(), config.filename)
+function config.find(): lexical_path.Path
+   return fs.search_parent_dirs(fs.current_directory(), config.filename)
 end
 
 ---@desc
@@ -239,7 +343,7 @@ function config.load(): Config, {string}, {string}
 
    local cfg <const>, errs <const>, warnings <const> = config.is_config(maybe_config)
    if cfg then
-      cfg.loaded_from = fs.cwd() .. config.filename
+      cfg.loaded_from = fs.current_directory() .. config.filename
    end
    return cfg, errs, warnings
 end

@@ -20,7 +20,7 @@ default: cyan rockspec
 cyan: build_directories $(LUA)
 
 build_directories:
-	mkdir -p build/cyan/{fs,commands,experimental} build/spec/{api,commands} build/testing
+	mkdir -p build/cyan/{commands,experimental} build/spec/{api,commands} build/testing
 
 all: clean bootstrap docs rockspec test
 
@@ -55,7 +55,7 @@ rockspec: cyan-dev-1.rockspec
 docs/index.html: $(SRC) cyan scripts/gen_documentation.tl doc-template.html
 	./bin/cyan run scripts/gen_documentation.tl
 
-cyan-dev-1.rockspec: $(SRC) scripts/gen_rockspec.tl
+cyan-dev-1.rockspec: $(SRC) cyan scripts/gen_rockspec.tl
 	./bin/cyan run scripts/gen_rockspec.tl
 
 .PHONY: clean

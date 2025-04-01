@@ -6,12 +6,12 @@ local tl = require("tl")
 local argparse = require("argparse")
 
 local config = require("cyan.config")
-local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
+local lexical_path = require("lexical-path")
 
-local merge_list, sort, from, keys, contains, ivalues =
-util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues
+local merge_list, sort, from, keys, contains, ivalues, map =
+util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues, util.tab.map
 
 local Args = {}
 
@@ -110,7 +110,7 @@ function command.merge_args_into_config(cfg, args)
 
    cfg.global_env_def = args.global_env_def or cfg.global_env_def
 
-   cfg.include_dir = merge_list(cfg.include_dir, args.include_dir)
+   cfg.include_dir = merge_list(cfg.include_dir, map(args.include_dir, lexical_path.from_os))
    if contains(args.wdisable, "all") then
       cfg.disable_warnings = all_warnings
    else
@@ -122,8 +122,8 @@ function command.merge_args_into_config(cfg, args)
       cfg.warning_error = merge_list(cfg.warning_error, args.werror)
    end
 
-   cfg.source_dir = args.source_dir or cfg.source_dir
-   cfg.build_dir = args.build_dir or cfg.build_dir
+   cfg.source_dir = args.source_dir and lexical_path.from_os(args.source_dir) or cfg.source_dir
+   cfg.build_dir = args.build_dir and lexical_path.from_os(args.build_dir) or cfg.build_dir
 
    cfg.gen_compat = args.gen_compat or cfg.gen_compat
    cfg.gen_target = args.gen_target or cfg.gen_target

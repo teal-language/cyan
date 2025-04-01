@@ -7,13 +7,14 @@ local fs <const> = require("cyan.fs")
 local log <const> = require("cyan.log")
 local sandbox <const> = require("cyan.sandbox")
 local tl <const> = require("tl")
+local lexical_path <const> = require("lexical-path")
 
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("script", "The Teal script to run.")
       :args("+")
 end
 
-local function run(args: command.Args, loaded_config: config.Config, starting_dir: fs.Path): integer
+local function run(args: command.Args, loaded_config: config.Config, starting_dir: lexical_path.Path): integer
    local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
    if not env then
       log.err("Could not initialize Teal environment:\n", env_err)
@@ -21,7 +22,7 @@ local function run(args: command.Args, loaded_config: config.Config, starting_di
    end
 
    do
-      local ok <const>, err <const> = fs.chdir(starting_dir)
+      local ok <const>, err <const> = fs.change_directory(starting_dir)
       if not ok then
          log.err("Could not change directory: ", err)
          return 1

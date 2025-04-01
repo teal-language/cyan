@@ -1,5 +1,6 @@
 local type _ = require("busted")
 local luassert <const> = require("luassert")
+local lexical_path <const> = require("lexical-path")
 
 local temporary_files <const> = require("testing.temporary-files")
 local graph <const> = require("cyan.graph")
@@ -18,12 +19,12 @@ describe("dependency graph builder", function()
          ["i.tl"] = [[require"h"]],
          ["j.tl"] = [[require"i"]],
       }), function()
-         local g <const> = graph.scan_dir(".")
+         local g <const> = graph.scan_directory((lexical_path.from_os(".")))
 
          local actual_order <const> = {}
          local iter <const> = g:nodes()
          for n in iter do
-            table.insert(actual_order, n.input:to_real_path())
+            table.insert(actual_order, n.input:to_string())
          end
 
          local expected_order = {

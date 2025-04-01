@@ -1,3 +1,5 @@
+local luassert <const> = require("luassert")
+
 local record Batch
    {{function(...: any), integer, {any}}}
 
@@ -40,7 +42,7 @@ function Batch:assert()
       end
    end
 
-   assert(
+   luassert.is_true(
       passed,
       string.format(
          "Batch assertion '%s' failed:\n   %s\n%s",
