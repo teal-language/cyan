@@ -68,7 +68,7 @@ function fs.normalize(p: string): string
 end
 
 ---@desc
---- Iterate over the given directory, returning `fs.Path` objects
+--- Iterate over the given directory, returning `lexical_path.Path` objects
 ---
 --- By default, will not include paths that start with '.'
 function fs.iterate_directory(dir: lexical_path.Path, include_dotfiles?: boolean): function(): lexical_path.Path
@@ -142,7 +142,7 @@ end
 ---@desc
 --- Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
 ---
---- For information on path patterns, see the `Path:match()` method
+--- For information on path patterns, see the lexical-path module's documentation
 function fs.scan_directory(
    dir: lexical_path.Path,
    include?: {string | lexical_path.Pattern},
