@@ -140,7 +140,7 @@ local function lint()
    local counts: {string:integer} = {}
 
    local src_dir <const> = lexical_path.from_os("src")
-   for path in fs.scan_dir(src_dir, {"cyan/**/*", "testing/**/*"}) do
+   for path in fs.scan_directory(src_dir, {"cyan/**/*", "testing/**/*"}) do
       path = src_dir .. path
       errors = {}
       local real_path <const> = path:to_string()
