@@ -19,8 +19,8 @@ local record Config
 
    build_dir: lexical_path.Path
    source_dir: lexical_path.Path
-   include: {string}
-   exclude: {string}
+   include: {lexical_path.Pattern}
+   exclude: {lexical_path.Pattern}
    global_env_def: string
    include_dir: {lexical_path.Path}
 
@@ -292,6 +292,25 @@ function config.is_config(c_in: any): Config, {string}, {string}
    end
 
    result.externals = c.externals as {string:any}
+
+   if type(c.include) == "table" then
+      result.include = {}
+      for i, patt in ipairs(c.include as {any}) do
+         if patt is string then
+            result.include[i] = lexical_path.parse_pattern(patt)
+         end
+      end
+   end
+
+   if type(c.exclude) == "table" then
+      result.exclude = {}
+      for i, patt in ipairs(c.exclude as {any}) do
+         if patt is string then
+            result.exclude[i] = lexical_path.parse_pattern(patt)
+         end
+      end
+   end
+
    for k in pairs(valid_keys) do
       if (result as {string:any})[k] == nil then
          (result as {string:any})[k] = copy(c[k])

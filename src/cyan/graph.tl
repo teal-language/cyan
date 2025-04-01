@@ -260,7 +260,7 @@ end
 ---
 --- Returns `nil` if a circular dependency was found, along
 --- with a list of the filenames in the cycle
-function graph.scan_directory(dir: lexical_path.Path, include?: {string}, exclude?: {string}): Dag, {string}
+function graph.scan_directory(dir: lexical_path.Path, include?: {string | lexical_path.Pattern}, exclude?: {string | lexical_path.Pattern}): Dag, {string}
    local d <const> = graph.empty()
 
    for p in fs.scan_directory(dir, include, exclude) do
