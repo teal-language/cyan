@@ -273,8 +273,8 @@ This documentation is auto-generated and may be incomplete.
 	loaded_from: <code class=parameter-type>lexical_path.Path</code>
 	build_dir: <code class=parameter-type>lexical_path.Path</code>
 	source_dir: <code class=parameter-type>lexical_path.Path</code>
-	include: <code class=parameter-type>{string}</code>
-	exclude: <code class=parameter-type>{string}</code>
+	include: <code class=parameter-type>{lexical_path.Pattern}</code>
+	exclude: <code class=parameter-type>{lexical_path.Pattern}</code>
 	global_env_def: <code class=parameter-type>string</code>
 	include_dir: <code class=parameter-type>{lexical_path.Path}</code>
 	dont_prune: <code class=parameter-type>{string}</code>
@@ -473,7 +473,7 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.match_any(
 	<code class=parameter-name>path</code>: <code class=parameter-type>lexical_path.Path</code>,
-	<code class=parameter-name>patterns</code>: <code class=parameter-type>{lexical_path.Pattern}</code>
+	<code class=parameter-name>patterns</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>
 ): <code class=parameter-type>integer</code></code></pre><p><p>If the given path matches any of the patterns in <code>patterns</code>, returns the index of the matched pattern otherwise returns <code>nil</code></p></p>
 </div><h3><a name=fs.mod_time><code class=bulleted>function fs.mod_time</code></a>
 </h3>
@@ -494,8 +494,8 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.scan_directory(
 	<code class=parameter-name>dir</code>: <code class=parameter-type>lexical_path.Path</code>,
-	<code class=parameter-name>include</code>: <code class=parameter-type>{string}</code>,
-	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string}</code>,
+	<code class=parameter-name>include</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>,
+	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>,
 	<code class=parameter-name>include_directories</code>: <code class=parameter-type>boolean</code>
 ): <code class=parameter-type>function(): lexical_path.Path</code></code></pre><p><p>Recursively iterate over the files in a directory, following the provided <code>include</code> and <code>exclude</code> patterns</p><p>For information on path patterns, see the <code>Path:match()</code> method</p></p>
 </div><h3><a name=fs.search_parent_dirs><code class=bulleted>function fs.search_parent_dirs</code></a>
@@ -551,8 +551,8 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> graph.scan_directory(
 	<code class=parameter-name>dir</code>: <code class=parameter-type>lexical_path.Path</code>,
-	<code class=parameter-name>include</code>: <code class=parameter-type>{string}</code>,
-	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string}</code>
+	<code class=parameter-name>include</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>,
+	<code class=parameter-name>exclude</code>: <code class=parameter-type>{string | lexical_path.Pattern}</code>
 ): <code class=parameter-type>Dag</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Recursively scan a directory (using <code>fs.scan_directory</code>) and build up a graph, respecting the given <code>include</code> and <code>exclude</code> patterns</p><p>Returns <code>nil</code> if a circular dependency was found, along with a list of the filenames in the cycle</p></p>
 </div><h2><a name=cyan.interaction>cyan.interaction</a>
 </h2>

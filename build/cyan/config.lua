@@ -292,6 +292,25 @@ function config.is_config(c_in)
    end
 
    result.externals = c.externals
+
+   if type(c.include) == "table" then
+      result.include = {}
+      for i, patt in ipairs(c.include) do
+         if type(patt) == "string" then
+            result.include[i] = lexical_path.parse_pattern(patt)
+         end
+      end
+   end
+
+   if type(c.exclude) == "table" then
+      result.exclude = {}
+      for i, patt in ipairs(c.exclude) do
+         if type(patt) == "string" then
+            result.exclude[i] = lexical_path.parse_pattern(patt)
+         end
+      end
+   end
+
    for k in pairs(valid_keys) do
       if (result)[k] == nil then
          (result)[k] = copy(c[k])

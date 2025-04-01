@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local type = type
 
 
 
@@ -143,9 +143,20 @@ end
 
 
 
-function fs.scan_directory(dir, include, exclude, include_directories)
-   local include_patterns = util.tab.map(include or {}, lexical_path.parse_pattern)
-   local exclude_patterns = util.tab.map(exclude or {}, lexical_path.parse_pattern)
+function fs.scan_directory(
+   dir,
+   include,
+   exclude,
+   include_directories)
+
+   local function ensure_pattern(x)
+      if type(x) == "string" then
+         return lexical_path.parse_pattern(x)
+      end
+      return x
+   end
+   local include_patterns = util.tab.map(include or {}, ensure_pattern)
+   local exclude_patterns = util.tab.map(exclude or {}, ensure_pattern)
 
    local function matches(to_match)
       local inc = nil

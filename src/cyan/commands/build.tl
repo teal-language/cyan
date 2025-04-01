@@ -93,7 +93,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude and { table.unpack(loaded_config.exclude) } or {}
    if abs_source_dir == starting_dir then
-      table.insert(exclude, "tlconfig.lua")
+      table.insert(exclude, lexical_path.parse_pattern "tlconfig.lua")
    end
    local dont_write_lua_files <const> = source_dir == build_dir
 

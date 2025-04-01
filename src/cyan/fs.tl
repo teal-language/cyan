@@ -130,7 +130,7 @@ end
 ---@desc
 --- If the given path matches any of the patterns in `patterns`, returns the index of the matched pattern
 --- otherwise returns `nil`
-function fs.match_any(path: lexical_path.Path, patterns: {lexical_path.Pattern}): integer
+function fs.match_any(path: lexical_path.Path, patterns: {string | lexical_path.Pattern}): integer
    for i, pattern in ipairs(patterns) do
       if path:match(pattern) then
          return i
@@ -143,9 +143,20 @@ end
 --- Recursively iterate over the files in a directory, following the provided `include` and `exclude` patterns
 ---
 --- For information on path patterns, see the `Path:match()` method
-function fs.scan_directory(dir: lexical_path.Path, include?: {string}, exclude?: {string}, include_directories?: boolean): function(): lexical_path.Path
-   local include_patterns <const>: {lexical_path.Pattern} = util.tab.map(include or {}, lexical_path.parse_pattern)
-   local exclude_patterns <const>: {lexical_path.Pattern} = util.tab.map(exclude or {}, lexical_path.parse_pattern)
+function fs.scan_directory(
+   dir: lexical_path.Path,
+   include?: {string | lexical_path.Pattern},
+   exclude?: {string | lexical_path.Pattern},
+   include_directories?: boolean
+): function(): lexical_path.Path
+   local function ensure_pattern(x: string | lexical_path.Pattern): lexical_path.Pattern
+      if x is string then
+         return lexical_path.parse_pattern(x)
+      end
+      return x
+   end
+   local include_patterns <const>: {lexical_path.Pattern} = util.tab.map(include or {}, ensure_pattern)
+   local exclude_patterns <const>: {lexical_path.Pattern} = util.tab.map(exclude or {}, ensure_pattern)
 
    local function matches(to_match: lexical_path.Path): boolean
       local inc: integer = nil
