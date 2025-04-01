@@ -209,17 +209,16 @@ function config.is_config(c_in)
                "}}")
 
                break
-            else
-               result.scripts[script_key] = {}
-               for hook_name, path_or_paths in pairs(value) do
-                  if type(hook_name) == "string" then
-                     local t = {}
-                     result.scripts[script_key][hook_name] = t
-                     local paths = type(path_or_paths) == "table" and path_or_paths or { path_or_paths }
-                     for i, path in ipairs(paths) do
-                        if type(path) == "string" then
-                           t[i] = to_path(path, ("%s%s %s hook"):format(i, ordinal_indicator(i), hook_name))
-                        end
+            end
+            result.scripts[script_key] = {}
+            for hook_name, path_or_paths in pairs(value) do
+               if type(hook_name) == "string" then
+                  local t = {}
+                  result.scripts[script_key][hook_name] = t
+                  local paths = type(path_or_paths) == "table" and path_or_paths or { path_or_paths }
+                  for i, path in ipairs(paths) do
+                     if type(path) == "string" then
+                        t[i] = to_path(path, ("%s%s %s hook"):format(i, ordinal_indicator(i), hook_name))
                      end
                   end
                end
