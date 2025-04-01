@@ -40,6 +40,7 @@ local Config = {}
 
 
 
+
 local config = {
    Config = Config,
 
@@ -106,6 +107,20 @@ end
 
 
 
+
+
+
+
+local function check_path(p)
+   local as_path, norm = lexical_path.from_unix(p)
+   if as_path.is_absolute then return as_path, "absolute" end
+   if norm ~= "normal" then return as_path, "non-normal" end
+   if as_path[1] == ".." then return as_path, "traversal" end
+   return as_path
+end
+
+
+
 function config.is_config(c_in)
    if type(c_in) ~= "table" then
       return nil, { "Expected table, got " .. type(c_in) }, {}
@@ -123,7 +138,7 @@ function config.is_config(c_in)
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string : { string : (string | {string}) }}",
+      scripts = "{ string : { string : (string | {string}) } }",
 
       feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -138,6 +153,22 @@ function config.is_config(c_in)
    local errs = {}
    local warnings = {}
 
+   local result = {}
+
+   local function to_path(src, for_what)
+      local as_path, bad = check_path(src)
+
+      if bad == "absolute" then
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", for_what, as_path:to_string("/")))
+      elseif bad == "non-normal" then
+         table.insert(errs, string.format("Expected a normalized path for %s, %s should be %s", for_what, src, as_path:to_string("/")))
+      elseif bad == "traversal" then
+         table.insert(errs, string.format("Expected %s to not go outside the directory of %s, got %s", for_what, config.filename, as_path:to_string("/")))
+      end
+
+      return as_path
+   end
+
    for k, v in pairs(c) do
       if k == "externals" then
          if type(v) ~= "table" then
@@ -149,6 +180,8 @@ function config.is_config(c_in)
          if type(v) ~= "table" then
             table.insert(errs, "Expected scripts to be {string : {string : string | {string}}}, got " .. type(v))
          end
+
+         result.scripts = {}
 
          for script_key, value in pairs(v) do
             if not (type(script_key) == "string") then
@@ -176,6 +209,20 @@ function config.is_config(c_in)
                "}}")
 
                break
+            else
+               result.scripts[script_key] = {}
+               for hook_name, path_or_paths in pairs(value) do
+                  if type(hook_name) == "string" then
+                     local t = {}
+                     result.scripts[script_key][hook_name] = t
+                     local paths = type(path_or_paths) == "table" and path_or_paths or { path_or_paths }
+                     for i, path in ipairs(paths) do
+                        if type(path) == "string" then
+                           t[i] = to_path(path, ("%s%s %s hook"):format(i, ordinal_indicator(i), hook_name))
+                        end
+                     end
+                  end
+               end
             end
          end
       else
@@ -184,8 +231,6 @@ function config.is_config(c_in)
             table.insert(warnings, string.format("Unknown key '%s'", k))
          elseif type(valid) == "table" then
             if not valid[v] then
-
-
                local sorted = sort(from(keys(valid)))
                table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sorted, ", "))
             end
@@ -199,22 +244,13 @@ function config.is_config(c_in)
       end
    end
 
-   local result = {}
-
    local function verify_non_absolute_path(key)
       local val = (c)[key]
       if type(val) ~= "string" then
 
          return
       end
-      local as_path, norm = lexical_path.from_unix(val)
-      if as_path.is_absolute then
-         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string("/")))
-      elseif norm ~= "normal" then
-         table.insert(errs, string.format("Expected a normalized path for %s, %s should be %s", key, val, as_path:to_string("/")))
-      elseif as_path[1] == ".." then
-         table.insert(errs, string.format("Expected %s to not go outside the directory of %s, got %s", key, config.filename, as_path:to_string("/")))
-      end
+      local as_path = to_path(val, key);
       (result)[key] = as_path
    end
    verify_non_absolute_path("source_dir")
@@ -224,24 +260,7 @@ function config.is_config(c_in)
       result.include_dir = {}
       for i, v in ipairs(c.include_dir) do
          if type(v) == "string" then
-            local path, norm = lexical_path.from_unix(v)
-            if path.is_absolute then
-               table.insert(errs, string.format(
-               "Expected a non-absolute path for %s%s entry in include_dir, got %s",
-               i, ordinal_indicator(i), v))
-
-            elseif norm ~= "normal" then
-               table.insert(errs, string.format(
-               "Expected a normalized path for %s%s entry in include_dir, %s should be %s",
-               i, ordinal_indicator(i), v, path:to_string("/")))
-
-            elseif path[1] == ".." then
-               table.insert(errs, string.format(
-               "Expected %s%s entry in include_dir to not go outside the directory of %s, got %s",
-               i, ordinal_indicator(i), config.filename, path:to_string("/")))
-
-            end
-            result.include_dir[i] = path
+            result.include_dir[i] = to_path(v, ("%s%s include_dir entry"):format(i, ordinal_indicator(i)))
          end
       end
    end

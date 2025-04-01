@@ -27,7 +27,8 @@ local record Config
    dont_prune: {string}
 
    -- { Command Name -> { Hook Name -> File(s) } }
-   scripts: {string:{string:string|{string}}}
+   -- parsed/checked as {string:{string:string|{string}}}
+   scripts: {string:{string:{lexical_path.Path}}}
 
    feat_arity: tl.Feat
    gen_compat: tl.GenCompat
@@ -104,6 +105,20 @@ local function ordinal_indicator(n: integer): string
    return "th"
 end
 
+local enum BadPathReason
+   "non-normal"
+   "absolute"
+   "traversal"
+end
+
+local function check_path(p: string): lexical_path.Path, BadPathReason
+   local as_path <const>, norm <const> = lexical_path.from_unix(p)
+   if as_path.is_absolute then return as_path, "absolute" end
+   if norm ~= "normal" then return as_path, "non-normal" end
+   if as_path[1] == ".." then return as_path, "traversal" end
+   return as_path
+end
+
 ---@desc
 --- Check if `c` conforms to the `Config` type and return any errors and warnings generated from checking
 function config.is_config(c_in: any): Config, {string}, {string}
@@ -123,7 +138,7 @@ function config.is_config(c_in: any): Config, {string}, {string}
 
       include_dir = "{string}",
       global_env_def = "string",
-      scripts = "{string : { string : (string | {string}) }}",
+      scripts = "{ string : { string : (string | {string}) } }",
 
       feat_arity = { ["off"] = true, ["on"] = true },
       gen_compat = { ["off"] = true, ["optional"] = true, ["required"] = true },
@@ -138,6 +153,22 @@ function config.is_config(c_in: any): Config, {string}, {string}
    local errs <const>: {string} = {}
    local warnings <const>: {string} = {}
 
+   local result <const>: Config = {}
+
+   local function to_path(src: string, for_what: string): lexical_path.Path
+      local as_path <const>, bad <const> = check_path(src)
+
+      if bad == "absolute" then
+         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", for_what, as_path:to_string("/")))
+      elseif bad == "non-normal" then
+         table.insert(errs, string.format("Expected a normalized path for %s, %s should be %s", for_what, src, as_path:to_string("/")))
+      elseif bad == "traversal" then
+         table.insert(errs, string.format("Expected %s to not go outside the directory of %s, got %s", for_what, config.filename, as_path:to_string("/")))
+      end
+
+      return as_path
+   end
+
    for k, v in pairs(c as {string:any}) do
       if k == "externals" then
          if type(v) ~= "table" then
@@ -149,6 +180,8 @@ function config.is_config(c_in: any): Config, {string}, {string}
          if type(v) ~= "table" then
             table.insert(errs, "Expected scripts to be {string : {string : string | {string}}}, got " .. type(v))
          end
+
+         result.scripts = {}
 
          for script_key, value in pairs(v as table) do
             if not script_key is string then
@@ -176,6 +209,20 @@ function config.is_config(c_in: any): Config, {string}, {string}
                      .. "}}"
                )
                break
+            else
+               result.scripts[script_key as string] = {}
+               for hook_name, path_or_paths in pairs(value as table) do
+                  if hook_name is string then
+                     local t = {}
+                     result.scripts[script_key as string][hook_name] = t
+                     local paths: {any} = path_or_paths is table and path_or_paths or {path_or_paths}
+                     for i, path in ipairs(paths) do
+                        if path is string then
+                           t[i] = to_path(path, ("%s%s %s hook"):format(i, ordinal_indicator(i), hook_name))
+                        end
+                     end
+                  end
+               end
             end
          end
       else
@@ -184,8 +231,6 @@ function config.is_config(c_in: any): Config, {string}, {string}
             table.insert(warnings, string.format("Unknown key '%s'", k))
          elseif valid is {string:boolean} then
             if not valid[v as string] then
-               -- TODO(tl bug): inlining this call produces this error?
-               -- src/cyan/config.tl:161:117: argument 1: in map key: got string | number, expected string
                local sorted <const> = sort(from(keys(valid)))
                table.insert(errs, "Invalid value for " .. k .. ", expected one of: " .. table.concat(sorted, ", "))
             end
@@ -199,22 +244,13 @@ function config.is_config(c_in: any): Config, {string}, {string}
       end
    end
 
-   local result <const>: Config = {}
-
    local function verify_non_absolute_path(key: string)
       local val = (c as {string:string})[key]
       if type(val) ~= "string" then
          -- error already generated an error or wasn't provided
          return
       end
-      local as_path <const>, norm <const> = lexical_path.from_unix(val)
-      if as_path.is_absolute then
-         table.insert(errs, string.format("Expected a non-absolute path for %s, got %s", key, as_path:to_string("/")))
-      elseif norm ~= "normal" then
-         table.insert(errs, string.format("Expected a normalized path for %s, %s should be %s", key, val, as_path:to_string("/")))
-      elseif as_path[1] == ".." then
-         table.insert(errs, string.format("Expected %s to not go outside the directory of %s, got %s", key, config.filename, as_path:to_string("/")))
-      end
+      local as_path <const> = to_path(val, key)
       (result as {string:any})[key] = as_path
    end
    verify_non_absolute_path("source_dir")
@@ -224,24 +260,7 @@ function config.is_config(c_in: any): Config, {string}, {string}
       result.include_dir = {}
       for i, v in ipairs(c.include_dir as {any}) do
          if v is string then
-            local path <const>, norm <const> = lexical_path.from_unix(v)
-            if path.is_absolute then
-               table.insert(errs, string.format(
-                  "Expected a non-absolute path for %s%s entry in include_dir, got %s",
-                  i, ordinal_indicator(i), v
-               ))
-            elseif norm ~= "normal" then
-               table.insert(errs, string.format(
-                  "Expected a normalized path for %s%s entry in include_dir, %s should be %s",
-                  i, ordinal_indicator(i), v, path:to_string("/")
-               ))
-            elseif path[1] == ".." then
-               table.insert(errs, string.format(
-                  "Expected %s%s entry in include_dir to not go outside the directory of %s, got %s",
-                  i, ordinal_indicator(i), config.filename, path:to_string("/")
-               ))
-            end
-            result.include_dir[i] = path
+            result.include_dir[i] = to_path(v, ("%s%s include_dir entry"):format(i, ordinal_indicator(i)))
          end
       end
    end
