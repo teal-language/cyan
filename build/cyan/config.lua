@@ -94,7 +94,8 @@ local function copy(x, no_tables)
 end
 
 local function ordinal_indicator(n)
-   if 11 <= n and n <= 13 then
+   local mod_100 = n % 100
+   if 11 <= mod_100 and mod_100 <= 13 then
       return "th"
    end
 
