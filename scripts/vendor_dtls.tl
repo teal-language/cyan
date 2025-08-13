@@ -98,8 +98,7 @@ CYAN_DONT_CHECK_DEPS environment variable to skip running this script.]])
    os.exit(1)
 end
 
-local dep_cmd      <const> = log.create_logger(io.stdout, "normal", decoration.decorate("Cmd Out", decoration.scheme.teal), decoration.decorate("...", decoration.scheme.teal))
-local dep_cmd_cont <const> = log.create_logger(io.stdout, "normal", decoration.decorate("...", decoration.scheme.teal))
+local dep_cmd <const> = log.create_logger(io.stdout, "normal", decoration.decorate("Cmd Out", decoration.scheme.teal), decoration.decorate("...", decoration.scheme.teal))
 
 local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, {string}
 	max_log_lines = max_log_lines or math.huge as integer
@@ -115,12 +114,12 @@ local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, 
 	while ln do
 		if #res < max_log_lines then
 			if res[1] then
-				dep_cmd_cont("   ", ln)
+				dep_cmd:cont("   ", ln)
 			else
 				dep_cmd("   ", ln)
 			end
       elseif #res == max_log_lines then
-         dep_cmd_cont("   ", decoration.decorate("... (truncated)", decoration.scheme.gray))
+         dep_cmd:cont("   ", decoration.decorate("... (truncated)", decoration.scheme.gray))
 		end
 		table.insert(res, ln)
 		ln = p:read("*l")
