@@ -59,17 +59,21 @@ function interaction.yes_no_prompt(
    while true do
       logger:nonl(prompt, " [", y, "/", n, "]: ")
       logger.stream:flush()
-      local input = io.read("*l"):lower()
-
-      if #input == 0 then
+      -- TODO: a proper line editor or terminal key getter would be more
+      -- appropriate here
+      local input = io.read("*l")
+      if not input or #input == 0 then
+         if not input then logger.stream:write("\n") end
          logger:cont(
-            "Defaulting to ",
+            not input and "End of input" or "Empty input",
+            ", defaulting to ",
             default
                and decoration.decorate(title_case(affirm[1]), affirmative)
                or decoration.decorate(title_case(deny[1]), negative)
          )
          return default or false
       end
+      input = input:lower()
 
       if affirm_set[input] then
          return true
