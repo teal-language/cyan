@@ -205,6 +205,8 @@ end
 ---@desc
 --- Search for a file in the parent directories of the given path. Returns the path of the file found.
 ---
+--- Always returns an absolute path
+---
 --- e.g. if `file.txt` is in `/foo/bar`, then
 --- `fs.search_parent_dirs("/foo/bar/baz", "file.txt") == path.new "/foo/bar/file.txt"`
 function fs.search_parent_dirs(start_path: lexical_path.Path, fname: string): lexical_path.Path
