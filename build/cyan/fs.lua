@@ -106,6 +106,19 @@ end
 
 
 
+function fs.write(p, content)
+   local fh, err = io.open(p:to_string(), "w")
+   if not fh then
+      return false, err
+   end
+   fh:write(content)
+   fh:close()
+   read_cache[p:to_string()] = content
+   return true
+end
+
+
+
 
 
 
