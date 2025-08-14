@@ -114,7 +114,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#config.is_config>config.is_config</a>
 <br><a href=#config.load>config.load</a>
 </p>
-</td><td valign=top><p><a class=module-name href=#cyan.decoration>cyan.decoration</a>
+<p><a class=module-name href=#cyan.decoration>cyan.decoration</a>
 <br><a href=#Color>Color</a>
 <br><a href=#Decorated:copy>Decorated:copy</a>
 <br><a href=#Decorated>Decorated</a>
@@ -147,8 +147,9 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#fs.read>fs.read</a>
 <br><a href=#fs.scan_directory>fs.scan_directory</a>
 <br><a href=#fs.search_parent_dirs>fs.search_parent_dirs</a>
+<br><a href=#fs.write>fs.write</a>
 </p>
-<p><a class=module-name href=#cyan.graph>cyan.graph</a>
+</td><td valign=top><p><a class=module-name href=#cyan.graph>cyan.graph</a>
 <br><a href=#Dag:find>Dag:find</a>
 <br><a href=#Dag:insert_file>Dag:insert_file</a>
 <br><a href=#Dag:mark_each>Dag:mark_each</a>
@@ -161,6 +162,10 @@ This documentation is auto-generated and may be incomplete.
 </p>
 <p><a class=module-name href=#cyan.interaction>cyan.interaction</a>
 <br><a href=#interaction.yes_no_prompt>interaction.yes_no_prompt</a>
+</p>
+<p><a class=module-name href=#cyan.invocation-context>cyan.invocation-context</a>
+<br><a href=#InvocationContext>InvocationContext</a>
+<br><a href=#invocation_context.new>invocation_context.new</a>
 </p>
 <p><a class=module-name href=#cyan.log>cyan.log</a>
 <br><a href=#ColorMode>ColorMode</a>
@@ -503,7 +508,13 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.search_parent_dirs(
 	<code class=parameter-name>start_path</code>: <code class=parameter-type>lexical_path.Path</code>,
 	<code class=parameter-name>fname</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == path.new <code>"/foo/bar/file.txt"</code></code></p></p>
+): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>Search for a file in the parent directories of the given path. Returns the path of the file found.</p><p>Always returns an absolute path</p><p>e.g. if <code>file.txt</code> is in <code>/foo/bar</code>, then <code>fs.search_parent_dirs(<code>"/foo/bar/baz"</code>, <code>"file.txt"</code>) == path.new <code>"/foo/bar/file.txt"</code></code></p></p>
+</div><h3><a name=fs.write><code class=bulleted>function fs.write</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.write(
+	<code class=parameter-name>p</code>: <code class=parameter-type>lexical_path.Path</code>,
+	<code class=parameter-name>content</code>: <code class=parameter-type>string</code>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Open a file, overwrite its contents, then close the file</p></p>
 </div><h2><a name=cyan.graph>cyan.graph</a>
 </h2>
 <p><p>A utility for building directed acyclic graphs of Teal source files</p><p>This is the main driver behind the <code>build</code> command</p></p>
@@ -566,6 +577,21 @@ This documentation is auto-generated and may be incomplete.
 	<code class=parameter-name>affirm</code>: <code class=parameter-type>{string}</code>,
 	<code class=parameter-name>deny</code>: <code class=parameter-type>{string}</code>
 ): <code class=parameter-type>boolean</code></code></pre><p><p>Ask the user to affirm or deny a given prompt. The user input will be compared against the given <code>affirm</code> and <code>deny</code> lists (case-insensitive), with defaults used if they are not provided.</p><p>The given logger will be used to print the prompt, and <code>log.info</code> if none is provided.</p></p>
+</div><h2><a name=cyan.invocation-context>cyan.invocation-context</a>
+</h2>
+<p><p>An invocation context contains what would be global variables that are concerned with how cyan was invoked. Things like the initial directory are kept here so that paths may be displayed relative to it despite some commands changing the directory of the process.</p></p>
+<h3><a name=InvocationContext><code class=bulleted>type InvocationContext</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>record</code> InvocationContext
+	initial_directory: <code class=parameter-type>lexical_path.Path</code>
+	project_root_directory: <code class=parameter-type>lexical_path.Path</code>
+<code class=keyword>end</code></code></pre><p><p>The context itself.</p></p>
+</div><h3><a name=invocation_context.new><code class=bulleted>function invocation_context.new</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> invocation_context.new(
+	<code class=parameter-name>initial_directory</code>: <code class=parameter-type>lexical_path.Path</code>,
+	<code class=parameter-name>project_root_directory</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>InvocationContext</code></code></pre><p><p>Create a new context, asserting any invariants.</p></p>
 </div><h2><a name=cyan.log>cyan.log</a>
 </h2>
 <p><p>Console logging utils, not to be confused with log files</p><p>Each logger object has the same <code>__call</code> signature of <code>function(...: any)</code>, and by default the following are provided:</p><p></p><table> <tr><th> Name     </th><th> Stream </th><th> Description</th></tr> <tr><td>       <code>info</code>   </td><td> stdout </td><td> General info, should be seen as the default, silenced by --quiet</td></tr> <tr><td>       <code>extra</code>  </td><td> stdout </td><td> Extra info that isn&apos;t strictly necessary, enabled via -v extra, silenced by --quiet</td></tr> <tr><td>       <code>warn</code>   </td><td> stderr </td><td> Used to display warnings, silenced by --quiet</td></tr> <tr><td>       <code>err</code>    </td><td> stderr </td><td> Used to display errors</td></tr> <tr><td>       <code>debug</code>  </td><td> stderr </td><td> Used for debugging, uses the inspect module (if it is found) to print its arguments, enabled by -v debug</td></tr> </table><p></p><p>You may notice that these are nicely padded and after the first line the prefix is replaced by a <code>'...'</code>. Another function is provided, <code>create_logger</code>,</p><p></p><pre> create_logger: function(<br>    stream: FILE,<br>    verbosity_threshold: Verbosity,<br>    prefix: string | decoration.Decorated,<br>    cont: string | decoration.Decorated,<br>    inspector: function(any): string<br> ): Logger<br> </pre><p> to automatically generate formatted output. <code>cont</code> defaults to <code><code>"..."</code></code> and <code>inspector</code> defaults to <code>tostring</code>. Prefixes will be padded to 10 characters wide by default, so your logging may look off from the default if your prefix is longer.</p><p>Additionally, loggers will try to detect whether or not to display colors. This is only handled with the <code>decoration.Decorated</code> type to avoid the many pitfalls of trying to parse ANSI escape sequences. If a regular string contains any escape sequences or an inspector produces them (outside of a <code>decoration.Decorated</code>) it will not be handled.</p></p>
@@ -670,6 +696,7 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=script.emit_hook><code class=bulleted>function script.emit_hook</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> script.emit_hook(
+	<code class=parameter-name>context</code>: <code class=parameter-type>invocation_context.InvocationContext</code>,
 	<code class=parameter-name>name</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>...</code>: <code class=parameter-type>any</code>
 ): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Iterates through each loaded script and runs any with the given hook, logging each script that it ran, and stopping early if any error</p></p>
@@ -687,10 +714,10 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=script.register><code class=bulleted>function script.register</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> script.register(
-	<code class=parameter-name>path</code>: <code class=parameter-type>string</code>,
+	<code class=parameter-name>path</code>: <code class=parameter-type>lexical_path.Path</code>,
 	<code class=parameter-name>command_name</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>hooks</code>: <code class=parameter-type>string | {string}</code>
-)</code></pre><p><p>Registers a file path as a lua/teal script to execute for the given hook(s) when <code>script.emit_hook</code> is called</p><p>This is called by the cli driver to register the scripts found in the config file with the relevant hooks</p><p>Note: this function does not attempt to actually load the file. Scripts are loaded all at once via <code>ensure_loaded_for_command</code></p></p>
+)</code></pre><p><p>Registers a file path as a lua/teal script to execute for the given hook(s) when <code>script.emit_hook</code> is called</p><p>This is called by the cli driver to register the scripts found in the config file with the relevant hooks</p><p><code>path</code> MUST be an absolute path</p><p>Note: this function does not attempt to actually load the file. Scripts are loaded all at once via <code>ensure_loaded_for_command</code></p></p>
 </div><h2><a name=cyan.tlcommon>cyan.tlcommon</a>
 </h2>
 <p><p>Common things needed by most commands in addition to wrappers around the tl api, since it isn't super stable</p></p>
