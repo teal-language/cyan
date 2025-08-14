@@ -27,7 +27,7 @@ lfs.mkdir(temp_dir)
 local clean_up_temp_files <const> = (function(): boolean
    local env <const> = os.getenv("CYAN_TESTING_CLEANUP_TEMP_FILES")
    if env then
-      return env == "1"
+      return env ~= "0"
    end
    return true
 end)()
