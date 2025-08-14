@@ -7,6 +7,7 @@ local tl = require("tl")
 local command = require("cyan.command")
 local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
+local invocation_context = require("cyan.invocation-context")
 local lexical_path = require("lexical-path")
 local log = require("cyan.log")
 local meta = require("cyan.meta")
@@ -16,10 +17,7 @@ local util = require("cyan.util")
 local ivalues, from, sort, keys =
 util.tab.ivalues, util.tab.from, util.tab.sort_in_place, util.tab.keys
 
-local script = {
-
-   base_directory = nil,
-}
+local script = {}
 
 
 
@@ -295,11 +293,11 @@ end
 
 
 
-function script.emit_hook(name, ...)
+function script.emit_hook(context, name, ...)
    log.extra("Emitting hook: '", name, "'")
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
-      local relative_name = script.base_directory and s:relative_to(script.base_directory) or s
+      local relative_name = context.initial_directory and s:relative_to(context.initial_directory) or s
       if ok then
          log.info("Ran script ", decoration.file_name(relative_name))
       else

@@ -7,6 +7,7 @@ local tl <const> = require("tl")
 local command <const> = require("cyan.command")
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
+local invocation_context <const> = require("cyan.invocation-context")
 local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local meta <const> = require("cyan.meta")
@@ -16,10 +17,7 @@ local util <const> = require("cyan.util")
 local ivalues <const>, from <const>, sort <const>, keys <const>
    = util.tab.ivalues, util.tab.from, util.tab.sort_in_place, util.tab.keys
 
-local script <const> = {
-   -- This is just for display, but still feels hacky
-   base_directory: lexical_path.Path = nil
-}
+local script <const> = {}
 
 local type Loaded = function(string, ...: any): integer, string
 
@@ -295,11 +293,11 @@ end
 ---@desc
 --- Iterates through each loaded script and runs any with the given hook,
 --- logging each script that it ran, and stopping early if any error
-function script.emit_hook(name: string, ...: any): boolean, string
+function script.emit_hook(context: invocation_context.InvocationContext, name: string, ...: any): boolean, string
    log.extra("Emitting hook: '", name, "'")
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
-      local relative_name <const> = script.base_directory and s:relative_to(script.base_directory) or s
+      local relative_name <const> = context.initial_directory and s:relative_to(context.initial_directory) or s
       if ok then
          log.info("Ran script ", decoration.file_name(relative_name))
       else

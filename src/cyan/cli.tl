@@ -10,6 +10,8 @@ local common <const> = require("cyan.tlcommon")
 local config <const> = require("cyan.config")
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
+local invocation_context <const> = require("cyan.invocation-context")
+local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local script <const> = require("cyan.script")
 local util <const> = require("cyan.util")
@@ -107,14 +109,17 @@ command.new{
 }
 
 local starting_dir <const> = assert(fs.current_directory())
-script.base_directory = starting_dir
 local config_path <const> = config.find()
+local project_dir: lexical_path.Path
 if config_path then
    local config_dir <const> = config_path:copy()
    table.remove(config_dir)
    log.debug("Changing directory into: ", config_dir)
-   fs.change_directory(config_dir)
+   assert(fs.change_directory(config_dir))
+   project_dir = config_dir
 end
+
+local context <const> = invocation_context.new(starting_dir, project_dir)
 
 local loaded_config, config_errors <const>, config_warnings <const>
    = config.load()
@@ -181,7 +186,7 @@ do
 end
 
 local ok <const>, res <const> = xpcall(function()
-   exit = cmd.exec(args, loaded_config, starting_dir)
+   exit = cmd.exec(args, loaded_config, context)
 end, debug.traceback as function()) as (boolean, string)
 if not ok then
    log.err("Error executing command\n   ", res)
