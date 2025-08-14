@@ -63,9 +63,11 @@ function temporary_files.rmdir_recursive(path: string): boolean, string
          local ok, err: boolean, string
          if lfs.attributes(full, "mode") == "directory" then
             ok, err = temporary_files.rmdir_recursive(full)
-         else
-            ok, err = os.remove(full)
+            if not ok then
+               return false, err
+            end
          end
+         ok, err = os.remove(full)
          if not ok then
             return false, err
          end
