@@ -1,3 +1,4 @@
+local ivalues <const> = require("cyan.util").tab.ivalues
 local lexical_path <const> = require("lexical-path")
 
 local record Dependency
@@ -72,7 +73,7 @@ end
 local to_be_fetched <const>: {FetchPair} = {}
 local missing_str <const>: {string | decoration.Decorated} = { "Missing dependencies:" }
 
-for _, dep in ipairs(deps) do
+for dep in ivalues(deps) do
    local result_path = types_path:copy() .. (dep.name .. ".d.tl")
 
    if force_update or not fs.exists(result_path) then
@@ -143,11 +144,12 @@ local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, 
 	return true, exit_code, res
 end
 
-for _, dep in ipairs(to_be_fetched) do
+for dep in ivalues(to_be_fetched) do
    local cmd <const> = cmd_str:gsub("%%%w+%%", function(match: string): string
       if match == "%URL%" then
          return dep.url
-      elseif match == "%FILE%" then
+      end
+      if match == "%FILE%" then
          return dep.destination:to_string()
       end
       return match

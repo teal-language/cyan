@@ -4,7 +4,7 @@ local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
-local keys <const> = util.tab.keys
+local keys <const>, ivalues <const> = util.tab.keys, util.tab.ivalues
 
 local info = log.create_logger(
    io.stdout,
@@ -38,7 +38,7 @@ end
 local type TagTree = {string | TagTree}
 local function html(tags: TagTree): string
    local flattened <const>: {string} = {}
-   for _, v in ipairs(tags) do
+   for v in ivalues(tags) do
       if v is string then
          if #v > 0 then
             table.insert(flattened, v)
@@ -58,7 +58,7 @@ local function tag_wrapper(name: string): function(string | TagTree, ?{string:st
       if attrs then
          local attr_keys <const> = util.tab.from(keys(attrs))
          table.sort(attr_keys)
-         for _, key in ipairs(attr_keys) do
+         for key in ivalues(attr_keys) do
             table.insert(start, (" %s=%s"):format(key, attrs[key]))
          end
       end
@@ -443,7 +443,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
    local sections <const>: {string} = {}
    local table_of_contents <const>: {string} = {}
 
-   for _, d in ipairs(docs) do
+   for d in ivalues(docs) do
       local node_kind <const> = d.obj:type()
       if d.kind == "desc" then
          local name <const> = emit[node_kind](d.content, d.obj, sections)
@@ -531,7 +531,8 @@ local final_blob <const> = template:gsub(
    function(match: string): string
       if match == "TABLE OF CONTENTS" then
          return final_table_of_contents
-      elseif match == "CONTENTS" then
+      end
+      if match == "CONTENTS" then
          return final_output
       end
 

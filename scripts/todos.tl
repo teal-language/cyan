@@ -49,7 +49,7 @@ for path in fs.scan_dir(".", {"src/cyan/**/*"}) do
    end
    if #todos > 0 then
       if raw then
-         for _, t in ipairs(todos) do
+         for t in ivalues(todos) do
             io.write(real_path, ":", tostring(t.line), ":", t.content, "\n")
          end
       else

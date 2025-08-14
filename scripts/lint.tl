@@ -139,9 +139,7 @@ local function lint()
    local total_errors = 0
    local counts: {string:integer} = {}
 
-   local src_dir <const> = lexical_path.from_os("src")
-   for path in fs.scan_directory(src_dir, {"cyan/**/*", "testing/**/*"}) do
-      path = src_dir .. path
+   for path in fs.scan_directory(lexical_path.from_os("."), {"src/cyan/**/*.tl", "src/testing/**/*.tl", "scripts/**/*.tl"}) do
       errors = {}
       local real_path <const> = path:to_string()
       local disp_path <const> = decoration.file_name(real_path)
