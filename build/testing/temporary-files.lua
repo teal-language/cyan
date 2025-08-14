@@ -27,7 +27,7 @@ lfs.mkdir(temp_dir)
 local clean_up_temp_files = (function()
    local env = os.getenv("CYAN_TESTING_CLEANUP_TEMP_FILES")
    if env then
-      return env == "1"
+      return env ~= "0"
    end
    return true
 end)()
@@ -63,9 +63,11 @@ function temporary_files.rmdir_recursive(path)
          local ok, err
          if lfs.attributes(full, "mode") == "directory" then
             ok, err = temporary_files.rmdir_recursive(full)
-         else
-            ok, err = os.remove(full)
+            if not ok then
+               return false, err
+            end
          end
+         ok, err = os.remove(full)
          if not ok then
             return false, err
          end

@@ -8,17 +8,18 @@ local command <const> = require("cyan.command")
 local config <const> = require("cyan.config")
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
+local invocation_context <const> = require("cyan.invocation-context")
 local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
 
-local function exec(args: command.Args, loaded_config: config.Config, starting_dir: lexical_path.Path): integer
+local function exec(args: command.Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
    if not args.force and loaded_config.loaded_from then
          log.err(
             "Already in a project!\n   Found config file at ",
-            decoration.file_name((assert(loaded_config.loaded_from:relative_to(starting_dir))))
+            decoration.file_name((assert(loaded_config.loaded_from:relative_to(context.initial_directory))))
          )
          return 1
    end

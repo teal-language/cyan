@@ -5,21 +5,22 @@
 
 local argparse <const> = require("argparse")
 
-local tl <const> = require("tl")
-local config <const> = require("cyan.config")
-local common <const> = require("cyan.tlcommon")
 local command <const> = require("cyan.command")
+local common <const> = require("cyan.tlcommon")
+local config <const> = require("cyan.config")
 local decoration <const> = require("cyan.decoration")
-local log <const> = require("cyan.log")
 local fs <const> = require("cyan.fs")
-local util <const> = require("cyan.util")
+local invocation_context <const> = require("cyan.invocation-context")
 local lexical_path <const> = require("lexical-path")
+local log <const> = require("cyan.log")
+local tl <const> = require("tl")
+local util <const> = require("cyan.util")
 
 local map_ipairs <const>, ivalues <const>
    = util.tab.map_ipairs, util.tab.ivalues
 
 local function command_exec(should_compile: boolean): command.CommandFn
-   return function(args: command.Args, loaded_config: config.Config, starting_dir: lexical_path.Path): integer
+   return function(args: command.Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
       if args["output"] and #args.files ~= 1 then
          log.err("--output can only map 1 input to 1 output")
          return 1
@@ -29,7 +30,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
          if args["output"] then
             local p = lexical_path.from_os(args["output"] as string)
             if not p.is_absolute then
-               p = starting_dir .. p
+               p = context.initial_directory .. p
             end
             return p
          end
@@ -58,7 +59,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
       end
       local to_write <const> = {}
       local function process_file(path: lexical_path.Path)
-         local disp_file <const> = decoration.file_name(assert(ensure_abs_path(path):relative_to(starting_dir)))
+         local disp_file <const> = decoration.file_name(assert(ensure_abs_path(path):relative_to(context.initial_directory)))
          if not fs.is_file(path) then
             log.err(disp_file, " is not a file")
             exit = 1
@@ -67,7 +68,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
 
          local real_path <const> = path:to_string()
          local outfile <const> = get_output_filename(path)
-         local disp_outfile <const> = decoration.file_name((assert(ensure_abs_path(outfile):relative_to(starting_dir))))
+         local disp_outfile <const> = decoration.file_name((assert(ensure_abs_path(outfile):relative_to(context.initial_directory))))
 
          local parsed <const>, perr <const> = common.parse_file(real_path)
          if not parsed then
@@ -113,7 +114,7 @@ local function command_exec(should_compile: boolean): command.CommandFn
       local function fix_path(f: string): lexical_path.Path
          local p = lexical_path.from_os(f)
          if not p.is_absolute then
-            p = assert((starting_dir .. p):relative_to(current_dir))
+            p = assert((context.initial_directory .. p):relative_to(current_dir))
          end
          return p
       end

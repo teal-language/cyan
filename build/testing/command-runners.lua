@@ -8,6 +8,8 @@ local cmd_prefix = (function()
       table.insert(buf, string.format("LUA_PATH_5_%d=%q", i, package.path))
    end
 
+   table.insert(buf, "CYAN_DISABLE_SCRIPT_CACHE=1")
+
 
    local first_arg = 0
    while arg[first_arg - 1] do
