@@ -8,6 +8,7 @@ local tl = require("tl")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
+local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
 local script = require("cyan.script")
@@ -154,10 +155,13 @@ local exit = 1
 command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
+   local config_dir = config_path:copy()
+   table.remove(config_dir)
+
    for hook, filenames in pairs(loaded_config.scripts[command.running.name] or {}) do
       for f in ivalues(filenames) do
-         log.debug("registering file '", f, "' for ", command.running.name, ":", hook)
-         script.register(f:to_string(), command.running.name, hook)
+         log.debug("registering file ", decoration.file_name(f), " for ", command.running.name, ":", hook)
+         script.register(config_dir .. f, command.running.name, hook)
       end
    end
 end
