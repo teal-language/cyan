@@ -6,15 +6,20 @@ local tl <const> = require("tl")
 
 local command <const> = require("cyan.command")
 local decoration <const> = require("cyan.decoration")
+local fs <const> = require("cyan.fs")
 local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
+local meta <const> = require("cyan.meta")
 local sandbox <const> = require("cyan.sandbox")
 local util <const> = require("cyan.util")
 
 local ivalues <const>, from <const>, sort <const>, keys <const>
    = util.tab.ivalues, util.tab.from, util.tab.sort_in_place, util.tab.keys
 
-local script <const> = {}
+local script <const> = {
+   -- This is just for display, but still feels hacky
+   base_directory: lexical_path.Path = nil
+}
 
 local type Loaded = function(string, ...: any): integer, string
 
@@ -35,38 +40,162 @@ local function exec_wrapper(box: sandbox.Sandbox): Loaded
    end
 end
 
+local cache_disabled = (function(): boolean
+   local env <const> = os.getenv("CYAN_DISABLE_SCRIPT_CACHE")
+   if env then return env ~= "0" end
+   return false
+end)()
+
+local cache_path <const> = (function(): lexical_path.Path
+   local dir = os.getenv("CYAN_SCRIPT_CACHE_DIR")
+   if dir then
+      return (lexical_path.from_os(dir))
+   end
+   dir = os.getenv("XDG_CACHE_HOME")
+   if dir then
+      return lexical_path.from_os(dir) .. "cyan-script-cache"
+   end
+
+	if package.config:sub(1, 1) == "\\" then
+      dir = os.getenv("AppData")
+      return (lexical_path.from_os(dir) .. "Temp") .. "cyan-script-cache"
+   end
+   dir = os.getenv("HOME")
+   if not dir then
+      cache_disabled = true
+      return
+   end
+   return (lexical_path.from_os(dir) .. ".cache") .. "cyan-script-cache"
+end)()
+
+function script.disable_cache()
+   cache_disabled = true
+end
+
+local function ensure_cache_dir_exists(): boolean, string
+   if cache_disabled then return false, "Already tried and failed to get cache directory" end
+   if fs.is_directory(cache_path) then
+      return true
+   end
+   local ok <const>, err <const> = fs.make_directory(cache_path)
+   if not ok then
+      cache_disabled = true
+   end
+   return ok, err
+end
+
+local function sub_bad_chars(src: string): string
+   -- various bad chars for various bad reasons
+   return (src
+      :gsub("_", "_u")
+      :gsub("[%.|<>:/\\ \t\"\'%%$]", {
+         ["."] = "_p",
+         ["|"] = "_P",
+         ["<"] = "_l",
+         [">"] = "_g",
+         [":"] = "_c",
+         ["%"] = "_C",
+         ["/"] = "_s",
+         ["\\"] = "_S",
+         [" "] = "_w",
+         ["\t"] = "_t",
+         ['"'] = "_q",
+         ["'"] = "_Q",
+         ["$"] = "_m",
+      })
+   )
+end
+
+local version_prefix <const> = sub_bad_chars(_VERSION .. "cyan" .. meta.version .. "tl" .. tl.version())
+
+local function script_path_to_cache_path(path: lexical_path.Path): lexical_path.Path
+   assert(cache_path)
+   assert(path.is_absolute)
+   local path_str <const> = path:to_string("/"):sub(2, -1)
+   return cache_path .. (version_prefix .. sub_bad_chars(path_str) .. ".lua")
+end
+
+local function save_to_fs_cache(src_path: lexical_path.Path, generated_lua_code: string)
+   if cache_disabled then
+      return
+   end
+   do
+      local ok <const>, err <const> = ensure_cache_dir_exists()
+      if not ok then
+         -- "silently" fail, since this is non-essential
+         log.warn("Failed to ensure cache directory ", decoration.file_name(cache_path), " exists: ", err)
+         return
+      end
+   end
+   local target_path <const> = script_path_to_cache_path(src_path)
+   do
+      local ok <const>, err <const> = fs.write(target_path, generated_lua_code)
+      if ok then
+         log.debug("Cached script ", decoration.file_name(src_path), " to ", decoration.file_name(target_path))
+      else
+         log.warn("Failed to cache script ", decoration.file_name(src_path), ": ", err)
+      end
+   end
+end
+
+local function load_from_fs_cache(src_path: lexical_path.Path): sandbox.Sandbox
+   if cache_disabled then return end
+   local target_path <const> = script_path_to_cache_path(src_path)
+
+   local src_mod <const> = fs.mod_time(src_path) or 0
+   local target_mod <const> = fs.mod_time(target_path) or 0
+
+   if target_mod <= src_mod then
+      return
+   end
+
+   local contents <const> = fs.read(target_path:to_string())
+   if not contents then
+      return
+   end
+
+   log.debug("Script cache hit of ", decoration.file_name(src_path), " via ", decoration.file_name(target_path))
+   return (sandbox.from_string(contents, src_path:to_string(), _G))
+end
+
 local load_cache <const>: {string:Loaded} = {}
-local function load_script(path: string): Loaded, string | tl.Result
-   if not load_cache[path] then
+local function load_script(path: lexical_path.Path): Loaded, string | tl.Result
+   local path_str <const> = path:to_string()
+   if not load_cache[path_str] then
       log.extra("Loading script: ", decoration.file_name(path))
-      local p <const> = lexical_path.from_unix(path)
 
       local box, err: sandbox.Sandbox, string
-      local ext <const> = p:extension():lower()
+      local ext <const> = path:extension():lower()
       if ext == "tl" then
-         local result <const>, proc_err <const> = tl.check_file(path, nil)
-         if not result then
-            return nil, proc_err
+         local from_fs_cache <const> = load_from_fs_cache(path)
+         if from_fs_cache then
+            box = from_fs_cache
+         else
+            local result <const>, proc_err <const> = tl.check_file(path_str, nil)
+            if not result then
+               return nil, proc_err
+            end
+            if #result.syntax_errors > 0
+               or #result.type_errors > 0 then
+               return nil, result
+            end
+            local generated: string
+            generated, err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+            if not generated then
+               return nil, err
+            end
+            save_to_fs_cache(path, generated)
+            box, err = sandbox.from_string(generated, path_str, _G)
          end
-         if #result.syntax_errors > 0
-            or #result.type_errors > 0 then
-            return nil, result
-         end
-         local generated: string
-         generated, err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
-         if not generated then
-            return nil, err
-         end
-         box, err = sandbox.from_string(generated, path, _G)
       else
-         box, err = sandbox.from_file(path, _G)
+         box, err = sandbox.from_file(path_str, _G)
       end
       if not box then
          return nil, err
       end
-      load_cache[path] = exec_wrapper(box)
+      load_cache[path_str] = exec_wrapper(box)
    end
-   return load_cache[path]
+   return load_cache[path_str]
 end
 
 -- command to hook to list of filepaths
@@ -77,7 +206,7 @@ end
 --       post = { "foo.tl" },
 --    },
 -- }
-local registered <const>: {string:{string:{string}}} = {}
+local registered <const>: {string:{string:{lexical_path.Path}}} = {}
 
 ---@desc
 --- Registers a file path as a lua/teal script to execute for the given hook(s)
@@ -86,11 +215,15 @@ local registered <const>: {string:{string:{string}}} = {}
 --- This is called by the cli driver to register the scripts found in the config
 --- file with the relevant hooks
 ---
+--- `path` MUST be an absolute path
+---
 --- Note: this function does not attempt to actually load the file. Scripts are
 --- loaded all at once via `ensure_loaded_for_command`
-function script.register(path: string, command_name: string, hooks: string | {string})
+function script.register(path: lexical_path.Path, command_name: string, hooks: string | {string})
+   assert(path.is_absolute)
    assert(command_name)
    assert(hooks)
+
    if not registered[command_name] then
       registered[command_name] = {}
    end
@@ -148,10 +281,10 @@ function script.emitter(name: string, ...: any): function(): lexical_path.Path, 
    return coroutine.wrap(function()
       local paths <const> = (registered[command.running.name] or {})[name]
       for path in ivalues(paths or {}) do
-         local loaded <const> = assert(load_cache[path], "Internal error, script was not preloaded before execution")
+         local loaded <const> = assert(load_cache[path:to_string()], "Internal error, script was not preloaded before execution")
          local res <const>, err <const> = loaded(full, table.unpack(args, 1, args.n))
          coroutine.yield(
-            lexical_path.from_unix(path),
+            path,
             res == 0,
             err
          )
@@ -166,10 +299,11 @@ function script.emit_hook(name: string, ...: any): boolean, string
    log.extra("Emitting hook: '", name, "'")
    log.debug("             ^ With ", select("#", ...), " argument(s): ", ...)
    for s, ok, err in script.emitter(name, ...) do
+      local relative_name <const> = script.base_directory and s:relative_to(script.base_directory) or s
       if ok then
-         log.info("Ran script ", decoration.file_name(s))
+         log.info("Ran script ", decoration.file_name(relative_name))
       else
-         log.err("Error in script ", decoration.file_name(s), ":\n   ", err)
+         log.err("Error in script ", decoration.file_name(relative_name), ":\n   ", err)
          return false, err
       end
    end

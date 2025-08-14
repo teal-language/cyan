@@ -106,7 +106,8 @@ command.new({
    end,
 })
 
-local starting_dir = fs.current_directory()
+local starting_dir = assert(fs.current_directory())
+script.base_directory = starting_dir
 local config_path = config.find()
 if config_path then
    local config_dir = config_path:copy()
