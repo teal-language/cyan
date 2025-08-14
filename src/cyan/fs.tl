@@ -105,6 +105,19 @@ function fs.read(p: string): string, string
 end
 
 ---@desc
+--- Open a file, overwrite its contents, then close the file
+function fs.write(p: lexical_path.Path, content: string): boolean, string
+   local fh <const>, err <const> = io.open(p:to_string(), "w")
+   if not fh then
+      return false, err
+   end
+   fh:write(content)
+   fh:close()
+   read_cache[p:to_string()] = content
+   return true
+end
+
+---@desc
 --- Gets line `n` of a file.
 ---
 --- if the file is less than `n` lines, returns `nil`
