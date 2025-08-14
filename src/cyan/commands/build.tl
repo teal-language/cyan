@@ -9,9 +9,10 @@ local config <const> = require("cyan.config")
 local decoration <const> = require("cyan.decoration")
 local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
+local invocation_context <const> = require("cyan.invocation-context")
+local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local script <const> = require("cyan.script")
-local lexical_path <const> = require("lexical-path")
 local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
@@ -48,7 +49,7 @@ local function report_dep_errors(env: tl.Env, source_dir: lexical_path.Path): bo
    return ok
 end
 
-local function build(args: command.Args, loaded_config: config.Config, starting_dir: lexical_path.Path): integer
+local function build(args: command.Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
    if not loaded_config.loaded_from then
       log.err(config.filename, " not found")
       return 1
@@ -86,13 +87,13 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       return 1
    end
 
-   if not script.emit_hook("pre") then
+   if not script.emit_hook(context, "pre") then
       return 1
    end
 
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude and { table.unpack(loaded_config.exclude) } or {}
-   if abs_source_dir == starting_dir then
+   if abs_source_dir == context.initial_directory then
       table.insert(exclude, lexical_path.parse_pattern "tlconfig.lua")
    end
    local dont_write_lua_files <const> = source_dir == build_dir
@@ -122,7 +123,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
 
    local function display_filename(f: lexical_path.Path, trailing_slash?: boolean): decoration.Decorated
-      return decoration.file_name(assert(ensure_abs_path(f):relative_to(starting_dir)):to_string() .. (trailing_slash and fs.path_separator or ""))
+      return decoration.file_name(assert(ensure_abs_path(f):relative_to(context.initial_directory)):to_string() .. (trailing_slash and fs.path_separator or ""))
    end
 
    local function get_output_name(src: lexical_path.Path): lexical_path.Path
@@ -145,7 +146,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
       end
       if newer then
          log.extra("Source ", display_filename(src), " is newer than target (", display_filename(target), ")")
-         if not script.emit_hook("file_updated", src:copy()) then
+         if not script.emit_hook(context, "file_updated", src:copy()) then
             exit = 1
             coroutine.yield()
          end
@@ -249,7 +250,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    end
 
    if #to_write > 0 then
-      if not script.emit_hook("post") then
+      if not script.emit_hook(context, "post") then
          return 1
       end
    end
