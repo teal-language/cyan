@@ -257,7 +257,7 @@ local function build(args: command.Args, loaded_config: config.Config, starting_
    if build_dir ~= source_dir then
       local expected_files <const> = {}
       for n in dag:nodes() do
-         log.debug(n.input, " -> ", get_output_name(n.input))
+         log.debug(display_filename(n.input), " -> ", display_filename(get_output_name(n.input)))
          local p <const> = assert(get_output_name(n.input):remove_leading(build_dir))
          expected_files[p:to_string()] = true
          for ancestor in p:ancestors() do
