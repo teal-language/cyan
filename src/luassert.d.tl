@@ -150,10 +150,10 @@ local record asserts
    no_error_matches:function(Callable, string, ?string):{any}
 
    -- matches
-   match:function(string, string, ?string) -- TODO: upstream this to teal types
+   match:function(string, string, ?string) -- TODO: #upstream this to teal types
    matches:function(string, string, ?string)
 
-   not_match: function(string, string, ?string) -- TODO: upstream this to teal types
+   not_match: function(string, string, ?string) -- TODO: #upstream this to teal types
 
    has_match:function(string, string, ?string):{string}
    has_no_match:function(string, string, ?string):{string}
