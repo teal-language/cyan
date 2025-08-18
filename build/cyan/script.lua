@@ -44,26 +44,28 @@ local cache_disabled = (function()
    return false
 end)()
 
+local is_windows = package.config:sub(1, 1) == "\\"
+
 local cache_path = (function()
    local dir = os.getenv("CYAN_SCRIPT_CACHE_DIR")
    if dir then
       return (lexical_path.from_os(dir))
    end
-   dir = os.getenv("XDG_CACHE_HOME")
-   if dir then
-      return lexical_path.from_os(dir) .. "cyan-script-cache"
+
+   dir = is_windows and os.getenv("Temp") or os.getenv("XDG_CACHE_HOME")
+
+   if not dir then
+      dir = is_windows and os.getenv("UserProfile") or os.getenv("HOME")
+      if dir then
+         dir = dir .. (is_windows and "\\_cache" or "/.cache")
+      end
    end
 
-   if package.config:sub(1, 1) == "\\" then
-      dir = os.getenv("AppData")
-      return (lexical_path.from_os(dir) .. "Temp") .. "cyan-script-cache"
-   end
-   dir = os.getenv("HOME")
    if not dir then
       cache_disabled = true
       return
    end
-   return (lexical_path.from_os(dir) .. ".cache") .. "cyan-script-cache"
+   return (lexical_path.from_os(dir) .. "cyan-script-cache")
 end)()
 
 function script.disable_cache()
