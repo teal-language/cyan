@@ -22,10 +22,6 @@ util.tab.keys, util.tab.from, util.tab.sort_in_place, util.tab.ivalues
 local parser = argparse("cyan", "The Teal build system", nil)
 parser:add_help(false)
 
-parser:option("-l --preload", "Execute the equivalent of require('modulename') before processing Teal files.", nil, nil, nil, nil):
-argname("<modulename>"):
-count("*")
-
 parser:option("--global-env-def", "Load <module-name> before typechecking. Use this to define types provided by your environment.", nil, nil, nil, nil):
 argname("<module-name>"):
 count("?")
