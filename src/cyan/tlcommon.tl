@@ -321,9 +321,13 @@ end
 
 ---@desc
 --- use `log.warn` and `log.err` to report errors and warnings from `config.load`
-function common.report_config_errors(errs: {string}, warnings: {string}): boolean
+function common.report_config_errors(errs: {string}, warnings: {string}, filename?: string): boolean
    if warnings and #warnings > 0 then
-      log.warn("in config:\n", table.concat(warnings, "\n"))
+      if filename then
+         log.warn("In config ", decoration.file_name(filename), ":\n", table.concat(warnings, "\n"))
+      else
+         log.warn("In config:\n", table.concat(warnings, "\n"))
+      end
    end
    if errs and not errs[1]:match("No such file or directory$") then
       log.err("Error loading config:\n", table.concat(errs, "\n"))
