@@ -122,8 +122,13 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
       end
    end
 
+   local function relative_path(f: lexical_path.Path, trailing_slash?: boolean): string
+      return assert(ensure_abs_path(f):relative_to(context.initial_directory))
+               :to_string() .. (trailing_slash and fs.path_separator or "")
+   end
+
    local function display_filename(f: lexical_path.Path, trailing_slash?: boolean): decoration.Decorated
-      return decoration.file_name(assert(ensure_abs_path(f):relative_to(context.initial_directory)):to_string() .. (trailing_slash and fs.path_separator or ""))
+      return decoration.file_name(relative_path(f, trailing_slash))
    end
 
    local function get_output_name(src: lexical_path.Path): lexical_path.Path
@@ -201,7 +206,7 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
             return
          end
 
-         if not common.report_result(result, loaded_config) then
+         if not common.report_result(result, loaded_config, relative_path(n.input)) then
             exit = 1
             return
          end

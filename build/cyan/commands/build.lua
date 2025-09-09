@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 local argparse = require("argparse")
 local tl = require("tl")
@@ -122,8 +122,13 @@ local function build(args, loaded_config, context)
       end
    end
 
+   local function relative_path(f, trailing_slash)
+      return assert(ensure_abs_path(f):relative_to(context.initial_directory)):
+      to_string() .. (trailing_slash and fs.path_separator or "")
+   end
+
    local function display_filename(f, trailing_slash)
-      return decoration.file_name(assert(ensure_abs_path(f):relative_to(context.initial_directory)):to_string() .. (trailing_slash and fs.path_separator or ""))
+      return decoration.file_name(relative_path(f, trailing_slash))
    end
 
    local function get_output_name(src)
@@ -188,24 +193,30 @@ local function build(args, loaded_config, context)
          return
       end
 
-      local result, check_ast_err = tl.check(parsed.ast, path, type_check_options, env)
-      if not result then
-         log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
-         exit = 1
-         return
+      local is_lua = n.input:extension():lower() == "lua"
+
+
+      if is_lua then
+         log.info("Parsed ", disp_path, " (lua file)")
+      else
+         local result, check_ast_err = tl.check(parsed.ast, path, type_check_options, env)
+         if not result then
+            log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
+            exit = 1
+            return
+         end
+
+         if not common.report_result(result, loaded_config, relative_path(n.input)) then
+            exit = 1
+            return
+         end
+
+         log.info("Type checked ", disp_path)
       end
 
-      if not common.report_result(result, loaded_config) then
-         exit = 1
-         return
-      end
-
-      log.info("Type checked ", disp_path)
       if args.check_only then
          return
       end
-
-      local is_lua = n.input:extension():lower() == "lua"
       if compile and not (is_lua and dont_write_lua_files) then
          local ok, err = fs.make_parent_directories(n.output)
          if ok then

@@ -186,7 +186,7 @@ function common.syntax_highlight(s: string): {decoration.Decorated}
    return buf
 end
 
-local function prettify_error(e: tl.Error): {decoration.Decorated}
+local function prettify_error(e: tl.Error, display_filename?: string): {decoration.Decorated}
    local ln <const> = fs.get_line(e.filename, e.y)
 
    local tks <const> = tl.lex(ln, "")
@@ -196,7 +196,7 @@ local function prettify_error(e: tl.Error): {decoration.Decorated}
    }
 
    local buf <const>: {decoration.Decorated | string} = {
-      decoration.file_name(e.filename),
+      decoration.file_name(display_filename or e.filename),
       ":", decoration.decorate(tostring(e.y), decoration.scheme.error_number),
       ":", decoration.decorate(tostring(e.x), decoration.scheme.error_number)
    }
@@ -241,7 +241,7 @@ end
 function common.report_errors(logger: log.Logger, errs: {tl.Error}, file: string, category: string)
    logger(table.unpack(common.make_error_header(file, #errs, category)))
    for e in ivalues(errs) do
-      logger:cont(table.unpack(prettify_error(e)))
+      logger:cont(table.unpack(prettify_error(e, file)))
    end
    logger:cont("")
 end
@@ -267,9 +267,9 @@ end
 --- Returns false if there were any errors. This includs warnings that were
 --- promoted to errors and doesn't include warnings that were not promoted to
 --- errors.
-function common.report_result(r: tl.Result, c: config.Config): boolean
+function common.report_result(r: tl.Result, c: config.Config, filename?: string): boolean
    if r.syntax_errors and #r.syntax_errors > 0 then
-      common.report_errors(log.err, r.syntax_errors, r.filename, "syntax error")
+      common.report_errors(log.err, r.syntax_errors, filename or r.filename, "syntax error")
       return false
    end
 
@@ -287,7 +287,7 @@ function common.report_result(r: tl.Result, c: config.Config): boolean
 
    local function report(logger: log.Logger, arr: {tl.Error}, category: string): boolean
       if arr and #arr > 0 then
-         common.report_errors(logger, arr, r.filename, category)
+         common.report_errors(logger, arr, filename or r.filename, category)
          return false
       end
       return true
