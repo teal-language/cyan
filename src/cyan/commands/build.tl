@@ -287,8 +287,10 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
       table.sort(unexpected_directories, function(a: lexical_path.Path, b: lexical_path.Path): boolean
          local a_str <const> = a:to_string()
          local b_str <const> = b:to_string()
-         if #a_str > #b_str then
-            return true
+         local a_len <const> = #a_str
+         local b_len <const> = #b_str
+         if a_len ~= b_len then
+            return a_len > b_len
          end
          return a_str > b_str
       end)
