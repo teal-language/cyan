@@ -282,15 +282,14 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
       local dont_prune <const> = util.tab.map(loaded_config.dont_prune or {}, lexical_path.parse_pattern)
       for p in fs.scan_directory(build_dir, nil, nil, true) do
          log.debug("checking if ", p:to_string(), " is expected...")
-         local full <const> = build_dir .. p
-         local pattern_index <const> = fs.match_any(full, dont_prune)
+         local pattern_index <const> = fs.match_any(p, dont_prune)
          if pattern_index then
             log.debug("   yes (ignored by pattern ", dont_prune[pattern_index], ")")
          elseif expected_files[p:to_string()] then
             log.debug("   yes")
          else
             log.debug("   no")
-            table.insert(fs.is_directory(full) and unexpected_directories or unexpected_files, p)
+            table.insert(fs.is_directory(abs_build_dir .. p) and unexpected_directories or unexpected_files, p)
          end
       end
 

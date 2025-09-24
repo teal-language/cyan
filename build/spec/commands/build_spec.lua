@@ -414,7 +414,7 @@ describe("build command", function()
             cmd = "build",
             args = {},
             dir_structure = {
-               ["tlconfig.lua"] = [[return { source_dir = "src", build_dir = "build", dont_prune = { "build/to-ignore.txt" } }]],
+               ["tlconfig.lua"] = [[return { source_dir = "src", build_dir = "build", dont_prune = { "to-ignore.txt" } }]],
                src = { ["foo.tl"] = [[print "hey"]] },
                build = { ["to-ignore.txt"] = "hi" },
             },
