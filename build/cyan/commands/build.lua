@@ -296,14 +296,7 @@ local function build(args, loaded_config, context)
 
 
       table.sort(unexpected_directories, function(a, b)
-         local a_str = a:to_string()
-         local b_str = b:to_string()
-         local a_len = #a_str
-         local b_len = #b_str
-         if a_len ~= b_len then
-            return a_len > b_len
-         end
-         return a_str > b_str
+         return #a > #b or a:to_string() > b:to_string()
       end)
 
       if #unexpected_files > 0 or #unexpected_directories > 0 then

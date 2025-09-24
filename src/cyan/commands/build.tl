@@ -294,16 +294,9 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
          end
       end
 
-      -- sort directory names by length so that more nested directories are removed first
+      -- sort directory names by component count so that more nested directories are removed first
       table.sort(unexpected_directories, function(a: lexical_path.Path, b: lexical_path.Path): boolean
-         local a_str <const> = a:to_string()
-         local b_str <const> = b:to_string()
-         local a_len <const> = #a_str
-         local b_len <const> = #b_str
-         if a_len ~= b_len then
-            return a_len > b_len
-         end
-         return a_str > b_str
+         return #a > #b or a:to_string() > b:to_string()
       end)
 
       if #unexpected_files > 0 or #unexpected_directories > 0 then
