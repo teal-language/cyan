@@ -188,24 +188,30 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
          return
       end
 
-      local result <const>, check_ast_err <const> = tl.check(parsed.ast, path, type_check_options, env)
-      if not result then
-         log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
-         exit = 1
-         return
+      local is_lua <const> = n.input:extension():lower() == "lua"
+
+      -- Skip type checking for lua files, just parse for dependencies
+      if is_lua then
+         log.info("Parsed ", disp_path, " (lua file)")
+      else
+         local result <const>, check_ast_err <const> = tl.check(parsed.ast, path, type_check_options, env)
+         if not result then
+            log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
+            exit = 1
+            return
+         end
+
+         if not common.report_result(result, loaded_config) then
+            exit = 1
+            return
+         end
+
+         log.info("Type checked ", disp_path)
       end
 
-      if not common.report_result(result, loaded_config) then
-         exit = 1
-         return
-      end
-
-      log.info("Type checked ", disp_path)
       if args.check_only then
          return
       end
-
-      local is_lua <const> = n.input:extension():lower() == "lua"
       if compile and not (is_lua and dont_write_lua_files) then
          local ok <const>, err <const> = fs.make_parent_directories(n.output)
          if ok then
