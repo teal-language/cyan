@@ -33,7 +33,8 @@ end
 
 local force_update <const> = os.getenv("CYAN_FORCE_UPDATE_DEPS") ~= nil
 -- TODO: really need a subprocess module
-local cmd_str <const> = os.getenv("CYAN_FETCH_CMD") or "wget --quiet -O %FILE% %URL%"
+local default_cmd <const> = "curl --silent --show-error --output %FILE% %URL%"
+local cmd_str <const> = os.getenv("CYAN_FETCH_CMD") or default_cmd
 
 do
    local not_defined <const> = decoration.decorate("not defined", decoration.scheme.gray) as string
@@ -42,7 +43,7 @@ do
       .. "     CYAN_DONT_CHECK_DEPS = ", os.getenv("CYAN_DONT_CHECK_DEPS") or not_defined, "\n"
       .. "   CYAN_FORCE_UPDATE_DEPS = ", os.getenv("CYAN_FORCE_UPDATE_DEPS") or not_defined, "\n"
       .. "           CYAN_FETCH_CMD = ", os.getenv("CYAN_FETCH_CMD") or not_defined, "\n"
-      .. "                  default = wget -O %FILE% %URL%\n"
+      .. "                  default = ", default_cmd, "\n"
       .. "\nIn CYAN_FETCH_CMD, %FILE% and %URL% get substituted with the desired file and url when running the command."
    )
 end
