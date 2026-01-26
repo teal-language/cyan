@@ -333,12 +333,19 @@ end
 
 decoration.scheme = map(scheme, resolve_scheme_entry)
 
+-- https://www.rfc-editor.org/rfc/rfc1738
+local function url_encoded_path(src: string): string
+   return (src:gsub("[^-a-zA-Z0-9$_.+!*'(),/]", function(c: string): string
+      return ("%%%02x"):format(c:byte())
+   end))
+end
+
 ---@desc
 --- Decorate using the default decoration for file names and a uri for the path
 function decoration.file_name(path: string | lexical_path.Path): Decorated
    local str_path = path is lexical_path.Path and assert(path:to_string("/")) or path
    local d <const> = copy(decoration.scheme.file, nil)
-   d.linked_uri = ("file://%s"):format(str_path)
+   d.linked_uri = "file://" .. url_encoded_path(str_path)
    return decoration.decorate(str_path, d)
 end
 
