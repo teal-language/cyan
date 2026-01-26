@@ -41,7 +41,7 @@ function Sandbox:run(max_instructions: integer, ...: any): boolean, string
       return true
    end
 
-   return false, res[2] as string .. "\n" .. debug.traceback(t)
+   return false, res[2] as string .. "\n" .. tostring(debug.traceback(t))
 end
 
 function Sandbox:result(): any...
