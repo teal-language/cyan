@@ -15,13 +15,13 @@ local info = log.create_logger(
 
 local has_ltreesitter <const>, ts <const> = pcall(require, "ltreesitter")
 if not has_ltreesitter then
-   log.warn("docgen requires the ltreesitter module, which lua was unable to find\n", ts as string)
+   log.warn("docgen requires the ltreesitter module, which lua was unable to load:\n", ts as string)
    return
 end
 
 local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "parser/teal", "teal")
 if not has_teal_parser then
-   log.warn("docgen requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
+   log.warn("docgen requires tree-sitter-teal, which ltreesitter could not load:\n", teal_parser as string)
    return
 end
 
