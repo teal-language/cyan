@@ -98,7 +98,7 @@ end
 local dep_cmd <const> = log.create_logger(io.stdout, "normal", decoration.decorate("Cmd Out", decoration.scheme.teal), decoration.decorate("...", decoration.scheme.teal))
 
 local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, {string}
-	max_log_lines = max_log_lines or math.huge as integer
+   max_log_lines = max_log_lines or math.huge as integer
    local display_cmd <const> = decoration.decorate(cmd, decoration.scheme.magenta)
    dep_info("Running command ", display_cmd)
    local p <const>, popen_err <const> = io.popen(cmd)
@@ -106,22 +106,22 @@ local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, 
       dep_err("Failed to run command ", display_cmd, "\n   ", popen_err)
       return false
    end
-	local res <const>: {string} = {}
-	local ln = p:read("*l")
-	while ln do
-		if #res < max_log_lines then
-			if res[1] then
-				dep_cmd:cont("   ", ln)
-			else
-				dep_cmd("   ", ln)
-			end
+   local res <const>: {string} = {}
+   local ln = p:read("*l")
+   while ln do
+      if #res < max_log_lines then
+         if res[1] then
+            dep_cmd:cont("   ", ln)
+         else
+            dep_cmd("   ", ln)
+         end
       elseif #res == max_log_lines then
          dep_cmd:cont("   ", decoration.decorate("... (truncated)", decoration.scheme.gray))
-		end
-		table.insert(res, ln)
-		ln = p:read("*l")
-	end
-	local ok <const>, pclose_err <const>, exit_code <const> = p:close() as (boolean, string, integer)
+      end
+      table.insert(res, ln)
+      ln = p:read("*l")
+   end
+   local ok <const>, pclose_err <const>, exit_code <const> = p:close() as (boolean, string, integer)
 
    if not ok or exit_code ~= 0 then
       dep_err("Command ", display_cmd, " exited abnormally (with exit code ", exit_code, ")\n   ", pclose_err)
@@ -137,7 +137,7 @@ local function run_cmd(cmd: string, max_log_lines?: integer): boolean, integer, 
       return false, exit_code
    end
 
-	return true, exit_code, res
+   return true, exit_code, res
 end
 
 for dep in ivalues(to_be_fetched) do
