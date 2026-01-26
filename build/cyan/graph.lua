@@ -56,16 +56,27 @@ local function mark_for_compile(n)
    end
 end
 
+local function collect_recursive_dependents(of, set)
+   if set[of] then return end
+   set[of] = true
+   for dependent in keys(of.dependents) do
+      set[dependent] = true
+      collect_recursive_dependents(dependent, set)
+   end
+end
+
 local function make_dependent_counter()
    local cache = {}
+
    local function count_dependents(n)
       if cache[n] then return cache[n] end
-      local deps = 0
-      for v in keys(n.dependents) do
-         deps = deps + count_dependents(v) + 1
-      end
-      cache[n] = deps
-      return deps
+      local set = {}
+      collect_recursive_dependents(n, set)
+      set[n] = false
+      local count = 0
+      for _ in next, set do count = count + 1 end
+      cache[n] = count
+      return count
    end
    return count_dependents
 end
@@ -75,7 +86,10 @@ end
 
 
 
-function Dag:nodes()
+
+
+
+function Dag:collect_by_dependent_count()
    local count = make_dependent_counter()
    local most_deps = 0
    local nodes_by_deps = setmetatable({}, {
@@ -91,9 +105,7 @@ function Dag:nodes()
    for n in values(self._nodes_by_filename) do
       table.insert(nodes_by_deps[count(n)], n)
    end
-
    setmetatable(nodes_by_deps, nil)
-
    for i = 0, most_deps do
       if nodes_by_deps[i] then
          table.sort(nodes_by_deps[i], function(a, b)
@@ -101,8 +113,15 @@ function Dag:nodes()
          end)
       end
    end
+   return nodes_by_deps, most_deps
+end
 
-   local i = most_deps
+
+
+
+
+function Dag:nodes()
+   local nodes_by_deps, i = self:collect_by_dependent_count()
    if not nodes_by_deps[i] then
       return function() end
    end
