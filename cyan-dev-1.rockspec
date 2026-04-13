@@ -18,7 +18,7 @@ dependencies = {
    "luafilesystem",
    "tl >= 0.24.0",
    "luasystem >= 0.3.0",
-   "lexical-path >= 0.2.0",
+   "lexical-path ~> 0.2.1",
 }
 build = {
    type = "builtin",
