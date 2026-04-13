@@ -328,8 +328,8 @@ end
 
 
 
-function config.load()
-   local b, ferr = sandbox.from_file(config.filename, _G)
+function config.load(from_path)
+   local b, ferr = sandbox.from_file(from_path and from_path:to_string() or config.filename, _G)
    if not b then
       return nil, { ferr }, {}
    end
@@ -344,7 +344,15 @@ function config.load()
 
    local cfg, errs, warnings = config.is_config(maybe_config)
    if cfg then
-      cfg.loaded_from = fs.current_directory() .. config.filename
+      if from_path then
+         if from_path.is_absolute then
+            cfg.loaded_from = from_path:copy()
+         else
+            cfg.loaded_from = fs.current_directory() .. from_path
+         end
+      else
+         cfg.loaded_from = fs.current_directory() .. config.filename
+      end
    end
    return cfg, errs, warnings
 end

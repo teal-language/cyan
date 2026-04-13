@@ -327,9 +327,9 @@ function config.find(): lexical_path.Path
 end
 
 ---@desc
---- Try to load `tlconfig.lua` in the current directory
-function config.load(): Config, {string}, {string}
-   local b, ferr = sandbox.from_file(config.filename, _G)
+--- Try to load `tlconfig.lua` from the given path or `tlconfig.lua` in the current directory
+function config.load(from_path?: lexical_path.Path): Config, {string}, {string}
+   local b, ferr = sandbox.from_file(from_path and from_path:to_string() or config.filename, _G)
    if not b then
       return nil, {ferr}, {}
    end
@@ -344,7 +344,15 @@ function config.load(): Config, {string}, {string}
 
    local cfg <const>, errs <const>, warnings <const> = config.is_config(maybe_config)
    if cfg then
-      cfg.loaded_from = fs.current_directory() .. config.filename
+      if from_path then
+         if from_path.is_absolute then
+            cfg.loaded_from = from_path:copy()
+         else
+            cfg.loaded_from = fs.current_directory() .. from_path
+         end
+      else
+         cfg.loaded_from = fs.current_directory() .. config.filename
+      end
    end
    return cfg, errs, warnings
 end
