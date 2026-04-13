@@ -2,7 +2,7 @@
 ---@brief
 --- The script loading api
 
-local tl <const> = require("tl")
+local teal <const> = require("teal.api.v2")
 
 local command <const> = require("cyan.command")
 local decoration <const> = require("cyan.decoration")
@@ -106,7 +106,7 @@ local function sub_bad_chars(src: string): string
    )
 end
 
-local version_prefix <const> = sub_bad_chars(_VERSION .. "cyan" .. meta.version .. "tl" .. tl.version())
+local version_prefix <const> = sub_bad_chars(_VERSION .. "cyan" .. meta.version .. "tl" .. teal.version())
 
 local function script_path_to_cache_path(path: lexical_path.Path): lexical_path.Path
    assert(cache_path)
@@ -159,7 +159,7 @@ local function load_from_fs_cache(src_path: lexical_path.Path): sandbox.Sandbox
 end
 
 local load_cache <const>: {string:Loaded} = {}
-local function load_script(path: lexical_path.Path): Loaded, string | tl.Result
+local function load_script(path: lexical_path.Path): Loaded, string | teal.Result
    local path_str <const> = path:to_string()
    if not load_cache[path_str] then
       log.extra("Loading script: ", decoration.file_name(path))
@@ -171,7 +171,7 @@ local function load_script(path: lexical_path.Path): Loaded, string | tl.Result
          if from_fs_cache then
             box = from_fs_cache
          else
-            local result <const>, proc_err <const> = tl.check_file(path_str, nil)
+            local result <const>, proc_err <const> = teal.check_file(path_str, nil)
             if not result then
                return nil, proc_err
             end
@@ -180,7 +180,7 @@ local function load_script(path: lexical_path.Path): Loaded, string | tl.Result
                return nil, result
             end
             local generated: string
-            generated, err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+            generated, err = teal.generate(result.ast as teal.Node, teal.target_from_lua_version(_VERSION))
             if not generated then
                return nil, err
             end
@@ -247,7 +247,7 @@ end
 
 ---@desc
 --- Attempts to load each script that the given command may need
-function script.ensure_loaded_for_command(name: string): boolean, string | tl.Result
+function script.ensure_loaded_for_command(name: string): boolean, string | teal.Result
    local sorted_names <const> = sort(from(keys(registered[name] or {})))
    for hook in ivalues(sorted_names) do
       for path in ivalues(registered[name][hook] or {}) do

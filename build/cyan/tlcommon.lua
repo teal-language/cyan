@@ -8,8 +8,9 @@ local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
 local log = require("cyan.log")
 local util = require("cyan.util")
-local tl = require("tl")
 local lexical_path = require("lexical-path")
+
+local teal = require("teal.api.v2")
 
 local filter, ivalues, set =
 util.tab.filter, util.tab.ivalues, util.tab.set
@@ -39,7 +40,7 @@ function common.lex_file(path)
       if not src then
          return nil, nil, read_err
       end
-      local tks, errs = tl.lex(src, path)
+      local tks, errs = teal.lex(src, path)
       lex_cache[path] = { tks, errs }
       return tks, errs
    end
@@ -64,7 +65,7 @@ function common.parse_file(path)
          }
       else
          local errs = {}
-         local ast, reqs = tl.parse_program(tks, errs, path)
+         local ast, reqs = teal.parse_program(tks, errs, path)
 
          parse_cache[path] = {
             tks = tks,
@@ -171,7 +172,7 @@ end
 
 function common.syntax_highlight(s)
    local buf = {}
-   local tks = tl.lex(s, "")
+   local tks = teal.lex(s, "")
    local last_x = 1
    for tk in ivalues(tks) do
 
@@ -189,10 +190,10 @@ end
 local function prettify_error(e, display_filename)
    local ln = fs.get_line(e.filename, e.y)
 
-   local tks = tl.lex(ln, "")
+   local tks = teal.lex(ln, "")
    local err_tk = {
       x = 1,
-      tk = tl.get_token_at(tks, 1, e.x) or " ",
+      tk = teal.get_token_at(tks, 1, e.x) or " ",
    }
 
    local buf = {
@@ -316,7 +317,13 @@ end
 
 
 function common.init_teal_env(gen_compat, gen_target, env_def)
-   return tl.init_env(false, gen_compat, gen_target, { env_def })
+   return teal.new_env({
+      defaults = {
+         gen_compat = gen_compat,
+         gen_target = gen_target,
+      },
+      predefined_modules = { env_def },
+   })
 end
 
 
@@ -337,7 +344,7 @@ function common.report_config_errors(errs, warnings, filename)
 end
 
 function common.type_check_and_load_file(path, env, c)
-   local result, err = tl.check_file(path, env)
+   local result, err = teal.check_file(path, env)
    if not result then
       return nil, err
    end
@@ -345,7 +352,7 @@ function common.type_check_and_load_file(path, env, c)
       return nil
    end
 
-   local generated, gen_err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+   local generated, gen_err = teal.generate(result.ast, teal.target_from_lua_version(_VERSION))
    if not generated then
       return nil, gen_err
    end
@@ -358,7 +365,7 @@ local found_modules = {}
 function common.search_module(name, search_dtl)
    local key = name .. ":" .. (search_dtl and "t" or "f")
    if not found_modules[key] then
-      local found, fd = tl.search_module(name, search_dtl)
+      local found, fd = teal.search_module(name, search_dtl)
       if found then
          fd:close()
          found_modules[key] = lexical_path.from_os(found)

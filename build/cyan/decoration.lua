@@ -343,7 +343,7 @@ end
 
 
 function decoration.file_name(path)
-   local str_path = type(path) == "table" and assert(path:to_string("/")) or path
+   local str_path = getmetatable(path).__name == "lexical-path.Path" and assert(path:to_string("/")) or path
    local d = copy(decoration.scheme.file, nil)
    d.linked_uri = "file://" .. url_encoded_path(str_path)
    return decoration.decorate(str_path, d)

@@ -79,8 +79,8 @@ function fs.iterate_directory(dir, include_dotfiles)
 
 
       until not p or
-(include_dotfiles and p ~= "." and p ~= "..") or
-p:sub(1, 1) ~= "."; if p then
+         (include_dotfiles and p ~= "." and p ~= "..") or
+         p:sub(1, 1) ~= "."; if p then
          return (lexical_path.from_os(p))
       end end
 end

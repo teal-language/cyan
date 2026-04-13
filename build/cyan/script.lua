@@ -2,7 +2,7 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local tl = require("tl")
+local teal = require("teal.api.v2")
 
 local command = require("cyan.command")
 local decoration = require("cyan.decoration")
@@ -106,7 +106,7 @@ local function sub_bad_chars(src)
 
 end
 
-local version_prefix = sub_bad_chars(_VERSION .. "cyan" .. meta.version .. "tl" .. tl.version())
+local version_prefix = sub_bad_chars(_VERSION .. "cyan" .. meta.version .. "tl" .. teal.version())
 
 local function script_path_to_cache_path(path)
    assert(cache_path)
@@ -171,7 +171,7 @@ local function load_script(path)
          if from_fs_cache then
             box = from_fs_cache
          else
-            local result, proc_err = tl.check_file(path_str, nil)
+            local result, proc_err = teal.check_file(path_str, nil)
             if not result then
                return nil, proc_err
             end
@@ -180,7 +180,7 @@ local function load_script(path)
                return nil, result
             end
             local generated
-            generated, err = tl.generate(result.ast, tl.target_from_lua_version(_VERSION))
+            generated, err = teal.generate(result.ast, teal.target_from_lua_version(_VERSION))
             if not generated then
                return nil, err
             end
