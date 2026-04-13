@@ -6,3 +6,5 @@ tmp/
 /luarocks
 /lua
 /types
+/.luarocks-wrapper/luarocks
+/.luarocks-wrapper/lua
