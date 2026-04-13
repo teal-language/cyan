@@ -60,8 +60,8 @@ local function collect_recursive_dependents(of: Node, set: {Node:boolean})
    if set[of] then return end
    set[of] = true
    for dependent in keys(of.dependents) do
-      set[dependent] = true
       collect_recursive_dependents(dependent, set)
+      set[dependent] = true
    end
 end
 
