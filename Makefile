@@ -1,4 +1,4 @@
-default: cyan
+default: cyan rockspec
 
 LUAROCKS_WRAPPER_DIR=.luarocks-wrapper
 LUA=$(LUAROCKS_WRAPPER_DIR)/lua
@@ -19,7 +19,7 @@ BOOTSTRAP3 = bin/bootstrap --no-script
 
 cyan: $(LUA_FILES)
 
-$(LUAROCKS):
+$(LUAROCKS) $(LUA):
 	mkdir -p $(LUAROCKS_WRAPPER_DIR)
 	luarocks init --wrapper-dir $(LUAROCKS_WRAPPER_DIR) --local
 
@@ -48,7 +48,7 @@ bootstrap: $(LUA_FILES)
 	@rm -rf build
 	@mv tmp build
 
-test: default
+test: default $(LUA)
 	busted build/ --lua=$(LUA)
 
 lint: default
