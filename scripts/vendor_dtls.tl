@@ -9,8 +9,8 @@ end
 local deps: {Dependency} = {
    { name = "argparse", url = "https://raw.githubusercontent.com/teal-language/teal-types/master/types/argparse/argparse.d.tl" },
    { name = "lfs",      url = "https://raw.githubusercontent.com/teal-language/teal-types/master/types/luafilesystem/lfs.d.tl" },
-   { name = "busted",   url = "https://raw.githubusercontent.com/teal-language/teal-types/refs/heads/master/types/busted/busted.d.tl" },
-   { name = "luassert", url = "https://raw.githubusercontent.com/teal-language/teal-types/refs/heads/master/types/luassert/luassert/assert.d.tl" },
+   { name = "busted",   url = "https://raw.githubusercontent.com/teal-language/teal-types/master/types/busted/busted.d.tl" },
+   { name = "luassert", url = "https://raw.githubusercontent.com/teal-language/teal-types/master/types/luassert/luassert/assert.d.tl" },
    { name = "system",   url = "https://raw.githubusercontent.com/teal-language/teal-types/master/types/luasystem/system.d.tl" },
 }
 
