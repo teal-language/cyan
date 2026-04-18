@@ -5,77 +5,77 @@ TL_FILES = src/cyan/cli.tl src/cyan/command.tl src/cyan/commands/build.tl src/cy
 LUA_FILES = build/cyan/cli.lua build/cyan/command.lua build/cyan/commands/build.lua build/cyan/commands/check-gen.lua build/cyan/commands/initialize.lua build/cyan/commands/run.lua build/cyan/commands/warnings.lua build/cyan/config.lua build/cyan/decoration.lua build/cyan/fs.lua build/cyan/graph.lua build/cyan/interaction.lua build/cyan/invocation-context.lua build/cyan/log.lua build/cyan/meta.lua build/cyan/sandbox.lua build/cyan/script.lua build/cyan/tlcommon.lua build/cyan/util.lua build/spec/api/config_spec.lua build/spec/api/decoration_spec.lua build/spec/api/graph_spec.lua build/spec/api/sandbox_spec.lua build/spec/api/script_spec.lua build/spec/api/util_spec.lua build/spec/commands/build_spec.lua build/spec/commands/check_spec.lua build/spec/commands/gen_spec.lua build/spec/commands/init_spec.lua build/spec/commands/no_script_spec.lua build/spec/commands/run_spec.lua build/spec/commands/warnings_spec.lua build/testing/batch-assertion.lua build/testing/command-runners.lua build/testing/finally.lua build/testing/temporary-files.lua
 CHECKS = build/cyan/cli.lua.checked build/cyan/command.lua.checked build/cyan/commands/build.lua.checked build/cyan/commands/check-gen.lua.checked build/cyan/commands/initialize.lua.checked build/cyan/commands/run.lua.checked build/cyan/commands/warnings.lua.checked build/cyan/config.lua.checked build/cyan/decoration.lua.checked build/cyan/fs.lua.checked build/cyan/graph.lua.checked build/cyan/interaction.lua.checked build/cyan/invocation-context.lua.checked build/cyan/log.lua.checked build/cyan/meta.lua.checked build/cyan/sandbox.lua.checked build/cyan/script.lua.checked build/cyan/tlcommon.lua.checked build/cyan/util.lua.checked build/spec/api/config_spec.lua.checked build/spec/api/decoration_spec.lua.checked build/spec/api/graph_spec.lua.checked build/spec/api/sandbox_spec.lua.checked build/spec/api/script_spec.lua.checked build/spec/api/util_spec.lua.checked build/spec/commands/build_spec.lua.checked build/spec/commands/check_spec.lua.checked build/spec/commands/gen_spec.lua.checked build/spec/commands/init_spec.lua.checked build/spec/commands/no_script_spec.lua.checked build/spec/commands/run_spec.lua.checked build/spec/commands/warnings_spec.lua.checked build/testing/batch-assertion.lua.checked build/testing/command-runners.lua.checked build/testing/finally.lua.checked build/testing/temporary-files.lua.checked
 build/cyan/cli.lua.checked : src/cyan/cli.tl src/cyan/config.tl src/cyan/graph.tl src/cyan/script.tl src/cyan/fs.tl src/cyan/invocation-context.tl src/cyan/commands/warnings.tl src/cyan/meta.tl src/cyan/sandbox.tl src/cyan/log.tl src/cyan/commands/build.tl src/cyan/tlcommon.tl src/cyan/commands/check-gen.tl src/cyan/util.tl src/cyan/decoration.tl src/cyan/commands/initialize.tl src/cyan/command.tl src/cyan/commands/run.tl | build_directories
-build/cyan/cli.lua : src/cyan/cli.tl
+build/cyan/cli.lua : src/cyan/cli.tl | build_directories
 build/cyan/command.lua.checked : src/cyan/command.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/sandbox.tl src/cyan/util.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/invocation-context.tl | build_directories
-build/cyan/command.lua : src/cyan/command.tl
+build/cyan/command.lua : src/cyan/command.tl | build_directories
 build/cyan/commands/build.lua.checked : src/cyan/commands/build.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/graph.tl src/cyan/script.tl src/cyan/fs.tl src/cyan/invocation-context.tl src/cyan/command.tl src/cyan/tlcommon.tl src/cyan/meta.tl src/cyan/util.tl src/cyan/log.tl src/cyan/sandbox.tl | build_directories
-build/cyan/commands/build.lua : src/cyan/commands/build.tl
+build/cyan/commands/build.lua : src/cyan/commands/build.tl | build_directories
 build/cyan/commands/check-gen.lua.checked : src/cyan/commands/check-gen.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/invocation-context.tl src/cyan/command.tl src/cyan/util.tl src/cyan/tlcommon.tl src/cyan/sandbox.tl | build_directories
-build/cyan/commands/check-gen.lua : src/cyan/commands/check-gen.tl
+build/cyan/commands/check-gen.lua : src/cyan/commands/check-gen.tl | build_directories
 build/cyan/commands/initialize.lua.checked : src/cyan/commands/initialize.tl src/cyan/sandbox.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/command.tl src/cyan/util.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/invocation-context.tl | build_directories
-build/cyan/commands/initialize.lua : src/cyan/commands/initialize.tl
+build/cyan/commands/initialize.lua : src/cyan/commands/initialize.tl | build_directories
 build/cyan/commands/run.lua.checked : src/cyan/commands/run.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/invocation-context.tl src/cyan/command.tl src/cyan/util.tl src/cyan/tlcommon.tl src/cyan/sandbox.tl | build_directories
-build/cyan/commands/run.lua : src/cyan/commands/run.tl
+build/cyan/commands/run.lua : src/cyan/commands/run.tl | build_directories
 build/cyan/commands/warnings.lua.checked : src/cyan/commands/warnings.tl src/cyan/sandbox.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/command.tl src/cyan/util.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/invocation-context.tl | build_directories
-build/cyan/commands/warnings.lua : src/cyan/commands/warnings.tl
+build/cyan/commands/warnings.lua : src/cyan/commands/warnings.tl | build_directories
 build/cyan/config.lua.checked : src/cyan/config.tl src/cyan/util.tl src/cyan/sandbox.tl src/cyan/fs.tl | build_directories
-build/cyan/config.lua : src/cyan/config.tl
+build/cyan/config.lua : src/cyan/config.tl | build_directories
 build/cyan/decoration.lua.checked : src/cyan/decoration.tl src/cyan/util.tl | build_directories
-build/cyan/decoration.lua : src/cyan/decoration.tl
+build/cyan/decoration.lua : src/cyan/decoration.tl | build_directories
 build/cyan/fs.lua.checked : src/cyan/fs.tl src/cyan/util.tl | build_directories
-build/cyan/fs.lua : src/cyan/fs.tl
+build/cyan/fs.lua : src/cyan/fs.tl | build_directories
 build/cyan/graph.lua.checked : src/cyan/graph.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/tlcommon.tl src/cyan/util.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/sandbox.tl | build_directories
-build/cyan/graph.lua : src/cyan/graph.tl
+build/cyan/graph.lua : src/cyan/graph.tl | build_directories
 build/cyan/interaction.lua.checked : src/cyan/interaction.tl src/cyan/util.tl src/cyan/decoration.tl src/cyan/log.tl | build_directories
-build/cyan/interaction.lua : src/cyan/interaction.tl
+build/cyan/interaction.lua : src/cyan/interaction.tl | build_directories
 build/cyan/invocation-context.lua.checked : src/cyan/invocation-context.tl | build_directories
-build/cyan/invocation-context.lua : src/cyan/invocation-context.tl
+build/cyan/invocation-context.lua : src/cyan/invocation-context.tl | build_directories
 build/cyan/log.lua.checked : src/cyan/log.tl src/cyan/util.tl src/cyan/decoration.tl | build_directories
-build/cyan/log.lua : src/cyan/log.tl
+build/cyan/log.lua : src/cyan/log.tl | build_directories
 build/cyan/meta.lua.checked : src/cyan/meta.tl | build_directories
-build/cyan/meta.lua : src/cyan/meta.tl
+build/cyan/meta.lua : src/cyan/meta.tl | build_directories
 build/cyan/sandbox.lua.checked : src/cyan/sandbox.tl | build_directories
-build/cyan/sandbox.lua : src/cyan/sandbox.tl
+build/cyan/sandbox.lua : src/cyan/sandbox.tl | build_directories
 build/cyan/script.lua.checked : src/cyan/script.tl src/cyan/sandbox.tl src/cyan/config.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/invocation-context.tl src/cyan/command.tl src/cyan/meta.tl src/cyan/util.tl src/cyan/decoration.tl | build_directories
-build/cyan/script.lua : src/cyan/script.tl
+build/cyan/script.lua : src/cyan/script.tl | build_directories
 build/cyan/tlcommon.lua.checked : src/cyan/tlcommon.tl src/cyan/decoration.tl src/cyan/config.tl src/cyan/util.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/sandbox.tl | build_directories
-build/cyan/tlcommon.lua : src/cyan/tlcommon.tl
+build/cyan/tlcommon.lua : src/cyan/tlcommon.tl | build_directories
 build/cyan/util.lua.checked : src/cyan/util.tl | build_directories
-build/cyan/util.lua : src/cyan/util.tl
+build/cyan/util.lua : src/cyan/util.tl | build_directories
 build/spec/api/config_spec.lua.checked : src/spec/api/config_spec.tl src/cyan/util.tl src/cyan/sandbox.tl src/cyan/fs.tl src/cyan/config.tl | build_directories
-build/spec/api/config_spec.lua : src/spec/api/config_spec.tl
+build/spec/api/config_spec.lua : src/spec/api/config_spec.tl | build_directories
 build/spec/api/decoration_spec.lua.checked : src/spec/api/decoration_spec.tl src/cyan/util.tl src/cyan/decoration.tl | build_directories
-build/spec/api/decoration_spec.lua : src/spec/api/decoration_spec.tl
+build/spec/api/decoration_spec.lua : src/spec/api/decoration_spec.tl | build_directories
 build/spec/api/graph_spec.lua.checked : src/spec/api/graph_spec.tl src/testing/temporary-files.tl src/cyan/config.tl src/testing/finally.tl src/cyan/log.tl src/cyan/fs.tl src/cyan/tlcommon.tl src/cyan/util.tl src/cyan/graph.tl src/cyan/decoration.tl src/cyan/sandbox.tl | build_directories
-build/spec/api/graph_spec.lua : src/spec/api/graph_spec.tl
+build/spec/api/graph_spec.lua : src/spec/api/graph_spec.tl | build_directories
 build/spec/api/sandbox_spec.lua.checked : src/spec/api/sandbox_spec.tl src/cyan/sandbox.tl | build_directories
-build/spec/api/sandbox_spec.lua : src/spec/api/sandbox_spec.tl
+build/spec/api/sandbox_spec.lua : src/spec/api/sandbox_spec.tl | build_directories
 build/spec/api/script_spec.lua.checked : src/spec/api/script_spec.tl src/testing/temporary-files.tl src/cyan/config.tl src/testing/finally.tl src/cyan/script.tl src/cyan/fs.tl src/cyan/invocation-context.tl src/cyan/command.tl src/cyan/util.tl src/cyan/meta.tl src/cyan/log.tl src/cyan/sandbox.tl src/cyan/decoration.tl | build_directories
-build/spec/api/script_spec.lua : src/spec/api/script_spec.tl
+build/spec/api/script_spec.lua : src/spec/api/script_spec.tl | build_directories
 build/spec/api/util_spec.lua.checked : src/spec/api/util_spec.tl src/cyan/util.tl | build_directories
-build/spec/api/util_spec.lua : src/spec/api/util_spec.tl
+build/spec/api/util_spec.lua : src/spec/api/util_spec.tl | build_directories
 build/spec/commands/build_spec.lua.checked : src/spec/commands/build_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/build_spec.lua : src/spec/commands/build_spec.tl
+build/spec/commands/build_spec.lua : src/spec/commands/build_spec.tl | build_directories
 build/spec/commands/check_spec.lua.checked : src/spec/commands/check_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/check_spec.lua : src/spec/commands/check_spec.tl
+build/spec/commands/check_spec.lua : src/spec/commands/check_spec.tl | build_directories
 build/spec/commands/gen_spec.lua.checked : src/spec/commands/gen_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/gen_spec.lua : src/spec/commands/gen_spec.tl
+build/spec/commands/gen_spec.lua : src/spec/commands/gen_spec.tl | build_directories
 build/spec/commands/init_spec.lua.checked : src/spec/commands/init_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/init_spec.lua : src/spec/commands/init_spec.tl
+build/spec/commands/init_spec.lua : src/spec/commands/init_spec.tl | build_directories
 build/spec/commands/no_script_spec.lua.checked : src/spec/commands/no_script_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/no_script_spec.lua : src/spec/commands/no_script_spec.tl
+build/spec/commands/no_script_spec.lua : src/spec/commands/no_script_spec.tl | build_directories
 build/spec/commands/run_spec.lua.checked : src/spec/commands/run_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/run_spec.lua : src/spec/commands/run_spec.tl
+build/spec/commands/run_spec.lua : src/spec/commands/run_spec.tl | build_directories
 build/spec/commands/warnings_spec.lua.checked : src/spec/commands/warnings_spec.tl src/testing/temporary-files.tl src/testing/command-runners.tl src/testing/batch-assertion.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/spec/commands/warnings_spec.lua : src/spec/commands/warnings_spec.tl
+build/spec/commands/warnings_spec.lua : src/spec/commands/warnings_spec.tl | build_directories
 build/testing/batch-assertion.lua.checked : src/testing/batch-assertion.tl | build_directories
-build/testing/batch-assertion.lua : src/testing/batch-assertion.tl
+build/testing/batch-assertion.lua : src/testing/batch-assertion.tl | build_directories
 build/testing/command-runners.lua.checked : src/testing/command-runners.tl src/testing/finally.tl src/testing/temporary-files.tl src/testing/batch-assertion.tl src/cyan/util.tl | build_directories
-build/testing/command-runners.lua : src/testing/command-runners.tl
+build/testing/command-runners.lua : src/testing/command-runners.tl | build_directories
 build/testing/finally.lua.checked : src/testing/finally.tl src/cyan/util.tl | build_directories
-build/testing/finally.lua : src/testing/finally.tl
+build/testing/finally.lua : src/testing/finally.tl | build_directories
 build/testing/temporary-files.lua.checked : src/testing/temporary-files.tl src/testing/finally.tl src/cyan/util.tl | build_directories
-build/testing/temporary-files.lua : src/testing/temporary-files.tl
+build/testing/temporary-files.lua : src/testing/temporary-files.tl | build_directories
 build_directories :
 	@mkdir -p build
 	@mkdir -p build/cyan

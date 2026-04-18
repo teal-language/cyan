@@ -12,9 +12,9 @@ build/%.lua.checked: src/%.tl
 	@$(TL_COMPILER) $(TL_FLAGS) check $<
 	@touch $@
 
-build/%.lua: src/%.tl
+build/%.lua: src/%.tl | build/%.lua.checked
 	@echo TL gen $<
-	@$(TL_COMPILER) $(TL_FLAGS) gen $< -o $@
+	@$(TL_COMPILER) $(TL_FLAGS) gen --no-check $< -o $@
 
 include deps.mk
 
@@ -60,23 +60,16 @@ test: default $(LUA)
 
 CYAN = LUA_PATH="build/?.lua;build/?/init.lua;$$LUA_PATH" $(LUA) bin/cyan
 
-lint: default
-	@echo CYAN run scripts/lint.tl
-	@$(CYAN) run scripts/lint.tl
-
 docs: docs/index.html
 rockspec: cyan-dev-1.rockspec
 
-docs/index.html: $(TL_FILES) cyan scripts/gen_documentation.tl doc-template.html
-	@echo CYAN run scripts/gen_documentation.tl
-	@$(CYAN) run scripts/gen_documentation.tl
+cyan-run-%: scripts/%.tl cyan $(TL_FILES)
+	@echo CYAN run $<
+	@$(CYAN) run $<
 
-cyan-dev-1.rockspec: $(TL_FILES) cyan scripts/gen_rockspec.tl
-	@echo CYAN run scripts/lint.tl
-	@$(CYAN) run scripts/gen_rockspec.tl
+lint: default cyan-run-lint
+docs/index.html: $(TL_FILES) cyan-run-gen_documentation doc-template.html
+cyan-dev-1.rockspec: $(TL_FILES) cyan-run-gen_rockspec
+makefile_deps: $(TL_FILES) cyan-run-gen_makefile_deps
 
-makefile_deps: $(TL_FILES) cyan scripts/gen_makefile_deps.tl
-	@echo CYAN run scripts/gen_makefile_deps.tl
-	@$(CYAN) run scripts/gen_makefile_deps.tl
-
-.PHONY: clean
+.PHONY: clean cyan

@@ -109,7 +109,7 @@ for lua in util.tab.ivalues(sorted_sources) do
 
    f:write(" | build_directories\n")
 
-   f:write(lua, " : ", tl, "\n")
+   f:write(lua, " : ", tl, " | build_directories\n")
 end
 
 f:write("build_directories :\n")
