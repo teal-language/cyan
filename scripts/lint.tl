@@ -48,13 +48,13 @@ local function lint()
          [ (return_statement) (break) ] @return
          .
          [ (elseif_block) (else_block) ] @else)
-       (#else-after-diverge @else @return))
+       (#else-after-diverge! @else @return))
 
       (((elseif_block condition: (_)
          [ (return_statement) (break) ] @return . )
          .
          [ (elseif_block) (else_block) ] @else)
-       (#else-after-diverge @else @return))
+       (#else-after-diverge! @else @return))
 
       ((var_declaration
          (var_declarators
@@ -65,7 +65,7 @@ local function lint()
                (_))))
 
         (#eq? @req "require")
-        (#require-should-be-const @name @declarator))
+        (#require-should-be-const! @name @declarator))
 
       ((generic_for_statement
          variable: (identifier) @underscore
@@ -73,18 +73,18 @@ local function lint()
 
        (#eq? @underscore "_")
        (#eq? @ipairs "ipairs")
-       (#use-ivalues-to-ignore-key @ipairs))
+       (#use-ivalues-to-ignore-key! @ipairs))
 
       ((identifier) @id
        (#match? @id "^[_a-z].*[a-z][A-Z]")
-       (#use-snake-case @id))
+       (#use-snake-case! @id))
 
       ((number) @num
        (#match? @num "^0x")
-       (#check-hex-case @num))
+       (#check-hex-case! @num))
    ]]
    local predicates <const> = {
-      ["else-after-diverge"] = function(else_: ts.Node, ret_or_break: ts.Node)
+      ["else-after-diverge!"] = function(else_: ts.Node, ret_or_break: ts.Node)
          local start = else_:start_point()
          local name = ret_or_break:name() == "break" and "break" or "return"
          table.insert(errors, {
@@ -96,7 +96,7 @@ local function lint()
          })
       end,
 
-      ["require-should-be-const"] = function(name: ts.Node, declarator: ts.Node)
+      ["require-should-be-const!"] = function(name: ts.Node, declarator: ts.Node)
          local attr = declarator:child_by_field_name("attribute")
          if not attr or attr:source() ~= "const" then
             local start = name:start_point()
@@ -108,7 +108,7 @@ local function lint()
          end
       end,
 
-      ["use-ivalues-to-ignore-key"] = function(ipairs_node: ts.Node)
+      ["use-ivalues-to-ignore-key!"] = function(ipairs_node: ts.Node)
          local start = ipairs_node:start_point()
          table.insert(errors, {
             location = to_one_indexed(start),
@@ -117,7 +117,7 @@ local function lint()
          })
       end,
 
-      ["use-snake-case"] = function(id: ts.Node)
+      ["use-snake-case!"] = function(id: ts.Node)
          local start = id:start_point()
          table.insert(errors, {
             location = to_one_indexed(start),
@@ -125,7 +125,7 @@ local function lint()
             helpful_message = "This codebase uses snake_case for variable names, and PascalCase for types",
          })
       end,
-      ["check-hex-case"] = function(num: ts.Node)
+      ["check-hex-case!"] = function(num: ts.Node)
          if not num:source():match("[A-F]") then
             return
          end
