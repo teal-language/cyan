@@ -21,11 +21,12 @@ local function lint()
       return
    end
 
-   local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "parser/teal", "teal")
+   local has_teal_parser <const>, teal_language <const> = pcall(ts.require, "parser/teal", "teal")
    if not has_teal_parser then
-      warn("lint requires tree-sitter-teal, which ltreesitter could not find:\n", teal_parser as string)
+      warn("lint requires tree-sitter-teal, which ltreesitter could not find:\n", teal_language as string)
       return
    end
+   local teal_parser <const> = teal_language:parser()
 
    local record Point -- one based, ts.Point is zero based
       row: integer
@@ -42,7 +43,7 @@ local function lint()
    end
    local errors: {Error}
 
-   local query <const> = teal_parser:query [[
+   local query <const> = teal_language:query [[
       ((if_statement condition: (_)
          [ (return_statement) (break) ] @return
          .
@@ -81,7 +82,8 @@ local function lint()
       ((number) @num
        (#match? @num "^0x")
        (#check-hex-case @num))
-   ]]:with {
+   ]]
+   local predicates <const> = {
       ["else-after-diverge"] = function(else_: ts.Node, ret_or_break: ts.Node)
          local start = else_:start_point()
          local name = ret_or_break:name() == "break" and "break" or "return"
@@ -144,8 +146,8 @@ local function lint()
       local real_path <const> = path:to_string()
       local disp_path <const> = decoration.file_name(real_path)
       local text <const> = fs.read(real_path)
-      local root <const> = teal_parser:parse_string(text, nil):root()
-      query:exec(root)
+      local root <const> = teal_parser:parse_string(text):root()
+      query:exec(root, predicates)
       total_errors = total_errors + #errors
       if #errors > 0 then
          warn(table.unpack(common.make_error_header(real_path, #errors, "lint")))

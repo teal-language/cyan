@@ -19,11 +19,12 @@ if not has_ltreesitter then
    return
 end
 
-local has_teal_parser <const>, teal_parser <const> = pcall(ts.require, "parser/teal", "teal")
+local has_teal_parser <const>, teal_language <const> = pcall(ts.require, "parser/teal", "teal")
 if not has_teal_parser then
-   log.warn("docgen requires tree-sitter-teal, which ltreesitter could not load:\n", teal_parser as string)
+   log.warn("docgen requires tree-sitter-teal, which ltreesitter could not load:\n", teal_language as string)
    return
 end
+local teal_parser <const> = teal_language:parser()
 
 local template_file <const> = lexical_path.from_os("doc-template.html")
 local template <const> = assert(fs.read(template_file:to_string()))
@@ -326,17 +327,17 @@ emit["type_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
    return obj_name
 end
 
-local query <const> = teal_parser:query[[
+local query <const> = teal_language:query[[
    ((comment) @kind
      . (comment)* @docs
      . (_) @obj
      (#match? @kind "^%-%-%-@%w+$")
      (#is-not-comment? @obj)) ]]
-   :with {
-      ["is-not-comment?"] = function(n: ts.Node): boolean
-         return n:type() ~= "comment"
-      end,
-   }
+local predicates <const> = {
+   ["is-not-comment?"] = function(n: ts.Node): boolean
+      return n:type() ~= "comment"
+   end,
+}
 
 local record Doc
    kind: string
@@ -355,9 +356,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
 
    local docs <const>: {Doc} = {}
 
-   local match_iter = query.match as function(ts.Query, ts.Node): (function(): ts.Match)
-
-   for match in match_iter(query, root) do
+   for match in query:match(root, predicates) do
       local kind_node <const> = match.captures.kind as ts.Node
       local kind <const> = kind_node:source():match("^%-%-%-@(%w+)")
       local comments <const> = match.captures.docs as {ts.Node} or {}
@@ -430,7 +429,7 @@ local function gen_docs(filename: string, module_name: string): string, {string}
             end
          end
       end
-      assertf(not current_state, "Unended doc block %q in %s", current_state, filename)
+      assertf(not current_state, "Unended doc block %q in %s", tostring(current_state), filename)
       table.insert(lines, "<p>" .. table.concat(content, " ") .. "</p>")
       table.insert(docs, {
          kind = kind,

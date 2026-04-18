@@ -150,6 +150,7 @@ This documentation is auto-generated and may be incomplete.
 <br><a href=#fs.write>fs.write</a>
 </p>
 </td><td valign=top><p><a class=module-name href=#cyan.graph>cyan.graph</a>
+<br><a href=#Dag:collect_by_dependent_count>Dag:collect_by_dependent_count</a>
 <br><a href=#Dag:find>Dag:find</a>
 <br><a href=#Dag:insert_file>Dag:insert_file</a>
 <br><a href=#Dag:mark_each>Dag:mark_each</a>
@@ -301,7 +302,9 @@ This documentation is auto-generated and may be incomplete.
 ): <code class=parameter-type>Config</code>, <code class=parameter-type>{string}</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Check if <code>c</code> conforms to the <code>Config</code> type and return any errors and warnings generated from checking</p></p>
 </div><h3><a name=config.load><code class=bulleted>function config.load</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> config.load(): <code class=parameter-type>Config</code>, <code class=parameter-type>{string}</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Try to load <code>tlconfig.lua</code> in the current directory</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> config.load(
+	<code class=parameter-name>from_path</code>: <code class=parameter-type>lexical_path.Path</code>
+): <code class=parameter-type>Config</code>, <code class=parameter-type>{string}</code>, <code class=parameter-type>{string}</code></code></pre><p><p>Try to load <code>tlconfig.lua</code> from the given path or <code>tlconfig.lua</code> in the current directory</p></p>
 </div><h2><a name=cyan.decoration>cyan.decoration</a>
 </h2>
 <p><p>A replacement for colorstring that doesn't specifically rely on ANSI terminal escapes</p></p>
@@ -518,7 +521,10 @@ This documentation is auto-generated and may be incomplete.
 </div><h2><a name=cyan.graph>cyan.graph</a>
 </h2>
 <p><p>A utility for building directed acyclic graphs of Teal source files</p><p>This is the main driver behind the <code>build</code> command</p></p>
-<h3><a name=Dag:find><code class=bulleted>method Dag:find</code></a>
+<h3><a name=Dag:collect_by_dependent_count><code class=bulleted>method Dag:collect_by_dependent_count</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> Dag:collect_by_dependent_count(): <code class=parameter-type>{integer:{Node}}</code>, <code class=parameter-type>integer</code></code></pre><p><p>Collect the nodes of this graph into a mapping from the number of dependents to lists of nodes with that number of dependents</p><p>Returns that map of lists and the most dependents that any node had</p><p>If two nodes have the same number of dependent nodes, they are sorted by input filename lexicographically</p></p>
+</div><h3><a name=Dag:find><code class=bulleted>method Dag:find</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> Dag:find(
 	<code class=parameter-name>f</code>: <code class=parameter-type>lexical_path.Path</code>
@@ -539,7 +545,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> Dag:marked_nodes(): <code class=parameter-type>function(): Node</code></code></pre><p><p>Iterate over every node that has been marked, no matter what the mark is</p></p>
 </div><h3><a name=Dag:nodes><code class=bulleted>method Dag:nodes</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> Dag:nodes(): <code class=parameter-type>function(): Node</code></code></pre><p><p>Iterate over nodes in order of dependents</p><p>If two nodes have the same number of dependent nodes, they are sorted by input filename lexicographically</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> Dag:nodes(): <code class=parameter-type>function(): Node</code></code></pre><p><p>Iterate over nodes in order of dependents</p><p>This is a convenience wrapper over <code>collect_by_dependent_count</code></p></p>
 </div><h3><a name=Dag><code class=bulleted>type Dag</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Dag
@@ -710,7 +716,7 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> script.ensure_loaded_for_command(
 	<code class=parameter-name>name</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>boolean</code>, <code class=parameter-type>string | tl.Result</code></code></pre><p><p>Attempts to load each script that the given command may need</p></p>
+): <code class=parameter-type>boolean</code>, <code class=parameter-type>string | teal.Result</code></code></pre><p><p>Attempts to load each script that the given command may need</p></p>
 </div><h3><a name=script.register><code class=bulleted>function script.register</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> script.register(
@@ -724,28 +730,28 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=ParseResult><code class=bulleted>type ParseResult</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> ParseResult
-	tks: <code class=parameter-type>{tl.Token}</code>
-	ast: <code class=parameter-type>tl.Node</code>
+	tks: <code class=parameter-type>{teal.Token}</code>
+	ast: <code class=parameter-type>teal.Node</code>
 	reqs: <code class=parameter-type>{string}</code>
-	errs: <code class=parameter-type>{tl.Error}</code>
+	errs: <code class=parameter-type>{teal.Error}</code>
 <code class=keyword>end</code></code></pre><p><p>The result from parsing source code including the tokens, ast, calls to require, and errors</p></p>
 </div><h3><a name=common.init_env_from_config><code class=bulleted>function common.init_env_from_config</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.init_env_from_config(
 	<code class=parameter-name>cfg</code>: <code class=parameter-type>config.Config</code>
-): <code class=parameter-type>tl.Env</code>, <code class=parameter-type>string</code></code></pre><p><p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p></p>
+): <code class=parameter-type>teal.Env</code>, <code class=parameter-type>string</code></code></pre><p><p>Initialize a strict Teal environment, using the relevant entries of the config to modify that environment</p><p>may return <code>nil</code> and an error message if something could not be applied to the environment</p></p>
 </div><h3><a name=common.init_teal_env><code class=bulleted>function common.init_teal_env</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.init_teal_env(
-	<code class=parameter-name>gen_compat</code>: <code class=parameter-type>boolean | tl.GenCompat</code>,
-	<code class=parameter-name>gen_target</code>: <code class=parameter-type>tl.GenTarget</code>,
+	<code class=parameter-name>gen_compat</code>: <code class=parameter-type>teal.GenCompat</code>,
+	<code class=parameter-name>gen_target</code>: <code class=parameter-type>teal.GenTarget</code>,
 	<code class=parameter-name>env_def</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>tl.Env</code>, <code class=parameter-type>string</code></code></pre><p><p>Initialize a strict Teal environment</p></p>
+): <code class=parameter-type>teal.Env</code>, <code class=parameter-type>string</code></code></pre><p><p>Initialize a strict Teal environment</p></p>
 </div><h3><a name=common.lex_file><code class=bulleted>function common.lex_file</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.lex_file(
 	<code class=parameter-name>path</code>: <code class=parameter-type>string</code>
-): <code class=parameter-type>{tl.Token}</code>, <code class=parameter-type>{tl.Error}</code>, <code class=parameter-type>string</code></code></pre><p><p>reads a file, calls <code>tl.lex</code> on its contents, caches and returns the results</p></p>
+): <code class=parameter-type>{teal.Token}</code>, <code class=parameter-type>{teal.Error}</code>, <code class=parameter-type>string</code></code></pre><p><p>reads a file, calls <code>teal.lex</code> on its contents, caches and returns the results</p></p>
 </div><h3><a name=common.make_error_header><code class=bulleted>function common.make_error_header</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.make_error_header(
@@ -767,32 +773,34 @@ This documentation is auto-generated and may be incomplete.
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.report_config_errors(
 	<code class=parameter-name>errs</code>: <code class=parameter-type>{string}</code>,
-	<code class=parameter-name>warnings</code>: <code class=parameter-type>{string}</code>
+	<code class=parameter-name>warnings</code>: <code class=parameter-type>{string}</code>,
+	<code class=parameter-name>filename</code>: <code class=parameter-type>string</code>
 ): <code class=parameter-type>boolean</code></code></pre><p><p>use <code>log.warn</code> and <code>log.err</code> to report errors and warnings from <code>config.load</code></p></p>
 </div><h3><a name=common.report_env_results><code class=bulleted>function common.report_env_results</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.report_env_results(
-	<code class=parameter-name>env</code>: <code class=parameter-type>tl.Env</code>,
+	<code class=parameter-name>env</code>: <code class=parameter-type>teal.Env</code>,
 	<code class=parameter-name>cfg</code>: <code class=parameter-type>config.Config</code>
-): <code class=parameter-type>boolean</code></code></pre><p><p>Report all errors from a tl.Env</p><p>Returns false when errors were reported</p></p>
+): <code class=parameter-type>boolean</code></code></pre><p><p>Report all errors from a teal.Env</p><p>Returns false when errors were reported</p></p>
 </div><h3><a name=common.report_errors><code class=bulleted>function common.report_errors</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.report_errors(
 	<code class=parameter-name>logger</code>: <code class=parameter-type>log.Logger</code>,
-	<code class=parameter-name>errs</code>: <code class=parameter-type>{tl.Error}</code>,
+	<code class=parameter-name>errs</code>: <code class=parameter-type>{teal.Error}</code>,
 	<code class=parameter-name>file</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>category</code>: <code class=parameter-type>string</code>
 )</code></pre><p><p>Logs an array of errors with nice colors and a header generated by <code>make_error_header</code></p></p>
 </div><h3><a name=common.report_result><code class=bulleted>function common.report_result</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.report_result(
-	<code class=parameter-name>r</code>: <code class=parameter-type>tl.Result</code>,
-	<code class=parameter-name>c</code>: <code class=parameter-type>config.Config</code>
-): <code class=parameter-type>boolean</code></code></pre><p><p>Logs all the syntax errors, warnings, type errors, etc. from a <code>tl.Result</code> with proper colors</p><p>Returns false if there were any errors. This includs warnings that were promoted to errors and doesn't include warnings that were not promoted to errors.</p></p>
+	<code class=parameter-name>r</code>: <code class=parameter-type>teal.Result</code>,
+	<code class=parameter-name>c</code>: <code class=parameter-type>config.Config</code>,
+	<code class=parameter-name>filename</code>: <code class=parameter-type>string</code>
+): <code class=parameter-type>boolean</code></code></pre><p><p>Logs all the syntax errors, warnings, type errors, etc. from a <code>teal.Result</code> with proper colors</p><p>Returns false if there were any errors. This includs warnings that were promoted to errors and doesn't include warnings that were not promoted to errors.</p></p>
 </div><h3><a name=common.result_has_errors><code class=bulleted>function common.result_has_errors</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.result_has_errors(
-	<code class=parameter-name>r</code>: <code class=parameter-type>tl.Result</code>,
+	<code class=parameter-name>r</code>: <code class=parameter-type>teal.Result</code>,
 	<code class=parameter-name>c</code>: <code class=parameter-type>config.Config</code>
 ): <code class=parameter-type>boolean</code></code></pre><p><p>Returns whether or not the result has errors. Doesn't print/log anything</p></p>
 </div><h3><a name=common.search_module><code class=bulleted>function common.search_module</code></a>
@@ -800,7 +808,7 @@ This documentation is auto-generated and may be incomplete.
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.search_module(
 	<code class=parameter-name>name</code>: <code class=parameter-type>string</code>,
 	<code class=parameter-name>search_dtl</code>: <code class=parameter-type>boolean</code>
-): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>A wrapper around <code>tl.search_module</code> but, returns an <code>lexical_path.Path</code> and will cache results</p></p>
+): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>A wrapper around <code>teal.search_module</code> but, returns an <code>lexical_path.Path</code> and will cache results</p></p>
 </div><h3><a name=common.syntax_highlight><code class=bulleted>function common.syntax_highlight</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> common.syntax_highlight(

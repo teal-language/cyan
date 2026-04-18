@@ -23,12 +23,13 @@ $(LUAROCKS) $(LUA):
 	mkdir -p $(LUAROCKS_WRAPPER_DIR)
 	luarocks init --wrapper-dir $(LUAROCKS_WRAPPER_DIR) --local
 
-deps: $(LUAROCKS)
+install-dependencies: $(LUAROCKS)
 	$(LUAROCKS) install inspect
+	$(LUAROCKS) install ltreesitter
 	$(LUAROCKS) install tl --dev
 	$(LUAROCKS) install --deps-only cyan-dev-1.rockspec
 
-all: clean deps bootstrap docs rockspec test
+all: clean install-dependencies bootstrap docs rockspec test
 
 clean:
 	rm -rf build tmp docs/index.html cyan-dev-1.rockspec
@@ -52,16 +53,21 @@ bootstrap: $(LUA_FILES)
 test: default $(LUA)
 	busted build/ --lua=$(LUA)
 
+CYAN = LUA_PATH="build/?.lua;build/?/init.lua;$$LUA_PATH" $(LUA) bin/cyan
+
 lint: default
-	bin/cyan run scripts/lint.tl
+	@echo CYAN run scripts/lint.tl
+	@$(CYAN) run scripts/lint.tl
 
 docs: docs/index.html
 rockspec: cyan-dev-1.rockspec
 
 docs/index.html: $(TL_FILES) cyan scripts/gen_documentation.tl doc-template.html
-	bin/cyan run scripts/gen_documentation.tl
+	@echo CYAN run scripts/gen_documentation.tl
+	@$(CYAN) run scripts/gen_documentation.tl
 
 cyan-dev-1.rockspec: $(TL_FILES) cyan scripts/gen_rockspec.tl
-	bin/cyan run scripts/gen_rockspec.tl
+	@echo CYAN run scripts/lint.tl
+	@$(CYAN) run scripts/gen_rockspec.tl
 
 .PHONY: clean
