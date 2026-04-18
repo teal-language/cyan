@@ -18,9 +18,9 @@ build/%.lua: src/%.tl | build/%.lua.checked
 
 include deps.mk
 
-BOOTSTRAP1 = bin/bootstrap --no-script
-BOOTSTRAP2 = bin/bootstrap --no-script
-BOOTSTRAP3 = bin/bootstrap --no-script
+BOOTSTRAP1 = $(LUA) bin/bootstrap --no-script
+BOOTSTRAP2 = $(LUA) bin/bootstrap --no-script
+BOOTSTRAP3 = $(LUA) bin/bootstrap --no-script
 
 cyan: $(LUA_FILES) $(CHECKS)
 
