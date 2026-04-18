@@ -79,7 +79,7 @@ local prefix_padding: integer = 10
 
 local inspect: function(any): string
 do
-   local req <const> = require
+   local req <const> = require as function(string): any
    local ok, actual_inspect = pcall(req, "inspect") as (boolean, function(any, any): string)
    local inspect_opts <const> = {
       process = function(item: any, path: {any}): any
