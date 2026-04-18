@@ -8,3 +8,4 @@ tmp/
 /types
 /.luarocks-wrapper/luarocks
 /.luarocks-wrapper/lua
+/build/**/*.lua.checked

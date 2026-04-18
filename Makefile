@@ -7,9 +7,14 @@ LUAROCKS=$(LUAROCKS_WRAPPER_DIR)/luarocks
 TL_COMPILER = lua_modules/bin/tl
 TL_FLAGS = --quiet -I src
 
+build/%.lua.checked: src/%.tl
+	@echo TL check $<
+	@$(TL_COMPILER) $(TL_FLAGS) check $<
+	@touch $@
+
 build/%.lua: src/%.tl
-	@echo TL $<
-	@$(TL_COMPILER) $(TL_FLAGS) gen --check $< -o $@
+	@echo TL gen $<
+	@$(TL_COMPILER) $(TL_FLAGS) gen $< -o $@
 
 include deps.mk
 
@@ -17,7 +22,7 @@ BOOTSTRAP1 = bin/bootstrap --no-script
 BOOTSTRAP2 = bin/bootstrap --no-script
 BOOTSTRAP3 = bin/bootstrap --no-script
 
-cyan: $(LUA_FILES)
+cyan: $(LUA_FILES) $(CHECKS)
 
 $(LUAROCKS) $(LUA):
 	mkdir -p $(LUAROCKS_WRAPPER_DIR)
@@ -69,5 +74,9 @@ docs/index.html: $(TL_FILES) cyan scripts/gen_documentation.tl doc-template.html
 cyan-dev-1.rockspec: $(TL_FILES) cyan scripts/gen_rockspec.tl
 	@echo CYAN run scripts/lint.tl
 	@$(CYAN) run scripts/gen_rockspec.tl
+
+makefile_deps: $(TL_FILES) cyan scripts/gen_makefile_deps.tl
+	@echo CYAN run scripts/gen_makefile_deps.tl
+	@$(CYAN) run scripts/gen_makefile_deps.tl
 
 .PHONY: clean
