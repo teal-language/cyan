@@ -63,13 +63,17 @@ CYAN = LUA_PATH="build/?.lua;build/?/init.lua;$$LUA_PATH" $(LUA) bin/cyan
 docs: docs/index.html
 rockspec: cyan-dev-1.rockspec
 
-cyan-run-%: scripts/%.tl cyan $(TL_FILES)
+lint: scripts/lint.tl $(TL_FILES)
 	@echo CYAN run $<
 	@$(CYAN) run $<
-
-lint: default cyan-run-lint
-docs/index.html: $(TL_FILES) cyan-run-gen_documentation doc-template.html
-cyan-dev-1.rockspec: $(TL_FILES) cyan-run-gen_rockspec
-makefile_deps: $(TL_FILES) cyan-run-gen_makefile_deps
+docs/index.html: scripts/gen_rockspec.tl $(TL_FILES) doc-template.html
+	@echo CYAN run $<
+	@$(CYAN) run $<
+cyan-dev-1.rockspec: scripts/gen_rockspec.tl src
+	@echo CYAN run $<
+	@$(CYAN) run $<
+deps.mk: scripts/gen_makefile_deps.tl $(TL_FILES)
+	@echo CYAN run $<
+	@$(CYAN) run $<
 
 .PHONY: clean cyan
