@@ -25,6 +25,7 @@ $(LUAROCKS) $(LUA):
 
 deps: $(LUAROCKS)
 	$(LUAROCKS) install inspect
+	$(LUAROCKS) install tl --dev
 	$(LUAROCKS) install --deps-only cyan-dev-1.rockspec
 
 all: clean deps bootstrap docs rockspec test
