@@ -7,6 +7,7 @@ local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
 local decoration = require("cyan.decoration")
+local event = require("cyan.event")
 local fs = require("cyan.fs")
 local graph = require("cyan.graph")
 local invocation_context = require("cyan.invocation-context")
@@ -16,6 +17,28 @@ local script = require("cyan.script")
 local util = require("cyan.util")
 
 local ivalues = util.tab.ivalues
+
+local created_directory = {
+   tag = "created_directory",
+   log_format = "Created directory %_",
+}
+
+local wrote_file = {
+   tag = "wrote_file",
+   log_format = "Wrote file %_",
+}
+
+
+
+
+
+
+
+
+local compilation_error = {
+   tag = "compilation_error",
+
+}
 
 local function exists_and_is_dir(prefix, p)
    if not fs.exists(p) then
@@ -67,6 +90,7 @@ local function build(args, loaded_config, context)
          log.err("Failed to create build dir ", decoration.file_name(build_dir), ": ", err)
          return 1
       end
+      event.emit(created_directory, build_dir)
    elseif not fs.is_directory(build_dir) then
       log.err("Build dir \"", decoration.file_name(build_dir), "\" is not a directory")
       return 1
@@ -207,6 +231,16 @@ local function build(args, loaded_config, context)
          end
 
          if not common.report_result(result, loaded_config, relative_path(n.input)) then
+
+            for err in ivalues(result.type_errors) do
+               event.emit(compilation_error, {
+                  file = err.filename,
+                  line = err.y,
+                  column = err.x,
+                  message = err.msg,
+               })
+            end
+
             exit = 1
             return
          end
@@ -252,6 +286,7 @@ local function build(args, loaded_config, context)
          if generated then
             fh:write(generated, "\n")
             fh:close()
+            event.emit(wrote_file, n.output)
             log.info("Wrote ", display_filename(n.output))
          else
             log.err("Error when generating lua for ", display_filename(n.output), "\n", gen_err)
@@ -351,4 +386,5 @@ command.new({
       cmd:flag("-p --prune", "Remove any unexpected files in the build directory.")
    end,
    script_hooks = { "pre", "post", "file_updated" },
+
 })

@@ -212,6 +212,19 @@ local function xor(a, b)
    (not a and b)
 end
 
+function str.gfind(s, patt, no_magic)
+   local prev_idx = 0
+   return function()
+      prev_idx = prev_idx + 1
+      local a, b = s:find(patt, prev_idx, no_magic)
+      if not a then
+         return nil, nil
+      end
+      prev_idx = b + 1
+      return a, b
+   end
+end
+
 
 
 

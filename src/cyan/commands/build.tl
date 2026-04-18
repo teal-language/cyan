@@ -7,6 +7,7 @@ local command <const> = require("cyan.command")
 local common <const> = require("cyan.tlcommon")
 local config <const> = require("cyan.config")
 local decoration <const> = require("cyan.decoration")
+local event <const> = require("cyan.event")
 local fs <const> = require("cyan.fs")
 local graph <const> = require("cyan.graph")
 local invocation_context <const> = require("cyan.invocation-context")
@@ -17,13 +18,34 @@ local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
 
+local interface Error
+   file: string
+   line: integer
+   column: integer
+   message: string
+end
+
+local interface FsError
+   path: lexical_path.Path
+   what: string
+end
+
+local fs_error          <const>: event.Prototype<FsError>           = { tag = "fs_error" }
+local created_directory <const>: event.Prototype<lexical_path.Path> = { tag = "created_directory" }
+local wrote_file        <const>: event.Prototype<lexical_path.Path> = { tag = "wrote_file" }
+local compilation_error <const>: event.Prototype<Error>             = { tag = "compilation_error" }
+local _warning          <const>: event.Prototype<Error>             = { tag = "compilation_warning" }
+--local script_requested_exit <const>: event.Prototype<lexical_path.Path>             = { tag = "script_requested_exit" }
+
 local function exists_and_is_dir(prefix: string, p: lexical_path.Path): boolean
    if not fs.exists(p) then
       log.err(prefix, " \"", decoration.file_name(p), "\" does not exist")
+      event.emit(fs_error, { path = p, what = "does not exist" })
       return false
    end
    if not fs.is_directory(p) then
       log.err(prefix, " \"", decoration.file_name(p), "\" is not a directory")
+      event.emit(fs_error, { path = p, what = "is not a directory" })
       return false
    end
    return true
@@ -67,6 +89,7 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
          log.err("Failed to create build dir ", decoration.file_name(build_dir), ": ", err)
          return 1
       end
+      event.emit(created_directory, build_dir)
    elseif not fs.is_directory(build_dir) then
       log.err("Build dir \"", decoration.file_name(build_dir), "\" is not a directory")
       return 1
@@ -207,6 +230,15 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
          end
 
          if not common.report_result(result, loaded_config, relative_path(n.input)) then
+            for err in ivalues(result.type_errors) do
+               event.emit(compilation_error, {
+                  file = err.filename,
+                  line = err.y,
+                  column = err.x,
+                  message = err.msg
+               })
+            end
+
             exit = 1
             return
          end
@@ -252,6 +284,7 @@ local function build(args: command.Args, loaded_config: config.Config, context: 
          if generated then
             fh:write(generated, "\n")
             fh:close()
+            event.emit(wrote_file, n.output)
             log.info("Wrote ", display_filename(n.output))
          else
             log.err("Error when generating lua for ", display_filename(n.output), "\n", gen_err)
@@ -351,4 +384,5 @@ command.new{
       cmd:flag("-p --prune", "Remove any unexpected files in the build directory.")
    end,
    script_hooks = { "pre", "post", "file_updated" },
+   --events = { created_directory, wrote_file },
 }

@@ -212,6 +212,19 @@ local function xor(a: any, b: any): boolean
       or (not a and b as boolean)
 end
 
+function str.gfind(s: string, patt: string, no_magic?: boolean): function(): integer, integer
+   local prev_idx = 0
+   return function(): integer, integer
+      prev_idx = prev_idx + 1
+      local a, b = s:find(patt, prev_idx, no_magic)
+      if not a then
+         return nil, nil
+      end
+      prev_idx = b + 1
+      return a, b
+   end
+end
+
 ---@desc
 --- Takes an iterator and turns it into an iterator that returns pairs of values
 ---

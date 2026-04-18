@@ -23,12 +23,12 @@ $(LUAROCKS) $(LUA):
 	mkdir -p $(LUAROCKS_WRAPPER_DIR)
 	luarocks init --wrapper-dir $(LUAROCKS_WRAPPER_DIR) --local
 
-deps: $(LUAROCKS)
+install-dependencies: $(LUAROCKS)
 	$(LUAROCKS) install inspect
 	$(LUAROCKS) install tl --dev
 	$(LUAROCKS) install --deps-only cyan-dev-1.rockspec
 
-all: clean deps bootstrap docs rockspec test
+all: clean install-dependencies bootstrap docs rockspec test
 
 clean:
 	rm -rf build tmp docs/index.html cyan-dev-1.rockspec
@@ -61,7 +61,10 @@ rockspec: cyan-dev-1.rockspec
 docs/index.html: $(TL_FILES) cyan scripts/gen_documentation.tl doc-template.html
 	bin/cyan run scripts/gen_documentation.tl
 
-cyan-dev-1.rockspec: $(TL_FILES) cyan scripts/gen_rockspec.tl
+cyan-dev-1.rockspec: $(TL_FILES) scripts/gen_rockspec.tl
 	bin/cyan run scripts/gen_rockspec.tl
+
+# deps.mk: $(TL_FILES) scripts/gen_makefile_deps.tl
+# 	bin/cyan run scripts/gen_makefile_deps.tl
 
 .PHONY: clean

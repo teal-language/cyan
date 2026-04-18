@@ -97,12 +97,12 @@ local sorted_sources = util.tab.sort_in_place(util.tab.from(util.tab.keys(lua_to
 for lua in util.tab.ivalues(sorted_sources) do
    local tl = lua_to_tl[lua]
    local deps = dep_graph[lua] or {}
-   f:write(lua, " : ", tl)
+   f:write(lua, " : ", tl, " | ")
    for name in pairs(deps) do
       f:write(" ", name)
    end
 
-   f:write(" | build_directories\n")
+   f:write(" build_directories\n")
 end
 
 f:write("build_directories :\n")
