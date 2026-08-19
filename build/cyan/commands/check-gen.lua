@@ -19,20 +19,24 @@ local util = require("cyan.util")
 local map_ipairs, ivalues =
 util.tab.map_ipairs, util.tab.ivalues
 
+
+
+
+
+
 local function command_exec(should_compile)
    return function(args, loaded_config, context)
-      if args["output"] and #args.files ~= 1 then
+      if args.output and #args.files ~= 1 then
          log.err("--output can only map 1 input to 1 output")
          return 1
       end
 
       local function get_output_filename(path)
-         if args["output"] then
-            local p = lexical_path.from_os(args["output"])
-            if not p.is_absolute then
-               p = context.initial_directory .. p
+         if args.output then
+            if not args.output.is_absolute then
+               return context.initial_directory .. args.output
             end
-            return p
+            return args.output:copy()
          end
          local new = path:copy()
          local ext = path:extension():lower()
@@ -159,6 +163,7 @@ command.new({
    argparse = function(cmd)
       cmd:argument("files", "The Teal source files to process."):
       args("+")
+      command.add_check_options(cmd)
    end,
    exec = command_exec(false),
 })
@@ -171,7 +176,10 @@ command.new({
       args("+")
 
       cmd:option("-o --output", "The name of the output file"):
-      args(1)
+      args(1):
+      convert(lexical_path.from_os)
+
+      command.add_gen_options(cmd)
    end,
    exec = command_exec(true),
 })

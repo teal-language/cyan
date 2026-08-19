@@ -102,9 +102,15 @@ This documentation is auto-generated and may be incomplete.
 <p><a class=module-name href=#cyan.cli>cyan.cli</a>
 <br></p>
 <p><a class=module-name href=#cyan.command>cyan.command</a>
+<br><a href=#CheckOptions>CheckOptions</a>
 <br><a href=#Command>Command</a>
+<br><a href=#GenOptions>GenOptions</a>
+<br><a href=#WarningOptions>WarningOptions</a>
+<br><a href=#command.add_check_options>command.add_check_options</a>
+<br><a href=#command.add_gen_options>command.add_gen_options</a>
+<br><a href=#command.add_warning_options>command.add_warning_options</a>
+<br><a href=#command.convert_to_warning_set>command.convert_to_warning_set</a>
 <br><a href=#command.get>command.get</a>
-<br><a href=#command.merge_args_into_config>command.merge_args_into_config</a>
 <br><a href=#command.new>command.new</a>
 <br><a href=#command.register_all>command.register_all</a>
 </p>
@@ -240,7 +246,13 @@ This documentation is auto-generated and may be incomplete.
 <h2><a name=cyan.command>cyan.command</a>
 </h2>
 <p><p>The common interface for commands to implement</p></p>
-<h3><a name=Command><code class=bulleted>type Command</code></a>
+<h3><a name=CheckOptions><code class=bulleted>type CheckOptions</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>interface</code> CheckOptions
+	include_dir: <code class=parameter-type>{string}</code>
+	global_env_def: <code class=parameter-type>string</code>
+<code class=keyword>end</code></code></pre><p><p>Options for commands that type check teal files</p></p>
+</div><h3><a name=Command><code class=bulleted>type Command</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> Command
 	name: <code class=parameter-type>string</code>
@@ -249,17 +261,43 @@ This documentation is auto-generated and may be incomplete.
 	script_hooks: <code class=parameter-type>{string}</code>
 	exec: <code class=parameter-type>CommandFn</code>
 <code class=keyword>end</code></code></pre><p><p>The interface</p></p>
+</div><h3><a name=GenOptions><code class=bulleted>type GenOptions</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>interface</code> GenOptions
+	gen_compat: <code class=parameter-type>tl.GenCompat</code>
+	gen_target: <code class=parameter-type>tl.GenTarget</code>
+<code class=keyword>end</code></code></pre><p><p>Options for commands that generate lua files</p></p>
+</div><h3><a name=WarningOptions><code class=bulleted>type WarningOptions</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>interface</code> WarningOptions
+	wdisable: <code class=parameter-type>{tl.WarningKind}</code>
+	werror: <code class=parameter-type>{tl.WarningKind}</code>
+<code class=keyword>end</code></code></pre><p><p>Options for commands that emit compiler warnings</p></p>
+</div><h3><a name=command.add_check_options><code class=bulleted>function command.add_check_options</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> command.add_check_options(
+	<code class=parameter-name>cmd</code>: <code class=parameter-type>argparse.Command</code>
+)</code></pre><p><p>Add options to <code>cmd</code> corresponding to <code>CheckOptions</code>: <code>--global-env-def</code> and <code>--include-dir</code></p></p>
+</div><h3><a name=command.add_gen_options><code class=bulleted>function command.add_gen_options</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> command.add_gen_options(
+	<code class=parameter-name>cmd</code>: <code class=parameter-type>argparse.Command</code>
+)</code></pre><p><p>Add options to <code>cmd</code> corresponding to <code>GenOptions</code>: <code>--gen-compat</code> and <code>--gen-target</code></p></p>
+</div><h3><a name=command.add_warning_options><code class=bulleted>function command.add_warning_options</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> command.add_warning_options(
+	<code class=parameter-name>cmd</code>: <code class=parameter-type>argparse.Command</code>
+)</code></pre><p><p>Add options to <code>cmd</code> corresponding to <code>WarningOptions</code>: <code>--werror</code> and <code>--wdisable</code></p></p>
+</div><h3><a name=command.convert_to_warning_set><code class=bulleted>function command.convert_to_warning_set</code></a>
+</h3>
+<div class=description><pre class=signature><code><code class=keyword>function</code> command.convert_to_warning_set(
+	<code class=parameter-name>...</code>: <code class=parameter-type>{string}</code>
+): <code class=parameter-type>{tl.WarningKind:boolean}</code></code></pre><p><p>Convert lists of strings to a set of <code>tl.WarningKind</code></p><p>If any entry is the string <code><code>"all"</code></code>, a set with every warning kind set</p></p>
 </div><h3><a name=command.get><code class=bulleted>function command.get</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> command.get(
 	<code class=parameter-name>name</code>: <code class=parameter-type>string</code>
 ): <code class=parameter-type>Command</code></code></pre><p><p>Get a command that was created with <code>command.new</code></p><p>Works whether or not <code>command.register_all</code> was called</p></p>
-</div><h3><a name=command.merge_args_into_config><code class=bulleted>function command.merge_args_into_config</code></a>
-</h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> command.merge_args_into_config(
-	<code class=parameter-name>cfg</code>: <code class=parameter-type>config.Config</code>,
-	<code class=parameter-name>args</code>: <code class=parameter-type>Args</code>
-)</code></pre><p><p>Merge the relevant entries of the provided command arguments into the provided config table</p></p>
 </div><h3><a name=command.new><code class=bulleted>function command.new</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> command.new(
@@ -885,8 +923,8 @@ This documentation is auto-generated and may be incomplete.
 ): <code class=parameter-type>function(): Value</code></code></pre><p><p>Iterate over the integer indexed values of a map</p></p>
 </div><h3><a name=tab.keys><code class=bulleted>function tab.keys</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> tab.keys&lt;<code class=parameter-type>Key</code>&gt;(
-	<code class=parameter-name>t</code>: <code class=parameter-type>{Key:any}</code>
+<div class=description><pre class=signature><code><code class=keyword>function</code> tab.keys&lt;<code class=parameter-type>Key</code>, <code class=parameter-type>Value</code>&gt;(
+	<code class=parameter-name>t</code>: <code class=parameter-type>{Key:Value}</code>
 ): <code class=parameter-type>function(): Key</code></code></pre><p><p>Iterate over the keys of a map</p></p>
 </div><h3><a name=tab.map><code class=bulleted>function tab.map</code></a>
 </h3>
@@ -909,8 +947,8 @@ This documentation is auto-generated and may be incomplete.
 </div><h3><a name=tab.set><code class=bulleted>function tab.set</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> tab.set&lt;<code class=parameter-type>Value</code>&gt;(
-	<code class=parameter-name>lst</code>: <code class=parameter-type>{Value}</code>
-): <code class=parameter-type>{Value:boolean}</code></code></pre><p><p>Create a Set from a list</p></p>
+	<code class=parameter-name>...</code>: <code class=parameter-type>{Value}</code>
+): <code class=parameter-type>{Value:boolean}</code></code></pre><p><p>Create a Set from the contents of lists</p></p>
 </div><h3><a name=tab.sort_in_place><code class=bulleted>function tab.sort_in_place</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> tab.sort_in_place&lt;<code class=parameter-type>Value</code>&gt;(

@@ -16,39 +16,10 @@ local log = require("cyan.log")
 local script = require("cyan.script")
 local util = require("cyan.util")
 
-local keys, from, sort, ivalues =
-util.tab.keys, util.tab.from, util.tab.sort_in_place, util.tab.ivalues
+local ivalues = util.tab.ivalues
 
 local parser = argparse("cyan", "The Teal build system")
 parser:add_help(false)
-
-parser:option("--global-env-def", "Load <module-name> before typechecking. Use this to define types provided by your environment."):
-argname("<module-name>"):
-count("?")
-
-parser:option("-I --include-dir", "Prepend this directory to the module search path."):
-argname("<directory>"):
-count("*")
-
-local warnings = sort(from(keys(tl.warning_kinds)))
-table.insert(warnings, "all")
-parser:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings"):
-argname("<warning>"):
-choices(warnings):
-count("*")
-
-parser:option("--werror", "Promote the given kind of warning to an error. Use '--werror all' to promote all warnings to errors"):
-argname("<warning>"):
-choices(warnings):
-count("*")
-
-parser:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions."):
-choices({ "off", "optional", "required" }):
-default("optional"):
-defmode("a")
-
-parser:option("--gen-target", "Minimum targeted Lua version for generated code."):
-choices({ "5.1", "5.3", "5.4" })
 
 parser:flag("--no-script", "Do not run any scripts."):
 action(script.disable)
@@ -71,9 +42,6 @@ action(function(_, __, val)
    log.set_verbosity(val)
 end))
 
-
-parser:option("-s --source-dir", "Override the source directory.")
-parser:option("-b --build-dir", "Override the build directory.")
 
 parser:command_target("command")
 
@@ -153,8 +121,6 @@ command.running = cmd
 log.debug("Arguments: ", args)
 
 local exit = 1
-
-command.merge_args_into_config(loaded_config, args)
 
 if loaded_config.scripts then
    local config_dir = config_path:copy()

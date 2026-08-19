@@ -9,12 +9,16 @@ local log <const> = require("cyan.log")
 local sandbox <const> = require("cyan.sandbox")
 local tl <const> = require("tl")
 
+local interface Args is command.Args
+   script: {string}
+end
+
 local function add_to_argparser(cmd: argparse.Command)
    cmd:argument("script", "The Teal script to run.")
       :args("+")
 end
 
-local function run(args: command.Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
+local function run(args: Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
    local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
    if not env then
       log.err("Could not initialize Teal environment:\n", env_err)
@@ -29,7 +33,7 @@ local function run(args: command.Args, loaded_config: config.Config, context: in
       end
    end
 
-   local arg_list <const> = args["script"] as {string}
+   local arg_list <const> = args.script
    -- collect all non-arguments including negative arg values
    local neg_arg = {}
    local nargs = #arg_list

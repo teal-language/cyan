@@ -1,5 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs
-
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table
 
 
 local tl = require("tl")
@@ -7,14 +6,12 @@ local argparse = require("argparse")
 
 local config = require("cyan.config")
 local invocation_context = require("cyan.invocation-context")
-local lexical_path = require("lexical-path")
-local log = require("cyan.log")
+
+
 local util = require("cyan.util")
 
-local merge_list, sort, from, keys, contains, ivalues, map =
-util.tab.merge_list, util.tab.sort_in_place, util.tab.from, util.tab.keys, util.tab.contains, util.tab.ivalues, util.tab.map
-
-local Args = {}
+local keys, from, sort, ivalues =
+util.tab.keys, util.tab.from, util.tab.sort_in_place, util.tab.ivalues
 
 
 
@@ -57,10 +54,76 @@ local command = {
    Command = Command,
    CommandFn = CommandFn,
    Args = Args,
+   CheckOptions = CheckOptions,
+   GenOptions = GenOptions,
+   WarningOptions = WarningOptions,
 }
 
 local commands = {}
 local hooks = {}
+
+
+
+function command.add_check_options(cmd)
+   cmd:option("--global-env-def", "Load <module-name> before typechecking. Use this to define types provided by your environment."):
+   argname("<module-name>"):
+   count("?")
+
+   cmd:option("-I --include-dir", "Prepend this directory to the module search path."):
+   argname("<directory>"):
+   count("*")
+end
+
+local warning_option_values = sort(from(keys(tl.warning_kinds)))
+table.insert(warning_option_values, "all")
+
+
+
+
+
+function command.convert_to_warning_set(...)
+   local result = {}
+   for i = 1, select("#", ...) do
+      for kind in ivalues((select(i, ...))) do
+         if kind == "all" then
+            for k in pairs(tl.warning_kinds) do
+               result[k] = true
+            end
+            return result
+         end
+         if tl.warning_kinds[kind] then
+            result[kind] = true
+         end
+      end
+   end
+   return result
+end
+
+
+
+function command.add_warning_options(cmd)
+   cmd:option("--wdisable", "Disable the given kind of warning. Use '--wdisable all' to disable all warnings"):
+   argname("<warning>"):
+   choices(warning_option_values):
+   count("*")
+
+   cmd:option("--werror", "Promote the given kind of warning to an error. Use '--werror all' to promote all warnings to errors"):
+   argname("<warning>"):
+   choices(warning_option_values):
+   count("*")
+end
+
+
+
+function command.add_gen_options(cmd)
+   cmd:option("--gen-compat", "Generate compatibility code for targeting different Lua VM versions."):
+   choices({ "off", "optional", "required" }):
+   default("optional"):
+   defmode("a")
+
+   cmd:option("--gen-target", "Minimum targeted Lua version for generated code."):
+   choices({ "5.1", "5.3", "5.4" })
+end
 
 
 
@@ -100,34 +163,6 @@ end
 
 function command.get(name)
    return commands[name]
-end
-
-local all_warnings = sort(from(keys(tl.warning_kinds)))
-
-
-
-function command.merge_args_into_config(cfg, args)
-   args = args or {}
-
-   cfg.global_env_def = args.global_env_def or cfg.global_env_def
-
-   cfg.include_dir = merge_list(cfg.include_dir, map(args.include_dir, lexical_path.from_os))
-   if contains(args.wdisable, "all") then
-      cfg.disable_warnings = all_warnings
-   else
-      cfg.disable_warnings = merge_list(cfg.disable_warnings, args.wdisable)
-   end
-   if contains(args.werror, "all") then
-      cfg.warning_error = all_warnings
-   else
-      cfg.warning_error = merge_list(cfg.warning_error, args.werror)
-   end
-
-   cfg.source_dir = args.source_dir and lexical_path.from_os(args.source_dir) or cfg.source_dir
-   cfg.build_dir = args.build_dir and lexical_path.from_os(args.build_dir) or cfg.build_dir
-
-   cfg.gen_compat = args.gen_compat or cfg.gen_compat
-   cfg.gen_target = args.gen_target or cfg.gen_target
 end
 
 return command

@@ -3,6 +3,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+local argparse = require("argparse")
+
 local command = require("cyan.command")
 local config = require("cyan.config")
 local decoration = require("cyan.decoration")
@@ -11,12 +13,16 @@ local tl = require("tl")
 local util = require("cyan.util")
 
 local pad_left = util.str.pad_left
-local values, set, keys, from, sort =
-util.tab.values, util.tab.set, util.tab.keys, util.tab.from, util.tab.sort_in_place
+local values, keys, from, sort =
+util.tab.values, util.tab.keys, util.tab.from, util.tab.sort_in_place
 
-local function exec(_, c)
-   local disable = set(c.disable_warnings or {})
-   local err = set(c.warning_error or {})
+
+
+
+local function exec(args, c)
+   local disable = command.convert_to_warning_set(c.disable_warnings or {}, args.wdisable)
+   local err = command.convert_to_warning_set(c.warning_error or {}, args.werror)
+
    local longest_len = 0
    local tags = sort(from(keys(tl.warning_kinds)))
    for t in values(tags) do
@@ -49,4 +55,7 @@ command.new({
    name = "warnings",
    description = [[List all warnings the Teal compiler can produce and whether or not they are enabled.]],
    exec = exec,
+   argparse = function(cmd)
+      command.add_warning_options(cmd)
+   end,
 })

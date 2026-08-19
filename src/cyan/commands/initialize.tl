@@ -15,7 +15,18 @@ local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
 
-local function exec(args: command.Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
+local function sorted_keys<Key, Value>(t: {Key:Value}): {Key}
+   return util.tab.sort_in_place(util.tab.from(util.tab.keys(t)))
+end
+
+local interface Args is command.GenOptions, command.CheckOptions
+   directory: string
+   force: boolean
+   source_dir: string
+   build_dir: string
+end
+
+local function exec(args: Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
    if not args.force and loaded_config.loaded_from then
          log.err(
             "Already in a project!\n   Found config file at ",
@@ -24,7 +35,6 @@ local function exec(args: command.Args, loaded_config: config.Config, context: i
          return 1
    end
 
-   -- TODO: #ConfigPaths
    local directory <const> = lexical_path.from_os(args.directory or ".")
    local source <const> = lexical_path.from_os(args.source_dir or "src")
    local build <const> = lexical_path.from_os(args.build_dir or "build")
@@ -72,7 +82,7 @@ local function exec(args: command.Args, loaded_config: config.Config, context: i
    ins(1, "build_dir = %q,\n", build:to_string("/"))
    ins(1, "source_dir = %q,\n", source:to_string("/"))
    local function add_str_array(name: string, arr: {string})
-      if #arr == 0 then
+      if not arr or #arr == 0 then
          return
       end
       ins(1, "%s = {\n", name)
@@ -82,8 +92,8 @@ local function exec(args: command.Args, loaded_config: config.Config, context: i
       ins(1, "},\n", name)
    end
    add_str_array("include_dir", args.include_dir)
-   add_str_array("disable_warnings", args.wdisable)
-   add_str_array("warning_error", args.werror)
+   add_str_array("disable_warnings", sorted_keys(args.wdisable) as {string})
+   add_str_array("warning_error", sorted_keys(args.werror) as {string})
 
    ins(0, "}")
 
@@ -116,5 +126,7 @@ command.new{
 
       cmd:option("-f --force", "Force initialization, even if you are in a subdirectory of an existing project.")
          :args(0)
+
+      command.add_warning_options(cmd)
    end,
 }

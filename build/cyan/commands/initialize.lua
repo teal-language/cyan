@@ -15,6 +15,17 @@ local util = require("cyan.util")
 
 local ivalues = util.tab.ivalues
 
+local function sorted_keys(t)
+   return util.tab.sort_in_place(util.tab.from(util.tab.keys(t)))
+end
+
+
+
+
+
+
+
+
 local function exec(args, loaded_config, context)
    if not args.force and loaded_config.loaded_from then
       log.err(
@@ -23,7 +34,6 @@ local function exec(args, loaded_config, context)
 
       return 1
    end
-
 
    local directory = lexical_path.from_os(args.directory or ".")
    local source = lexical_path.from_os(args.source_dir or "src")
@@ -72,7 +82,7 @@ local function exec(args, loaded_config, context)
    ins(1, "build_dir = %q,\n", build:to_string("/"))
    ins(1, "source_dir = %q,\n", source:to_string("/"))
    local function add_str_array(name, arr)
-      if #arr == 0 then
+      if not arr or #arr == 0 then
          return
       end
       ins(1, "%s = {\n", name)
@@ -82,8 +92,8 @@ local function exec(args, loaded_config, context)
       ins(1, "},\n", name)
    end
    add_str_array("include_dir", args.include_dir)
-   add_str_array("disable_warnings", args.wdisable)
-   add_str_array("warning_error", args.werror)
+   add_str_array("disable_warnings", sorted_keys(args.wdisable))
+   add_str_array("warning_error", sorted_keys(args.werror))
 
    ins(0, "}")
 
@@ -116,5 +126,7 @@ command.new({
 
       cmd:option("-f --force", "Force initialization, even if you are in a subdirectory of an existing project."):
       args(0)
+
+      command.add_warning_options(cmd)
    end,
 })

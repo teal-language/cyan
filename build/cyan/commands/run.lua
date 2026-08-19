@@ -9,6 +9,10 @@ local log = require("cyan.log")
 local sandbox = require("cyan.sandbox")
 local tl = require("tl")
 
+
+
+
+
 local function add_to_argparser(cmd)
    cmd:argument("script", "The Teal script to run."):
    args("+")
@@ -29,7 +33,7 @@ local function run(args, loaded_config, context)
       end
    end
 
-   local arg_list = args["script"]
+   local arg_list = args.script
 
    local neg_arg = {}
    local nargs = #arg_list

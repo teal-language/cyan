@@ -17,6 +17,17 @@ local util <const> = require("cyan.util")
 
 local ivalues <const> = util.tab.ivalues
 
+local interface Args
+   is command.CheckOptions, command.GenOptions
+   where self.command == "build"
+
+   update_all: boolean
+   check_only: boolean
+   prune: boolean
+   build_dir: lexical_path.Path
+   source_dir: lexical_path.Path
+end
+
 local function exists_and_is_dir(prefix: string, p: lexical_path.Path): boolean
    if not fs.exists(p) then
       log.err(prefix, " \"", decoration.file_name(p), "\" does not exist")
@@ -49,18 +60,25 @@ local function report_dep_errors(env: tl.Env, source_dir: lexical_path.Path): bo
    return ok
 end
 
-local function build(args: command.Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
+local function build(args: Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
    if not loaded_config.loaded_from then
       log.err(config.filename, " not found")
       return 1
    end
 
-   local source_dir <const> = loaded_config.source_dir and loaded_config.source_dir:copy() or lexical_path.from_unix(".")
+   local source_dir <const> =
+      args.source_dir and args.source_dir:copy()
+         or loaded_config.source_dir and loaded_config.source_dir:copy()
+         or lexical_path.from_unix(".")
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
 
-   local build_dir <const> = loaded_config.build_dir and loaded_config.build_dir:copy() or lexical_path.from_unix(".")
+   local build_dir <const> =
+      args.build_dir and args.build_dir:copy()
+         or loaded_config.build_dir and loaded_config.build_dir:copy()
+         or lexical_path.from_unix(".")
+
    if not fs.exists(build_dir) then
       local succ <const>, err <const> = fs.make_directory(build_dir)
       if not succ then
@@ -349,6 +367,11 @@ command.new{
       cmd:flag("-u --update-all", "Force recompilation of every file in your project.")
       cmd:flag("-c --check-only", "Only type check files.")
       cmd:flag("-p --prune", "Remove any unexpected files in the build directory.")
+
+      cmd:option("-s --source-dir", "Override the source directory.")
+         :convert(lexical_path.from_os)
+      cmd:option("-b --build-dir", "Override the build directory.")
+         :convert(lexical_path.from_os)
    end,
    script_hooks = { "pre", "post", "file_updated" },
 }
