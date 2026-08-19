@@ -91,7 +91,7 @@ local function exec(args, loaded_config, context)
       end
       ins(1, "},\n", name)
    end
-   add_str_array("include_dir", args.include_dir)
+   add_str_array("include_dir", util.tab.map(args.include_dir, tostring))
    add_str_array("disable_warnings", sorted_keys(args.wdisable))
    add_str_array("warning_error", sorted_keys(args.werror))
 

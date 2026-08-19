@@ -79,6 +79,9 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
          or loaded_config.build_dir and loaded_config.build_dir:copy()
          or lexical_path.from_unix(".")
 
+   local include_dir <const> = util.tab.merge_list(loaded_config.include_dir, args.include_dir)
+   common.add_includes(source_dir, include_dir)
+
    if not fs.exists(build_dir) then
       local succ <const>, err <const> = fs.make_directory(build_dir)
       if not succ then
@@ -91,9 +94,9 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
    end
 
    local current_dir <const> = fs.current_directory()
-   local function ensure_abs_path(p: lexical_path.Path): lexical_path.Path
-      if p.is_absolute then return p end
-      return current_dir .. p
+   local function ensure_abs_path(p: lexical_path.Path): lexical_path.Absolute
+      if p is lexical_path.Absolute then return p end
+      return (current_dir .. p) as lexical_path.Absolute
    end
 
    local abs_build_dir <const> = ensure_abs_path(build_dir)
@@ -115,7 +118,6 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
       table.insert(exclude, lexical_path.parse_pattern "tlconfig.lua")
    end
    local dont_write_lua_files <const> = source_dir == build_dir
-
    local dag <const>, cycles <const> = graph.scan_directory(source_dir, include, exclude)
    if not dag then
       log.err(
@@ -372,6 +374,8 @@ command.new{
          :convert(lexical_path.from_os)
       cmd:option("-b --build-dir", "Override the build directory.")
          :convert(lexical_path.from_os)
+
+      command.add_check_options(cmd)
    end,
    script_hooks = { "pre", "post", "file_updated" },
 }

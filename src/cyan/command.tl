@@ -4,9 +4,10 @@
 local tl <const> = require("tl")
 local argparse <const> = require("argparse")
 
+--local common <const> = require("cyan.tlcommon")
 local config <const> = require("cyan.config")
 local invocation_context <const> = require("cyan.invocation-context")
---local lexical_path <const> = require("lexical-path")
+local lexical_path <const> = require("lexical-path")
 --local log <const> = require("cyan.log")
 local util <const> = require("cyan.util")
 
@@ -27,7 +28,7 @@ end
 ---@desc
 --- Options for commands that type check teal files
 local interface CheckOptions is WarningOptions
-   include_dir: {string}
+   include_dir: {lexical_path.Path}
    global_env_def: string
 end
 
@@ -72,6 +73,7 @@ function command.add_check_options(cmd: argparse.Command)
    cmd:option("-I --include-dir", "Prepend this directory to the module search path.")
       :argname("<directory>")
       :count("*")
+      :convert(lexical_path.from_os)
 end
 
 local warning_option_values <const> = sort(from(keys(tl.warning_kinds as {string:boolean})))

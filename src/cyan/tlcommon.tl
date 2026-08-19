@@ -395,22 +395,31 @@ end
 ---@desc
 --- Initialize a strict Teal environment, using the relevant entries of the config to modify that environment
 ---
---- may return `nil` and an error message if something could not be applied to the environment
+--- Note: Does not modify `package.path`, use `add_includes`
+---
+--- May return `nil` and an error message if something could not be applied to the environment
 function common.init_env_from_config(cfg: config.Config): teal.Env, string
    cfg = cfg or {}
-   for dir in ivalues(cfg.include_dir or {}) do
-      common.prepend_to_lua_path(dir:to_string())
-   end
-   if cfg.source_dir then
-      common.prepend_to_lua_path(cfg.source_dir:to_string())
-   end
-
    local env, err = common.init_teal_env(cfg.gen_compat, cfg.gen_target, cfg.global_env_def)
    if not env then
       return nil, err
    end
 
    return env
+end
+
+function common.add_includes(
+   source_dir: lexical_path.Path,
+   include_dir: {lexical_path.Path}
+)
+   if source_dir then
+      common.prepend_to_lua_path(source_dir:to_string())
+   end
+   if include_dir then
+      for dir in ivalues(include_dir) do
+         common.prepend_to_lua_path(dir:to_string())
+      end
+   end
 end
 
 return common

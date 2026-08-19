@@ -19,6 +19,7 @@ local function add_to_argparser(cmd: argparse.Command)
 end
 
 local function run(args: Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
+   common.add_includes(loaded_config.source_dir, loaded_config.include_dir)
    local env <const>, env_err <const> = common.init_env_from_config(loaded_config)
    if not env then
       log.err("Could not initialize Teal environment:\n", env_err)

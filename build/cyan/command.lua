@@ -4,9 +4,10 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local tl = require("tl")
 local argparse = require("argparse")
 
+
 local config = require("cyan.config")
 local invocation_context = require("cyan.invocation-context")
-
+local lexical_path = require("lexical-path")
 
 local util = require("cyan.util")
 
@@ -71,7 +72,8 @@ function command.add_check_options(cmd)
 
    cmd:option("-I --include-dir", "Prepend this directory to the module search path."):
    argname("<directory>"):
-   count("*")
+   count("*"):
+   convert(lexical_path.from_os)
 end
 
 local warning_option_values = sort(from(keys(tl.warning_kinds)))
