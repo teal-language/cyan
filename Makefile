@@ -1,6 +1,6 @@
 default: cyan rockspec
 
-LUAROCKS_WRAPPER_DIR=.luarocks-wrapper
+LUAROCKS_WRAPPER_DIR=.lrw
 LUA=$(LUAROCKS_WRAPPER_DIR)/lua
 LUAROCKS=$(LUAROCKS_WRAPPER_DIR)/luarocks
 
@@ -66,14 +66,14 @@ rockspec: cyan-dev-1.rockspec
 lint: scripts/lint.tl $(TL_FILES)
 	@echo CYAN run $<
 	@$(CYAN) run $<
-docs/index.html: scripts/gen_rockspec.tl $(TL_FILES) doc-template.html
+docs/index.html: scripts/gen_documentation.tl $(TL_FILES) doc-template.html
 	@echo CYAN run $<
 	@$(CYAN) run $<
-cyan-dev-1.rockspec: scripts/gen_rockspec.tl src
+cyan-dev-1.rockspec: scripts/gen_rockspec.tl src | cyan
 	@echo CYAN run $<
 	@$(CYAN) run $<
-deps.mk: scripts/gen_makefile_deps.tl $(TL_FILES)
-	@echo CYAN run $<
-	@$(CYAN) run $<
+makefile-deps: scripts/gen_makefile_deps.tl $(TL_FILES)
+	@echo TL run $<
+	@$(TL_COMPILER) -Isrc run $<
 
-.PHONY: clean cyan
+.PHONY: clean cyan makefile-deps

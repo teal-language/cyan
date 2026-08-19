@@ -6,6 +6,6 @@ tmp/
 /luarocks
 /lua
 /types
-/.luarocks-wrapper/luarocks
-/.luarocks-wrapper/lua
+/.lrw/luarocks
+/.lrw/lua
 /build/**/*.lua.checked
