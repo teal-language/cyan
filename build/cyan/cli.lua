@@ -1,4 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local type = type; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local debug = _tl_compat and _tl_compat.debug or debug; local io = _tl_compat and _tl_compat.io or io; local os = _tl_compat and _tl_compat.os or os; local pairs = _tl_compat and _tl_compat.pairs or pairs; local table = _tl_compat and _tl_compat.table or table; local type = type; local xpcall = _tl_compat and _tl_compat.xpcall or xpcall
 
 
 
@@ -15,6 +15,12 @@ local lexical_path = require("lexical-path")
 local log = require("cyan.log")
 local script = require("cyan.script")
 local util = require("cyan.util")
+local system = require('system')
+
+if system.windows then
+   system.setconsoleflags(io.stdout, system.getconsoleflags(io.stdout) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
+   system.setconsoleflags(io.stderr, system.getconsoleflags(io.stderr) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
+end
 
 local ivalues = util.tab.ivalues
 

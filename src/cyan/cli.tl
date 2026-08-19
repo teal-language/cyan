@@ -15,6 +15,12 @@ local lexical_path <const> = require("lexical-path")
 local log <const> = require("cyan.log")
 local script <const> = require("cyan.script")
 local util <const> = require("cyan.util")
+local system <const> = require('system')
+
+if system.windows then
+    system.setconsoleflags(io.stdout, system.getconsoleflags(io.stdout) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
+    system.setconsoleflags(io.stderr, system.getconsoleflags(io.stderr) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
+ end
 
 local ivalues <const> = util.tab.ivalues
 
