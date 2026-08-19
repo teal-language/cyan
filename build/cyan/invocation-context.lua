@@ -17,10 +17,6 @@ local InvocationContext = {}
 
 
 
-
-
-
-
 local invocation_context = {
    InvocationContext = InvocationContext,
 }

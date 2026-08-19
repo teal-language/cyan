@@ -11,14 +11,10 @@ local lexical_path <const> = require("lexical-path")
 --- The context itself.
 local record InvocationContext
    --- The directory cyan was invoked from
-   ---
-   --- Should be absolute
-   initial_directory: lexical_path.Path
+   initial_directory: lexical_path.Absolute
 
    --- The directory that contained `tlconfig.lua`
-   ---
-   --- If present, should be absolute
-   project_root_directory: lexical_path.Path
+   project_root_directory: lexical_path.Absolute
 end
 
 local invocation_context <const> = {
@@ -28,8 +24,8 @@ local invocation_context <const> = {
 ---@desc
 --- Create a new context, asserting any invariants.
 function invocation_context.new(
-   initial_directory: lexical_path.Path,
-   project_root_directory: lexical_path.Path
+   initial_directory: lexical_path.Absolute,
+   project_root_directory: lexical_path.Absolute
 ): InvocationContext
    assert(initial_directory, "No initial directory provided")
    assert(initial_directory.is_absolute, "Initial directory was not absolute")

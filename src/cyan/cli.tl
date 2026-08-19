@@ -106,7 +106,7 @@ command.new{
 
 local starting_dir <const> = assert(fs.current_directory())
 local config_path <const> = config.find()
-local project_dir: lexical_path.Path
+local project_dir: lexical_path.Absolute
 if config_path then
    local config_dir <const> = config_path:copy()
    table.remove(config_dir)

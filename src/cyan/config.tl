@@ -322,8 +322,8 @@ end
 
 ---@desc
 --- Find `config.filename` in the current or parent directories
-function config.find(): lexical_path.Path
-   return fs.search_parent_dirs(fs.current_directory(), config.filename)
+function config.find(): lexical_path.Absolute
+   return fs.search_parent_dirs(fs.current_directory(), config.filename) as lexical_path.Absolute
 end
 
 ---@desc

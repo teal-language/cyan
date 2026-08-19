@@ -14,12 +14,14 @@ local fs <const> = {
 ---@desc
 --- On success returns the current working directory as a lexical path. On
 --- error returns nil and an error message
-function fs.current_directory(): lexical_path.Path, string
+function fs.current_directory(): lexical_path.Absolute, string
    local dir <const>, err <const> = lfs.currentdir()
    if not dir then
       return nil, err
    end
-   return (lexical_path.from_os(dir))
+   local result <const> = assert(lexical_path.from_os(dir))
+   assert(result is lexical_path.Absolute)
+   return result
 end
 
 ---@desc

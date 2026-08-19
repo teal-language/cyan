@@ -294,7 +294,7 @@ This documentation is auto-generated and may be incomplete.
 <code class=keyword>end</code></code></pre><p><p>The config data</p></p>
 </div><h3><a name=config.find><code class=bulleted>function config.find</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> config.find(): <code class=parameter-type>lexical_path.Path</code></code></pre><p><p>Find <code>config.filename</code> in the current or parent directories</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> config.find(): <code class=parameter-type>lexical_path.Absolute</code></code></pre><p><p>Find <code>config.filename</code> in the current or parent directories</p></p>
 </div><h3><a name=config.is_config><code class=bulleted>function config.is_config</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> config.is_config(
@@ -439,7 +439,7 @@ This documentation is auto-generated and may be incomplete.
 ): <code class=parameter-type>boolean</code>, <code class=parameter-type>string</code></code></pre><p><p>Copy a file</p><p>uses <code>fs.read</code> internally to get and cache the contents of <code>source</code></p></p>
 </div><h3><a name=fs.current_directory><code class=bulleted>function fs.current_directory</code></a>
 </h3>
-<div class=description><pre class=signature><code><code class=keyword>function</code> fs.current_directory(): <code class=parameter-type>lexical_path.Path</code>, <code class=parameter-type>string</code></code></pre><p><p>On success returns the current working directory as a lexical path. On error returns nil and an error message</p></p>
+<div class=description><pre class=signature><code><code class=keyword>function</code> fs.current_directory(): <code class=parameter-type>lexical_path.Absolute</code>, <code class=parameter-type>string</code></code></pre><p><p>On success returns the current working directory as a lexical path. On error returns nil and an error message</p></p>
 </div><h3><a name=fs.exists><code class=bulleted>function fs.exists</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> fs.exists(
@@ -589,14 +589,14 @@ This documentation is auto-generated and may be incomplete.
 <h3><a name=InvocationContext><code class=bulleted>type InvocationContext</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>record</code> InvocationContext
-	initial_directory: <code class=parameter-type>lexical_path.Path</code>
-	project_root_directory: <code class=parameter-type>lexical_path.Path</code>
+	initial_directory: <code class=parameter-type>lexical_path.Absolute</code>
+	project_root_directory: <code class=parameter-type>lexical_path.Absolute</code>
 <code class=keyword>end</code></code></pre><p><p>The context itself.</p></p>
 </div><h3><a name=invocation_context.new><code class=bulleted>function invocation_context.new</code></a>
 </h3>
 <div class=description><pre class=signature><code><code class=keyword>function</code> invocation_context.new(
-	<code class=parameter-name>initial_directory</code>: <code class=parameter-type>lexical_path.Path</code>,
-	<code class=parameter-name>project_root_directory</code>: <code class=parameter-type>lexical_path.Path</code>
+	<code class=parameter-name>initial_directory</code>: <code class=parameter-type>lexical_path.Absolute</code>,
+	<code class=parameter-name>project_root_directory</code>: <code class=parameter-type>lexical_path.Absolute</code>
 ): <code class=parameter-type>InvocationContext</code></code></pre><p><p>Create a new context, asserting any invariants.</p></p>
 </div><h2><a name=cyan.log>cyan.log</a>
 </h2>
