@@ -36,9 +36,10 @@
 --- contains any escape sequences or an inspector produces them (outside of a
 --- `decoration.Decorated`) it will not be handled.
 
+local decoration <const> = require("cyan.decoration")
 local system <const> = require("system")
 local util <const> = require("cyan.util")
-local decoration <const> = require("cyan.decoration")
+
 local str <const> = util.str
 
 local no_color_env <const> = os.getenv("NO_COLOR") ~= nil
@@ -81,19 +82,19 @@ local inspect: function(any): string
 do
    local req <const> = require as function(string): any
    local ok, actual_inspect = pcall(req, "inspect") as (boolean, function(any, any): string)
-   local inspect_opts <const> = {
-      process = function(item: any, path: {any}): any
-         if path[#path] ~= (actual_inspect as {string:any}).METATABLE then
+   if ok then
+      local inspect_opts <const> = {
+         process = function(item: any, path: {any}): any
+            if path[#path] ~= (actual_inspect as {string:any}).METATABLE then
+               return item
+            end
+         end
+      }
+      inspect = function(item: any, opts?: any): string
+         if item is string then
             return item
          end
-      end
-   }
-   if ok then
-      inspect = function(x: any): string
-         if x is string then
-            return x
-         end
-         return actual_inspect(x, inspect_opts)
+         return actual_inspect(item, opts or inspect_opts)
       end
    else
       inspect = tostring

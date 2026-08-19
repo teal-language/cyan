@@ -36,9 +36,10 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
+local decoration = require("cyan.decoration")
 local system = require("system")
 local util = require("cyan.util")
-local decoration = require("cyan.decoration")
+
 local str = util.str
 
 local no_color_env = os.getenv("NO_COLOR") ~= nil
@@ -81,19 +82,19 @@ local inspect
 do
    local req = require
    local ok, actual_inspect = pcall(req, "inspect")
-   local inspect_opts = {
-      process = function(item, path)
-         if path[#path] ~= (actual_inspect).METATABLE then
+   if ok then
+      local inspect_opts = {
+         process = function(item, path)
+            if path[#path] ~= (actual_inspect).METATABLE then
+               return item
+            end
+         end,
+      }
+      inspect = function(item, opts)
+         if type(item) == "string" then
             return item
          end
-      end,
-   }
-   if ok then
-      inspect = function(x)
-         if type(x) == "string" then
-            return x
-         end
-         return actual_inspect(x, inspect_opts)
+         return actual_inspect(item, opts or inspect_opts)
       end
    else
       inspect = tostring
