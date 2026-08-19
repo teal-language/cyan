@@ -2,7 +2,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-
 local config = require("cyan.config")
 local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
@@ -389,7 +388,7 @@ function common.prepend_to_lua_path(path_str)
    path_str .. "?" .. fs.path_separator .. "init.lua;" ..
    package.path
 
-   package.cpath = path_str .. "?." .. fs.shared_lib_extension .. ";" ..
+   package.cpath = path_str .. "?" .. fs.shared_lib_extension .. ";" ..
    package.cpath
 end
 

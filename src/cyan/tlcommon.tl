@@ -1,4 +1,3 @@
-
 ---@brief
 --- Common things needed by most commands in addition to
 --- wrappers around the tl api, since it isn't super stable
@@ -389,7 +388,7 @@ function common.prepend_to_lua_path(path_str: string)
       .. path_str .. "?" .. fs.path_separator .. "init.lua;"
       .. package.path
 
-   package.cpath = path_str .. "?." .. fs.shared_lib_extension .. ";"
+   package.cpath = path_str .. "?" .. fs.shared_lib_extension .. ";"
       .. package.cpath
 end
 
