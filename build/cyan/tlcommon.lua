@@ -355,7 +355,7 @@ function common.type_check_and_load_file(path, env, c)
    if not generated then
       return nil, gen_err
    end
-   return load(generated, path, "t", _G)
+   return load(generated, "@" .. path, "t", _G)
 end
 
 local found_modules = {}

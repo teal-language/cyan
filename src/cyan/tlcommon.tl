@@ -355,7 +355,7 @@ function common.type_check_and_load_file(path: string, env: teal.Env, c: config.
    if not generated then
       return nil, gen_err
    end
-   return load(generated, path, "t", _G as table)
+   return load(generated, "@" .. path, "t", _G as table)
 end
 
 local found_modules: {string:lexical_path.Path} = {}
