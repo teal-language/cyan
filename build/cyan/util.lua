@@ -71,8 +71,10 @@ end
 
 function tab.map(t, fn)
    local new = {}
-   for k, v in pairs(t) do
-      new[k] = fn(v)
+   if t then
+      for k, v in pairs(t) do
+         new[k] = fn(v)
+      end
    end
    return new
 end

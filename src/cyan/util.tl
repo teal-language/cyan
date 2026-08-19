@@ -71,8 +71,10 @@ end
 --- Create a new map from `t` by passing each value through `fn`
 function tab.map<Key, Value, MappedValue>(t: {Key:Value}, fn: function(Value): MappedValue): {Key:MappedValue}
    local new <const>: {Key:MappedValue} = {}
-   for k, v in pairs(t) do
-      new[k] = fn(v)
+   if t then
+      for k, v in pairs(t) do
+         new[k] = fn(v)
+      end
    end
    return new
 end
