@@ -1,6 +1,7 @@
 #!/usr/bin/env lua
-package.path = "./src/?.lua;"
-	.. "./src/?/init.lua;"
+local cyan_dir = debug.getinfo(1, "S").source:sub(2):match("@?(.*[\\/])bin") or "./"
+package.path = cyan_dir .. "src/?.lua;"
+	.. cyan_dir .. "src/?/init.lua;"
 	.. package.path
 require("tl").loader()
 require("cyan.cli")
