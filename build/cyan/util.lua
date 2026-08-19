@@ -57,10 +57,12 @@ end
 
 
 
-function tab.set(lst)
+function tab.set(...)
    local s = {}
-   for v in tab.ivalues(lst) do
-      s[v] = true
+   for i = 1, select("#", ...) do
+      for v in tab.ivalues((select(i, ...))) do
+         s[v] = true
+      end
    end
    return s
 end

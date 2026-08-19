@@ -56,11 +56,13 @@ function tab.from<Value>(fn: function(...: any): (Value), ...: any): {Value}
 end
 
 ---@desc
---- Create a Set from a list
-function tab.set<Value>(lst: {Value}): {Value:boolean}
+--- Create a Set from the contents of lists
+function tab.set<Value>(...: {Value}): {Value:boolean}
    local s <const> = {}
-   for v in tab.ivalues(lst) do
-      s[v] = true
+   for i = 1, select("#", ...) do
+      for v in tab.ivalues((select(i, ...))) do
+         s[v] = true
+      end
    end
    return s
 end
