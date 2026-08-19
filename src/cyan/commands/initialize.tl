@@ -28,11 +28,11 @@ end
 
 local function exec(args: Args, loaded_config: config.Config, context: invocation_context.InvocationContext): integer
    if not args.force and loaded_config.loaded_from then
-         log.err(
-            "Already in a project!\n   Found config file at ",
-            decoration.file_name((assert(loaded_config.loaded_from:relative_to(context.initial_directory))))
-         )
-         return 1
+      log.err(
+         "Already in a project!\n   Found config file at ",
+         decoration.file_name((assert(loaded_config.loaded_from:relative_to(context.initial_directory))))
+      )
+      return 1
    end
 
    local directory <const> = lexical_path.from_os(args.directory or ".")
