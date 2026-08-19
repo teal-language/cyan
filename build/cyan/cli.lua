@@ -17,7 +17,10 @@ local script = require("cyan.script")
 local util = require("cyan.util")
 local system = require('system')
 
+system.autotermrestore()
+
 if system.windows then
+   system.setconsoleoutputcp(system.CODEPAGE_UTF8)
    system.setconsoleflags(io.stdout, system.getconsoleflags(io.stdout) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
    system.setconsoleflags(io.stderr, system.getconsoleflags(io.stderr) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
 end

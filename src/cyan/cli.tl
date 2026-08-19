@@ -17,10 +17,13 @@ local script <const> = require("cyan.script")
 local util <const> = require("cyan.util")
 local system <const> = require('system')
 
+system.autotermrestore()
+
 if system.windows then
-    system.setconsoleflags(io.stdout, system.getconsoleflags(io.stdout) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
-    system.setconsoleflags(io.stderr, system.getconsoleflags(io.stderr) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
- end
+   system.setconsoleoutputcp(system.CODEPAGE_UTF8)
+   system.setconsoleflags(io.stdout, system.getconsoleflags(io.stdout) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
+   system.setconsoleflags(io.stderr, system.getconsoleflags(io.stderr) + system.COF_VIRTUAL_TERMINAL_PROCESSING)
+end
 
 local ivalues <const> = util.tab.ivalues
 
