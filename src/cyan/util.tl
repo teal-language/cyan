@@ -10,7 +10,7 @@ local tab <const> = {}
 
 ---@desc
 --- Iterate over the keys of a map
-function tab.keys<Key>(t: {Key:any}): function(): Key
+function tab.keys<Key, Value>(t: {Key:Value}): function(): Key
    local k: Key
    return function(): Key
       k = next(t, k)
