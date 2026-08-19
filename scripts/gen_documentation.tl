@@ -233,81 +233,88 @@ emit["enum_declaration"] = function(prefix: {string}, n: ts.Node, out: {string})
    return name
 end
 
-emit["record_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
-   local meta <const> = {}
-   local body <const> = n:child_by_field_name("record_body")
-   assertf(body, "record_body is nil for %s", tostring(n))
+local function aggregate_emitter(is_record: boolean): function({string}, ts.Node, {string}): string
+   return function(prefix: {string}, n: ts.Node, out: {string}): string
+      local meta <const> = {}
+      local body <const> = is_record and n:child_by_field_name("record_body")
+         or n:child_by_field_name("interface_body")
+      assertf(body, "body is nil for %s", tostring(n))
 
-   local fields <const>: {string} = {}
-   local private_fields <const>: {string} = {}
+      local fields <const>: {string} = {}
+      local private_fields <const>: {string} = {}
 
-   for c in body:named_children() do
-      if c:type() == "field" then
-         local key = c:child_by_field_name("key")
-         local is_string = false
-         if not key then
-            key = c:child_by_field_name("string_key")
-            is_string = true
+      for c in body:named_children() do
+         -- TODO: handle interface is+where clauses
+         if c:type() == "field" then
+            local key = c:child_by_field_name("key")
+            local is_string = false
+            if not key then
+               key = c:child_by_field_name("string_key")
+               is_string = true
+            end
+
+            -- FIXME: properly parse out the key when it is a string
+            local is_private <const> = key:source():sub(1, 1) == "_" or is_string and key:source():sub(2, 2) == "_"
+            local t = c:child_by_field_name("type")
+            table.insert(
+               is_private and private_fields or fields,
+               (is_string and "[%s]" or "%s"):format(key:source())
+                  .. ": <code class=parameter-type>" .. t:source() .. "</code>"
+            )
+         elseif c:type() == "metamethod" then
+            table.insert(
+               meta,
+               "<code class=keyword>metamethod</code> "
+                  .. c:child_by_field_name("name"):source()
+                  .. ": <code class=parameter-type>"
+                  .. c:child_by_field_name("type"):source()
+                  .. "</code>"
+            )
+         elseif c:type() == "record_array_type" then
+            table.insert(
+               fields,
+               1,
+               "<code class=parameter-type>{" .. c:child(0):source() .. "}</code>"
+            )
          end
-
-         -- FIXME: properly parse out the key when it is a string
-         local is_private <const> = key:source():sub(1, 1) == "_" or is_string and key:source():sub(2, 2) == "_"
-         local t = c:child_by_field_name("type")
-         table.insert(
-            is_private and private_fields or fields,
-            (is_string and "[%s]" or "%s"):format(key:source())
-               .. ": <code class=parameter-type>" .. t:source() .. "</code>"
-         )
-      elseif c:type() == "metamethod" then
-         table.insert(
-            meta,
-            "<code class=keyword>metamethod</code> "
-               .. c:child_by_field_name("name"):source()
-               .. ": <code class=parameter-type>"
-               .. c:child_by_field_name("type"):source()
-               .. "</code>"
-         )
-      elseif c:type() == "record_array_type" then
-         table.insert(
-            fields,
-            1,
-            "<code class=parameter-type>{" .. c:child(0):source() .. "}</code>"
-         )
       end
-   end
 
-   local obj_name <const> = n:child_by_field_name("name"):source()
+      local obj_name <const> = n:child_by_field_name("name"):source()
 
-   local data = begin_signature_and_description(obj_name, "record")
+      local data = begin_signature_and_description(obj_name, is_record and "record" or "interface")
 
-   if #fields > 0 then
-      table.insert(data, "\n\t" .. table.concat(fields, "\n\t"))
-   end
-
-   if #meta > 0 then
       if #fields > 0 then
-         table.insert(data, "\n")
+         table.insert(data, "\n\t" .. table.concat(fields, "\n\t"))
       end
-      table.insert(data, "\n\t" .. table.concat(meta, "\n\t"))
-   end
 
-   if #private_fields > 0 then
-      if #fields > 0 or #meta > 0 then
-         table.insert(data, br)
+      if #meta > 0 then
+         if #fields > 0 then
+            table.insert(data, "\n")
+         end
+         table.insert(data, "\n\t" .. table.concat(meta, "\n\t"))
       end
-      table.insert(data, "\n<details><summary class=\"private-field-comment\">\t-- private fields (click to show)</summary>\n\t")
-      table.insert(data, table.concat(private_fields, "\n\t"))
-      table.insert(data, "</details>")
+
+      if #private_fields > 0 then
+         if #fields > 0 or #meta > 0 then
+            table.insert(data, br)
+         end
+         table.insert(data, "\n<details><summary class=\"private-field-comment\">\t-- private fields (click to show)</summary>\n\t")
+         table.insert(data, table.concat(private_fields, "\n\t"))
+         table.insert(data, "</details>")
+      end
+
+      table.insert(data, "\n<code class=keyword>end</code>")
+
+      table.insert(
+         out,
+         end_signature_and_description("type " .. obj_name, obj_name, data, p { escape(table.concat(prefix)) })
+      )
+      return obj_name
    end
-
-   table.insert(data, "\n<code class=keyword>end</code>")
-
-   table.insert(
-      out,
-      end_signature_and_description("type " .. obj_name, obj_name, data, p { escape(table.concat(prefix)) })
-   )
-   return obj_name
 end
+
+emit["record_declaration"] = aggregate_emitter(true)
+emit["interface_declaration"] = aggregate_emitter(false)
 
 emit["type_declaration"] = function(prefix: {string}, n: ts.Node, out: {string}): string
    local obj_name <const> = n:child_by_field_name("name"):source()
