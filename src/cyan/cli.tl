@@ -125,6 +125,7 @@ local cmd <const> = assert(command.get(args.command))
 command.running = cmd
 
 log.debug("Arguments: ", args)
+log.debug("Loaded Config: ", loaded_config)
 
 local exit: integer = 1
 
