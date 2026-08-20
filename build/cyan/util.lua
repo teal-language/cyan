@@ -38,6 +38,7 @@ end
 
 
 function tab.ivalues(t)
+   if not t then return function() end end
    local i = 0
    return function()
       i = i + 1

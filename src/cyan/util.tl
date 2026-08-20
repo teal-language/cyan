@@ -38,6 +38,7 @@ end
 ---@desc
 --- Iterate over the integer indexed values of a map
 function tab.ivalues<Value>(t: {any:Value}): function(): Value
+   if not t then return function(): Value end end
    local i = 0
    return function(): Value
       i = i + 1
