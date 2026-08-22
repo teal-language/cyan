@@ -109,6 +109,7 @@ require("cyan.commands.initialize")
 require("cyan.commands.check-gen")
 require("cyan.commands.run")
 require("cyan.commands.build")
+require("cyan.commands.export")
 require("cyan.commands.warnings")
 
 command.register_all(parser)

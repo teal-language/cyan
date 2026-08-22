@@ -145,6 +145,12 @@ end
 
 
 
+function Dag:nodes_unordered()
+   return values(self._nodes_by_filename)
+end
+
+
+
 
 
 function Dag:mark_each(predicate)
@@ -167,17 +173,29 @@ function Dag:marked_nodes()
    end
 end
 
+
+
+function Dag:node_count()
+   local count = 0
+   for _ in pairs(self._nodes_by_filename) do
+      count = count + 1
+   end
+   return count
+end
+
 local graph = {
    Node = Node,
    Dag = Dag,
 }
+
+local dag_metatable = { __index = Dag }
 
 
 
 function graph.empty()
    return setmetatable({
       _nodes_by_filename = {},
-   }, { __index = Dag })
+   }, dag_metatable)
 end
 
 local function add_deps(t, n)
@@ -272,6 +290,35 @@ end
 
 function Dag:find(f)
    return self._nodes_by_filename[f:to_string()]
+end
+
+
+
+function Dag:inverted_dependencies()
+   local inverted = { _nodes_by_filename = {} }
+   for name, node in pairs(self._nodes_by_filename) do
+      inverted._nodes_by_filename[name] = {
+         input = node.input,
+         output = node.output,
+         modules = node.modules,
+         mark = node.mark,
+         dependents = {},
+      }
+   end
+
+   for name, original_pointer in pairs(self._nodes_by_filename) do
+      local pointer_key = original_pointer.input:to_string()
+
+      for original_pointee in pairs(original_pointer.dependents) do
+         local pointee_key = original_pointee.input:to_string()
+
+         local inverted_pointer = inverted._nodes_by_filename[pointee_key]
+         local inverted_pointee = inverted._nodes_by_filename[pointer_key]
+         inverted_pointer.dependents[inverted_pointee] = true
+      end
+   end
+
+   return setmetatable(inverted, dag_metatable)
 end
 
 
