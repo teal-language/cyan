@@ -1,7 +1,6 @@
 local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local coroutine = _tl_compat and _tl_compat.coroutine or coroutine; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local package = _tl_compat and _tl_compat.package or package; local string = _tl_compat and _tl_compat.string or string; local type = type
 
 
-
 local lfs = require("lfs")
 local util = require("cyan.util")
 local lexical_path = require("lexical-path")
@@ -73,6 +72,7 @@ end
 
 
 
+
 function fs.iterate_directory(dir, include_dotfiles)
    local iter, data = lfs.dir(dir:to_string())
    return function()
@@ -83,7 +83,9 @@ function fs.iterate_directory(dir, include_dotfiles)
       until not p or
          (include_dotfiles and p ~= "." and p ~= "..") or
          p:sub(1, 1) ~= "."; if p then
-         return (lexical_path.from_os(p))
+         local result = lexical_path.from_os(p)
+         assert(not result.is_absolute)
+         return result
       end end
 end
 

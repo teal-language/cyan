@@ -1,4 +1,3 @@
-
 ---@brief
 --- Filesystem and path management
 
@@ -70,19 +69,22 @@ function fs.normalize(p: string): string
 end
 
 ---@desc
---- Iterate over the given directory, returning `lexical_path.Path` objects
+--- Iterate over the given directory, returning `lexical_path.Path` objects,
+--- returned paths will always be relative
 ---
 --- By default, will not include paths that start with '.'
-function fs.iterate_directory(dir: lexical_path.Path, include_dotfiles?: boolean): function(): lexical_path.Path
+function fs.iterate_directory(dir: lexical_path.Path, include_dotfiles?: boolean): function(): lexical_path.Relative
    local iter <const>, data <const> = lfs.dir(dir:to_string()) as (function(any): (string), any)
-   return function(): lexical_path.Path
+   return function(): lexical_path.Relative
       local p: string
       repeat p = iter(data)
       until not p
          or (include_dotfiles and p ~= "." and p ~= "..")
          or p:sub(1, 1) ~= "."
       if p then
-         return (lexical_path.from_os(p))
+         local result <const> = lexical_path.from_os(p)
+         assert(result is lexical_path.Relative)
+         return result
       end
    end
 end
@@ -163,7 +165,7 @@ function fs.scan_directory(
    include?: {string | lexical_path.Pattern},
    exclude?: {string | lexical_path.Pattern},
    include_directories?: boolean
-): function(): lexical_path.Path
+): function(): lexical_path.Relative
    local function ensure_pattern(x: string | lexical_path.Pattern): lexical_path.Pattern
       if x is string then
          return lexical_path.parse_pattern(x)
@@ -201,7 +203,7 @@ function fs.scan_directory(
          end
       end
    end
-   return coroutine.wrap(function() dir_iter(dir) end) as function(): lexical_path.Path
+   return coroutine.wrap(function() dir_iter(dir) end) as function(): lexical_path.Relative
 end
 
 ---@desc
