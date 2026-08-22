@@ -26,6 +26,7 @@ local Node = {}
 
 
 
+
 local function make_node(input)
    return {
       input = input,
@@ -189,11 +190,8 @@ local function add_deps(t, n)
    t[n] = true
 end
 
-local function unchecked_insert(dag, f, in_dir)
-   if f.is_absolute then
-
-      return
-   end
+local function unchecked_insert(dag, f, absolute_src_dir)
+   assert(absolute_src_dir.is_absolute)
 
    local real_path = f:to_string()
 
@@ -202,7 +200,7 @@ local function unchecked_insert(dag, f, in_dir)
       return
    end
 
-   local res = common.parse_file(real_path)
+   local res = common.parse_file((absolute_src_dir .. f):to_string())
    if not res then return end
    local n = make_node(f)
    dag._nodes_by_filename[real_path] = n
@@ -212,14 +210,17 @@ local function unchecked_insert(dag, f, in_dir)
 
       local search_result = common.search_module(mod_name)
       if search_result then
-         if in_dir and search_result.is_absolute and search_result:is_in(in_dir) then
-            search_result = assert(search_result:relative_to(in_dir))
-            assert(not search_result.is_absolute)
+         local search_result_in_src = not search_result.is_absolute or
+         search_result:is_in(absolute_src_dir)
+
+         if search_result.is_absolute and search_result_in_src then
+            search_result = assert(search_result:relative_to(absolute_src_dir))
          end
+
          n.modules[mod_name] = search_result
 
-         if not in_dir or search_result:is_in(in_dir) then
-            unchecked_insert(dag, search_result, in_dir)
+         if not search_result.is_absolute then
+            unchecked_insert(dag, search_result, absolute_src_dir)
          end
       end
    end
@@ -279,13 +280,17 @@ end
 
 
 
-function graph.scan_directory(dir, include, exclude)
+function graph.scan_directory(source_dir, include, exclude)
    local d = graph.empty()
 
-   for p in fs.scan_directory(dir, include, exclude) do
+   local abs_src = source_dir.is_absolute and
+   source_dir or
+   fs.current_directory() .. source_dir
+
+   for p in fs.scan_directory(source_dir, include, exclude) do
       local ext = p:extension(2):lower()
       if ext == "tl" or ext == "lua" then
-         unchecked_insert(d, dir .. p, dir)
+         unchecked_insert(d, p, abs_src)
       end
    end
 

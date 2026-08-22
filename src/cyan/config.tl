@@ -15,10 +15,10 @@ local keys <const>, sort <const>, from <const>, values <const>, ivalues <const>
 ---@desc
 --- The config data
 local record Config
-   loaded_from: lexical_path.Path
+   loaded_from: lexical_path.Absolute
 
-   build_dir: lexical_path.Path
-   source_dir: lexical_path.Path
+   build_dir: lexical_path.Relative
+   source_dir: lexical_path.Relative
    include: {lexical_path.Pattern}
    exclude: {lexical_path.Pattern}
    global_env_def: string
@@ -345,7 +345,7 @@ function config.load(from_path?: lexical_path.Path): Config, {string}, {string}
    local cfg <const>, errs <const>, warnings <const> = config.is_config(maybe_config)
    if cfg then
       if from_path then
-         if from_path.is_absolute then
+         if from_path is lexical_path.Absolute then
             cfg.loaded_from = from_path:copy()
          else
             cfg.loaded_from = fs.current_directory() .. from_path

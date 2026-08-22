@@ -45,7 +45,8 @@ local function report_dep_errors(env, source_dir)
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
-      if not lexical_path.from_os(res.filename):is_in(source_dir) then
+      local p = lexical_path.from_os(res.filename)
+      if p.is_absolute and not p:is_in(source_dir) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
                common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
@@ -70,6 +71,7 @@ local function build(args, loaded_config, context)
    args.source_dir and args.source_dir:copy() or
    loaded_config.source_dir and loaded_config.source_dir:copy() or
    lexical_path.from_unix(".")
+
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
@@ -114,10 +116,10 @@ local function build(args, loaded_config, context)
 
    local include = loaded_config.include or {}
    local exclude = loaded_config.exclude and { _tl_table_unpack(loaded_config.exclude) } or {}
-   if abs_source_dir == context.initial_directory then
+   if abs_source_dir == loaded_config.loaded_from:parent() then
       table.insert(exclude, lexical_path.parse_pattern("tlconfig.lua"))
    end
-   local dont_write_lua_files = source_dir == build_dir
+   local dont_write_lua_files = abs_source_dir == abs_build_dir
    local dag, cycles = graph.scan_directory(source_dir, include, exclude)
    if not dag then
       log.err(
@@ -152,7 +154,8 @@ local function build(args, loaded_config, context)
    end
 
    local function get_output_name(src)
-      local out = build_dir .. assert(src:relative_to(source_dir))
+
+      local out = build_dir .. src
       local ext = out:extension():lower()
       if ext:lower() == "tl" then
          out[#out] = out[#out]:sub(1, -#ext - 2) .. ".lua"
@@ -166,7 +169,7 @@ local function build(args, loaded_config, context)
       if args.update_all then
          newer = true
       else
-         local in_t, out_t = fs.mod_time(src), fs.mod_time(target) or -1
+         local in_t, out_t = fs.mod_time(abs_source_dir .. src), fs.mod_time(target) or -1
          newer = in_t > out_t
       end
       if newer then
@@ -196,7 +199,7 @@ local function build(args, loaded_config, context)
 
    local to_write = {}
    local function process_node(n, compile)
-      local path = n.input:to_string()
+      local path = (abs_source_dir .. n.input):to_string()
       local disp_path = display_filename(n.input)
       log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out = get_output_name(n.input)
@@ -253,7 +256,7 @@ local function build(args, loaded_config, context)
    end
 
    if exit ~= 0 then
-      report_dep_errors(env, source_dir)
+      report_dep_errors(env, abs_source_dir)
       return exit
    end
 
@@ -354,7 +357,7 @@ local function build(args, loaded_config, context)
       end
    end
 
-   if not report_dep_errors(env, source_dir) then
+   if not report_dep_errors(env, abs_source_dir) then
       log.warn("There were errors in out of project files. Your project may not work as expected.")
    end
 

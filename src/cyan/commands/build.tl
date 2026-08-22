@@ -41,11 +41,12 @@ local function exists_and_is_dir(prefix: string, p: lexical_path.Path): boolean
 end
 
 -- in the event that an out of project dependency has a type error, we should report it
-local function report_dep_errors(env: tl.Env, source_dir: lexical_path.Path): boolean
+local function report_dep_errors(env: tl.Env, source_dir: lexical_path.Absolute): boolean
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res <const> = env.loaded[name]
-      if not lexical_path.from_os(res.filename):is_in(source_dir) then
+      local p = lexical_path.from_os(res.filename)
+      if p is lexical_path.Absolute and not p:is_in(source_dir) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
                common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
@@ -70,6 +71,7 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
       args.source_dir and args.source_dir:copy()
          or loaded_config.source_dir and loaded_config.source_dir:copy()
          or lexical_path.from_unix(".")
+
    if not exists_and_is_dir("Source dir", source_dir) then
       return 1
    end
@@ -114,10 +116,10 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
 
    local include <const> = loaded_config.include or {}
    local exclude <const> = loaded_config.exclude and { table.unpack(loaded_config.exclude) } or {}
-   if abs_source_dir == context.initial_directory then
+   if abs_source_dir == loaded_config.loaded_from:parent() then
       table.insert(exclude, lexical_path.parse_pattern "tlconfig.lua")
    end
-   local dont_write_lua_files <const> = source_dir == build_dir
+   local dont_write_lua_files <const> = abs_source_dir == abs_build_dir
    local dag <const>, cycles <const> = graph.scan_directory(source_dir, include, exclude)
    if not dag then
       log.err(
@@ -151,8 +153,9 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
       return decoration.file_name(relative_path(f, trailing_slash))
    end
 
-   local function get_output_name(src: lexical_path.Path): lexical_path.Path
-      local out <const> = build_dir .. assert(src:relative_to(source_dir))
+   local function get_output_name(src: lexical_path.Relative): lexical_path.Path
+      --assert(src:is_in(source_dir))
+      local out <const> = build_dir .. src
       local ext <const> = out:extension():lower()
       if ext:lower() == "tl" then
          out[#out] = out[#out]:sub(1, -#ext - 2) .. ".lua"
@@ -160,13 +163,13 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
       return out
    end
 
-   local function source_is_newer(src: lexical_path.Path): boolean
+   local function source_is_newer(src: lexical_path.Relative): boolean
       local target <const> = get_output_name(src)
       local newer: boolean
       if args.update_all then
          newer = true
       else
-         local in_t <const>, out_t <const> = fs.mod_time(src), fs.mod_time(target) or -1
+         local in_t <const>, out_t <const> = fs.mod_time(abs_source_dir .. src), fs.mod_time(target) or -1
          newer = in_t > out_t
       end
       if newer then
@@ -196,7 +199,7 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
 
    local to_write <const> = {}
    local function process_node(n: graph.Node, compile: boolean)
-      local path <const> = n.input:to_string()
+      local path <const> = (abs_source_dir .. n.input):to_string()
       local disp_path <const> = display_filename(n.input)
       log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out <const> = get_output_name(n.input)
@@ -253,7 +256,7 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
    end
 
    if exit ~= 0 then
-      report_dep_errors(env, source_dir)
+      report_dep_errors(env, abs_source_dir)
       return exit
    end
 
@@ -354,7 +357,7 @@ local function build(args: Args, loaded_config: config.Config, context: invocati
       end
    end
 
-   if not report_dep_errors(env, source_dir) then
+   if not report_dep_errors(env, abs_source_dir) then
       log.warn("There were errors in out of project files. Your project may not work as expected.")
    end
 

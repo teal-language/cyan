@@ -15,7 +15,8 @@ local values <const>, ivalues <const>, keys <const>, from <const>
 ---@desc
 --- The nodes that are stored in the graph
 local record Node
-   input: lexical_path.Path
+   -- Relative to `source_dir`
+   input: lexical_path.Relative
    output: lexical_path.Path
    modules: {string:lexical_path.Path} -- require argument -> path found
    enum Mark
@@ -26,7 +27,7 @@ local record Node
    dependents: {Node:boolean}
 end
 
-local function make_node(input: lexical_path.Path): Node
+local function make_node(input: lexical_path.Relative): Node
    return {
       input = input,
       modules = {},
@@ -189,11 +190,8 @@ local function add_deps(t: {Node:boolean}, n: Node)
    t[n] = true
 end
 
-local function unchecked_insert(dag: Dag, f: lexical_path.Path, in_dir: lexical_path.Path)
-   if f.is_absolute then
-      -- If a path is absolute, assume it is out of the project
-      return
-   end
+local function unchecked_insert(dag: Dag, f: lexical_path.Relative, absolute_src_dir: lexical_path.Absolute)
+   assert(absolute_src_dir.is_absolute)
 
    local real_path <const> = f:to_string()
 
@@ -202,7 +200,7 @@ local function unchecked_insert(dag: Dag, f: lexical_path.Path, in_dir: lexical_
       return
    end
 
-   local res <const> = common.parse_file(real_path)
+   local res <const> = common.parse_file((absolute_src_dir .. f):to_string())
    if not res then return end
    local n <const>: Node = make_node(f)
    dag._nodes_by_filename[real_path] = n
@@ -212,14 +210,17 @@ local function unchecked_insert(dag: Dag, f: lexical_path.Path, in_dir: lexical_
       -- anything for them
       local search_result = common.search_module(mod_name)
       if search_result then
-         if in_dir and search_result.is_absolute and search_result:is_in(in_dir) then
-            search_result = assert(search_result:relative_to(in_dir))
-            assert(not search_result.is_absolute)
+         local search_result_in_src = not search_result.is_absolute
+            or search_result:is_in(absolute_src_dir)
+
+         if search_result.is_absolute and search_result_in_src then
+            search_result = assert(search_result:relative_to(absolute_src_dir))
          end
+
          n.modules[mod_name] = search_result
 
-         if not in_dir or search_result:is_in(in_dir) then
-            unchecked_insert(dag, search_result, in_dir)
+         if search_result is lexical_path.Relative then
+            unchecked_insert(dag, search_result, absolute_src_dir)
          end
       end
    end
@@ -257,7 +258,7 @@ end
 ---
 --- Returns `false` if inserting the file introduced a circular dependency along
 --- with a list of the filenames in the cycle
-function Dag:insert_file(f: lexical_path.Path, in_dir?: lexical_path.Path): boolean, {string}
+function Dag:insert_file(f: lexical_path.Relative, in_dir?: lexical_path.Absolute): boolean, {string}
    assert(f, "No path given")
    unchecked_insert(self, f, in_dir)
    local cycles <const> = check_for_cycles(self)
@@ -279,13 +280,17 @@ end
 ---
 --- Returns `nil` if a circular dependency was found, along
 --- with a list of the filenames in the cycle
-function graph.scan_directory(dir: lexical_path.Path, include?: {string | lexical_path.Pattern}, exclude?: {string | lexical_path.Pattern}): Dag, {string}
+function graph.scan_directory(source_dir: lexical_path.Path, include?: {string | lexical_path.Pattern}, exclude?: {string | lexical_path.Pattern}): Dag, {string}
    local d <const> = graph.empty()
 
-   for p in fs.scan_directory(dir, include, exclude) do
+   local abs_src <const> = source_dir is lexical_path.Absolute
+      and source_dir
+      or fs.current_directory() .. source_dir
+
+   for p in fs.scan_directory(source_dir, include, exclude) do
       local ext <const> = p:extension(2):lower()
       if ext == "tl" or ext == "lua" then
-         unchecked_insert(d, dir .. p, dir)
+         unchecked_insert(d, p, abs_src)
       end
    end
 
