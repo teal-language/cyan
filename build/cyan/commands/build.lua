@@ -144,15 +144,6 @@ local function build(args, loaded_config, context)
       end
    end
 
-   local function relative_path(f, trailing_slash)
-      return assert(ensure_abs_path(f):relative_to(context.initial_directory)):
-      to_string() .. (trailing_slash and fs.path_separator or "")
-   end
-
-   local function display_filename(f, trailing_slash)
-      return decoration.file_name(relative_path(f, trailing_slash))
-   end
-
    local function get_output_name(src)
 
       local out = build_dir .. src
@@ -173,7 +164,7 @@ local function build(args, loaded_config, context)
          newer = in_t > out_t
       end
       if newer then
-         log.extra("Source ", display_filename(src), " is newer than target (", display_filename(target), ")")
+         log.extra("Source ", context:display_path(src), " is newer than target (", context:display_path(target), ")")
          if not script.emit_hook(context, "file_updated", src:copy()) then
             exit = 1
             coroutine.yield()
@@ -200,7 +191,7 @@ local function build(args, loaded_config, context)
    local to_write = {}
    local function process_node(n, compile)
       local path = (abs_source_dir .. n.input):to_string()
-      local disp_path = display_filename(n.input)
+      local disp_path = context:display_path(n.input)
       log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out = get_output_name(n.input)
       n.output = out
@@ -229,7 +220,7 @@ local function build(args, loaded_config, context)
             return
          end
 
-         if not common.report_result(result, loaded_config, relative_path(n.input)) then
+         if not common.report_result(result, loaded_config, context:relative_path(n.input):to_string()) then
             exit = 1
             return
          end
@@ -245,7 +236,7 @@ local function build(args, loaded_config, context)
          if ok then
             table.insert(to_write, { n, parsed.ast })
          else
-            log.err("Unable to create parent dirs to ", display_filename(n.output), ":", err)
+            log.err("Unable to create parent dirs to ", context:display_path(n.output), ":", err)
             exit = 1
          end
       end
@@ -268,16 +259,16 @@ local function build(args, loaded_config, context)
       local n, ast = node_ast[1], node_ast[2]
       local fh, err = io.open(n.output:to_string(), "w")
       if not fh then
-         log.err("Error opening file ", display_filename(n.output), ": ", err)
+         log.err("Error opening file ", context:display_path(n.output), ": ", err)
          exit = 1
       else
          local generated, gen_err = tl.generate(ast, loaded_config.gen_target)
          if generated then
             fh:write(generated, "\n")
             fh:close()
-            log.info("Wrote ", display_filename(n.output))
+            log.info("Wrote ", context:display_path(n.output))
          else
-            log.err("Error when generating lua for ", display_filename(n.output), "\n", gen_err)
+            log.err("Error when generating lua for ", context:display_path(n.output), "\n", gen_err)
             exit = 1
          end
       end
@@ -292,7 +283,7 @@ local function build(args, loaded_config, context)
    if build_dir ~= source_dir then
       local expected_files = {}
       for n in dag:nodes() do
-         log.debug(display_filename(n.input), " -> ", display_filename(get_output_name(n.input)))
+         log.debug(context:display_path(n.input), " -> ", context:display_path(get_output_name(n.input)))
          local p = assert(get_output_name(n.input):remove_leading(build_dir))
          expected_files[p:to_string()] = true
          for ancestor in p:ancestors() do
@@ -326,7 +317,7 @@ local function build(args, loaded_config, context)
             local cwd = fs.current_directory()
             local function prune(p, kind)
                local file = abs_build_dir .. p
-               local disp = display_filename(file)
+               local disp = context:display_path(file)
                local real = assert(file:relative_to(cwd))
                local ok, err = os.remove(real:to_string())
                if ok then
@@ -345,11 +336,11 @@ local function build(args, loaded_config, context)
             local strs = {}
             for p in ivalues(unexpected_files) do
                table.insert(strs, "\n   ")
-               table.insert(strs, display_filename(p))
+               table.insert(strs, context:display_path(p))
             end
             for p in ivalues(unexpected_directories) do
                table.insert(strs, "\n   ")
-               table.insert(strs, display_filename(p, true))
+               table.insert(strs, context:display_path(p, true))
             end
             table.insert(strs, "\nhint: use `cyan build --prune` to automatically delete these files")
             log.warn("Unexpected files in build directory:", _tl_table_unpack(strs))

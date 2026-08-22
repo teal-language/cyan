@@ -6,6 +6,8 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 local lexical_path = require("lexical-path")
+local decoration = require("cyan.decoration")
+local fs = require("cyan.fs")
 
 
 
@@ -36,7 +38,15 @@ function invocation_context.new(
       project_root_directory = project_root_directory,
    }
 
-   return result
+   return setmetatable(result, { __index = InvocationContext })
+end
+
+function InvocationContext:relative_path(p)
+   return p:relative_to(self.initial_directory) or p:copy()
+end
+
+function InvocationContext:display_path(f, trailing_slash)
+   return decoration.file_name(self:relative_path(f):to_string() .. (trailing_slash and fs.path_separator or ""))
 end
 
 return invocation_context
