@@ -87,7 +87,6 @@ local project_dir: lexical_path.Absolute
 if config_path then
    local config_dir <const> = config_path:copy()
    table.remove(config_dir)
-   log.debug("Changing directory into: ", config_dir)
    assert(fs.change_directory(config_dir))
    project_dir = config_dir
 end
