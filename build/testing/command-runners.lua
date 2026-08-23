@@ -149,7 +149,7 @@ function runners.run_mock_project(
       batch:add(luassert.are_same, expected_dir_structure, actual_dir_structure, "Actual directory structure is not as expected")
    end
    batch:show_on_failure("Command Output:\n" .. actual_output)
-   batch:assert()
+   batch:assert(2)
 end
 
 

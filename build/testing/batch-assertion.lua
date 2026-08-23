@@ -1,6 +1,4 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack; local luassert = require("luassert")
-
-local Batch = {}
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pcall = _tl_compat and _tl_compat.pcall or pcall; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack; local Batch = {}
 
 
 
@@ -31,7 +29,7 @@ function Batch:add(assert_func, ...)
    return self
 end
 
-function Batch:assert()
+function Batch:assert(level)
    local errs = {}
    local passed = true
    for i, assertion in ipairs(self) do
@@ -42,15 +40,19 @@ function Batch:assert()
       end
    end
 
-   luassert.is_true(
-   passed,
-   string.format(
-   "Batch assertion '%s' failed:\n   %s\n%s",
-   self.name,
-   indent(table.concat(errs, "\n\n")),
-   indent(self._on_fail)))
+   if not passed then
 
 
+      error(
+      string.format(
+      "Batch assertion '%s' failed:\n   %s\n%s",
+      self.name,
+      indent(table.concat(errs, "\n\n")),
+      indent(self._on_fail)),
+
+      1 + (level or 1))
+
+   end
 end
 
 return Batch

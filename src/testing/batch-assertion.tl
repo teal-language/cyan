@@ -1,5 +1,3 @@
-local luassert <const> = require("luassert")
-
 local record Batch
    {{function(...: any), integer, {any}}}
 
@@ -31,7 +29,7 @@ function Batch:add(assert_func: function(...: any), ...): Batch
    return self
 end
 
-function Batch:assert()
+function Batch:assert(level: integer)
    local errs = {}
    local passed = true
    for i, assertion in ipairs(self) do
@@ -42,15 +40,19 @@ function Batch:assert()
       end
    end
 
-   luassert.is_true(
-      passed,
-      string.format(
-         "Batch assertion '%s' failed:\n   %s\n%s",
-         self.name,
-         indent(table.concat(errs, "\n\n")),
-         indent(self._on_fail)
+   if not passed then
+      -- TODO: this makes a test say it "errored" rather than "failed"
+      -- is there a way we can signal to busted this should count as a failure?
+      error(
+         string.format(
+            "Batch assertion '%s' failed:\n   %s\n%s",
+            self.name,
+            indent(table.concat(errs, "\n\n")),
+            indent(self._on_fail)
+         ),
+         1 + (level or 1)
       )
-   )
+   end
 end
 
 return Batch
