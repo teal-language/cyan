@@ -86,7 +86,7 @@ function tab.map_ipairs(t, fn)
    local i = 0
    return function()
       i = i + 1
-      if not t[i] then return end
+      if rawequal(t[i], nil) then return end
       return i, fn(t[i])
    end
 end
