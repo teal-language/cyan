@@ -9,8 +9,8 @@ local lexical_path = require("lexical-path")
 local fs = require("cyan.fs")
 local util = require("cyan.util")
 
-local values, ivalues, keys, from =
-util.tab.values, util.tab.ivalues, util.tab.keys, util.tab.from
+local values, keys, from =
+util.tab.values, util.tab.keys, util.tab.from
 
 
 
@@ -208,8 +208,30 @@ local function add_deps(t, n)
    t[n] = true
 end
 
-local function unchecked_insert(dag, f, absolute_src_dir)
+local function each_found_module(reqs)
+   reqs = reqs or {}
+   local i = 0
+   local function iter()
+      i = i + 1
+      local mod_name = reqs[i]
+      if not mod_name then return nil end
+      local search_result = common.search_module(mod_name)
+      if not search_result then
+         return iter()
+      end
+      return mod_name, search_result
+   end
+   return iter
+end
+
+local function unchecked_insert(
+   dag,
+   f,
+   absolute_src_dir,
+   cwd)
+
    assert(absolute_src_dir.is_absolute)
+   cwd = cwd or fs.current_directory()
 
    local real_path = f:to_string()
 
@@ -218,28 +240,25 @@ local function unchecked_insert(dag, f, absolute_src_dir)
       return
    end
 
-   local res = common.parse_file((absolute_src_dir .. f):to_string())
+   local abs_f = absolute_src_dir .. f
+
+   local res = common.parse_file(abs_f:to_string())
    if not res then return end
    local n = make_node(f)
    dag._nodes_by_filename[real_path] = n
 
-   for mod_name in ivalues(res.reqs or {}) do
+   for mod_name, found_at in each_found_module(res.reqs) do
 
 
-      local search_result = common.search_module(mod_name)
-      if search_result then
-         local search_result_in_src = not search_result.is_absolute or
-         search_result:is_in(absolute_src_dir)
 
-         if search_result.is_absolute and search_result_in_src then
-            search_result = assert(search_result:relative_to(absolute_src_dir))
-         end
+      local abs_found = found_at.is_absolute and
+      found_at or
+      cwd .. found_at
 
-         n.modules[mod_name] = search_result
-
-         if not search_result.is_absolute then
-            unchecked_insert(dag, search_result, absolute_src_dir)
-         end
+      if abs_found:is_in(absolute_src_dir) then
+         local relative = assert(abs_found:relative_to(absolute_src_dir))
+         unchecked_insert(dag, relative, absolute_src_dir, cwd)
+         n.modules[relative:to_string()] = relative
       end
    end
 
@@ -278,7 +297,7 @@ end
 
 function Dag:insert_file(f, in_dir)
    assert(f, "No path given")
-   unchecked_insert(self, f, in_dir)
+   unchecked_insert(self, f, in_dir, nil)
    local cycles = check_for_cycles(self)
    if cycles then
       return false, cycles
@@ -334,10 +353,11 @@ function graph.scan_directory(source_dir, include, exclude)
    source_dir or
    fs.current_directory() .. source_dir
 
+   local cwd = fs.current_directory()
    for p in fs.scan_directory(source_dir, include, exclude) do
       local ext = p:extension(2):lower()
       if ext == "tl" or ext == "lua" then
-         unchecked_insert(d, p, abs_src)
+         unchecked_insert(d, p, abs_src, cwd)
       end
    end
 
