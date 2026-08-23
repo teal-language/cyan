@@ -31,7 +31,7 @@
         },
         .tl = .{
             .url = "https://github.com/teal-language/tl/archive/refs/heads/main.zip",
-            .hash = "N-V-__8AACLjOAC9SFLoONOFuh3StId-qbTaKVdbZ9_n7Ho4",
+            .hash = "N-V-__8AAMXlOAA3DO8rzQoDgK5UvV_mhRIfIjP4-NSioAfb",
         },
     },
 }
