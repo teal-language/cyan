@@ -3,9 +3,10 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 local current_dir = assert(lfs.currentdir(), "unable to get current dir")
 local cyan_executable = current_dir .. "/bin/cyan"
 local cmd_prefix = (function()
-   local buf = { string.format("LUA_PATH=%q", package.path) }
-   for i = 1, 4 do
-      table.insert(buf, string.format("LUA_PATH_5_%d=%q", i, package.path))
+   local path = "./?.lua;./?/init.lua;" .. package.path
+   local buf = { string.format("LUA_PATH=%q", path) }
+   for i = 1, 5 do
+      table.insert(buf, string.format("LUA_PATH_5_%d=%q", i, path))
    end
 
    table.insert(buf, "CYAN_DISABLE_SCRIPT_CACHE=1")

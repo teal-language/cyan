@@ -3,9 +3,10 @@ local lfs <const> = require("lfs")
 local current_dir <const> = assert(lfs.currentdir(), "unable to get current dir")
 local cyan_executable <const> = current_dir .. "/bin/cyan"
 local cmd_prefix <const> = (function(): string
-   local buf <const> = { string.format("LUA_PATH=%q", package.path) }
-   for i = 1, 4 do
-      table.insert(buf, string.format("LUA_PATH_5_%d=%q", i, package.path))
+   local path <const> = "./?.lua;./?/init.lua;" .. package.path
+   local buf <const> = { string.format("LUA_PATH=%q", path) }
+   for i = 1, 5 do
+      table.insert(buf, string.format("LUA_PATH_5_%d=%q", i, path))
    end
 
    table.insert(buf, "CYAN_DISABLE_SCRIPT_CACHE=1")
