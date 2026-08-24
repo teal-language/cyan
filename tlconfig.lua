@@ -2,6 +2,7 @@ return {
    build_dir = "tmp",
    source_dir = "src",
    include_dir = { "scripts", "types" },
+   exclude = { "**/*.lua" },
 
    warning_error = { "unused", "redeclaration" },
 
