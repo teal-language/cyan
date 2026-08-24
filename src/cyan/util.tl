@@ -26,6 +26,18 @@ function tab.sort_in_place<Value>(t: {Value}, fn?: function(Value, Value): boole
 end
 
 ---@desc
+--- Reverse a table (in place) and return that table
+function tab.reverse_in_place<Value>(t: {Value}): {Value}
+   for i = 1, #t // 2 do
+      local rev_i <const> = #t - i + 1
+      local x <const> = t[i]
+      t[i] = t[rev_i]
+      t[rev_i] = x
+   end
+   return t
+end
+
+---@desc
 --- Iterate over the values of a map
 function tab.values<Key, Value>(t: {Key:Value}): function(): Value
    local k, v: Key, Value

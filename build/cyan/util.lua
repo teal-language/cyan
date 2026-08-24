@@ -27,6 +27,18 @@ end
 
 
 
+function tab.reverse_in_place(t)
+   for i = 1, #t // 2 do
+      local rev_i = #t - i + 1
+      local x = t[i]
+      t[i] = t[rev_i]
+      t[rev_i] = x
+   end
+   return t
+end
+
+
+
 function tab.values(t)
    local k, v
    return function()
