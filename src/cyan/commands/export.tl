@@ -196,11 +196,14 @@ local function gen_makefile(
    info: BuildInfo,
    posix: boolean
 )
-   local function src_name(node: graph.Node): string
-      return "$(srcdir)/" .. node.input:remove_leading(info.config.source_dir):to_string()
+   local function src_name(p: lexical_path.Path): string
+      return "$(srcdir)/" .. p:remove_leading(info.config.source_dir):to_string()
    end
    local function obj_name(p: lexical_path.Path): string
       return "$(objdir)/" .. p:remove_leading(info.config.source_dir):to_string():gsub("%.tl$", ".lua")
+   end
+   local function checked_name(p: lexical_path.Path): string
+      return "$(objdir)/" .. p:remove_leading(info.config.source_dir):to_string() .. ".checked"
    end
    local function dest_name(p: lexical_path.Path): string
       local rel <const> = p.is_absolute
@@ -216,7 +219,7 @@ local function gen_makefile(
    if posix then
       out:write(".POSIX:\n")
    end
-   out:write(".PHONY: all installdirs install uninstall clean help objdirs\n")
+   out:write(".PHONY: all check gen installdirs install uninstall clean help objdirs\n")
    out:write(".DEFAULT: all\n")
    out:write("RM ::= rm\n")
    out:write("CP ::= cp\n")
@@ -225,15 +228,22 @@ local function gen_makefile(
    out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
    out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
    out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
-   out:write("objdir = ", info.config.build_dir:to_string(), "\n")
+   out:write("objdir = .tl\n")
    out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
    out:write("OBJS ::= ")
    for node in ivalues(sorted) do
       out:write(" ", obj_name(node.input))
    end
    out:write("\n")
+   out:write("CHECKS ::= ")
+   for node in ivalues(sorted) do
+      out:write(" ", checked_name(node.input))
+   end
+   out:write("\n")
 
-   out:write("all: $(OBJS)\n")
+   out:write("check: $(CHECKS)\n")
+   out:write("gen: $(OBJS)\n")
+   out:write("all: check gen\n")
    out:write("help:\n")
    out:write("\t@echo Generated makefile from cyan\n")
    out:write("\t@echo\n")
@@ -247,12 +257,16 @@ local function gen_makefile(
    out:write("\t@echo '   TLINCLUDE = $(TLINCLUDE)'\n")
    out:write("\t@echo\n")
    out:write("\t@echo 'Targets:'\n")
-   out:write("\t@echo '   help'\n")
-   out:write("\t@echo '   clean'\n")
-   out:write("\t@echo '   install'\n")
-   out:write("\t@echo '   uninstall'\n")
+   out:write("\t@echo '   all         Check and compile'\n")
+   out:write("\t@echo '   check       Type check files'\n")
+   out:write("\t@echo '   gen         Compile files (without type checking)'\n")
+   out:write("\t@echo '   help        Print this help'\n")
+   out:write("\t@echo '   clean       Delete generated files'\n")
+   out:write("\t@echo '   install     Check, compile, and copy to DESTDIR'\n")
+   out:write("\t@echo '   uninstall   Delete files from DESTDIR'\n")
 
-   local tl_gen_rule <const> = "$(TL) gen $(TLFLAGS) $(TLINCLUDE) $< -o $@"
+   local check_rule <const> = "$(TL) check $(TLFLAGS) $(TLINCLUDE) $<"
+   local gen_rule <const> = "$(TL) gen --no-check $(TLFLAGS) $(TLINCLUDE) $< -o $@"
 
    out:write("objdirs:\n")
    for dir in ivalues(dirs_to_mk) do
@@ -266,7 +280,7 @@ local function gen_makefile(
       out:write("\t@$(MKDIR_P) ", dest_name(dir), "\n")
    end
 
-   out:write("install: installdirs $(OBJS)\n")
+   out:write("install: installdirs all\n")
    for node in ivalues(sorted) do
       out:write("\t$(CP) ", obj_name(node.input), " ", dest_name(node.output), "\n")
    end
@@ -278,19 +292,25 @@ local function gen_makefile(
    end
    out:write("\n")
 
-   out:write("clean:\n\t$(RM) -f $(OBJS)\n")
+   out:write("clean:\n\t$(RM) -f $(OBJS) $(CHECKS)\n")
 
    for node in ivalues(sorted) do
-      out:write(obj_name(node.input), ": ", src_name(node))
-      for dep in pairs(node.dependents) do
-         out:write(" ", src_name(dep))
-      end
-      if not posix then
+      out:write(obj_name(node.input), ": ", src_name(node.input))
+      if posix then
+         out:write("\n\t@$(MKDIR_P) $(@D)\n\t@echo TL gen $<\n\t@", gen_rule)
+      else
          out:write(" | objdirs")
       end
       out:write("\n")
+
+      out:write(checked_name(node.input), ": ", src_name(node.input))
+      for dep in pairs(node.dependents) do
+         out:write(" ", checked_name(dep.input))
+      end
+      out:write("\n")
+
       if posix then
-         out:write("\t", tl_gen_rule, "\n")
+         out:write("\t@$(MKDIR_P) $(@D)\n\t@echo TL check $<\n\t@", check_rule, "\n\t@touch $@\n")
       end
    end
 
@@ -298,7 +318,14 @@ local function gen_makefile(
       return
    end
 
-   out:write("$(objdir)/%.lua: $(srcdir)/%.tl\n\t@echo TL gen $<\n\t@", tl_gen_rule, "\n")
+   out:write(
+      checked_name((lexical_path.from_unix "%.tl")), ": ", src_name((lexical_path.from_unix "%.tl")),
+      "\n\t@echo TL check $<\n\t@", check_rule, "\n\t@touch $@\n"
+   )
+   out:write(
+      obj_name((lexical_path.from_unix "%.tl")), ": ", src_name((lexical_path.from_unix "%.tl")),
+      "\n\t@echo TL gen $<\n\t@", gen_rule, "\n"
+   )
 end
 
 local function gen_batch(
