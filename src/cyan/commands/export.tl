@@ -407,7 +407,7 @@ command.new{
          gmake = true,
          bat = true,
       }
-      cmd:option("--export-format", "Manually specify the format of --export instead of determining it by file name")
+      cmd:option("--format", "Manually specify the format instead of determining it by file name")
          :choices(util.tab.from(util.tab.keys(export_formats as {string:boolean})))
 
       command.add_check_options(cmd)
