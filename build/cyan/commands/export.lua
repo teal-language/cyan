@@ -22,6 +22,7 @@ local ins = table.insert
 
 
 
+
 local function includes_from_config(c)
    local flags = {}
    if c.source_dir then
@@ -90,10 +91,12 @@ local function export_format_from_path(p)
       if not last then return end
       local lowered = last:lower()
       if lowered == "makefile" or
-         lowered == "bsdmakefile" or
-         lowered == "gnumakefile" then
+         lowered == "bsdmakefile" then
 
          return "make"
+      end
+      if lowered == "gnumakefile" then
+         return "gmake"
       end
    end
    do
@@ -190,51 +193,14 @@ local function gen_makefile(
    out,
    dag,
    dirs_to_mk,
-   info)
-
-   out:write(".POSIX:\n")
-   out:write(".PHONY: install uninstall help\n")
-   out:write(".DEFAULT: help\n")
-   out:write("RM ::= rm\n")
-   out:write("CP ::= cp\n")
-   out:write("MKDIR_P ::= mkdir -p\n")
-   out:write("TL ::= tl\n")
-   out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
-   out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
-   out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
-   out:write("objdir = $(srcdir)\n")
-   out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
-
-   out:write("help:\n")
-   out:write("\t@echo Generated makefile from cyan\n")
-   out:write("\t@echo\n")
-   out:write("\t@echo 'Tools and flags:'\n")
-   out:write("\t@echo '   CP        = $(CP)'\n")
-   out:write("\t@echo '   RM        = $(RM)'\n")
-   out:write("\t@echo '   MKDIR     = $(MKDIR)'\n")
-   out:write("\t@echo '   DESTDIR   = $(DESTDIR)'\n")
-   out:write("\t@echo '   TL        = $(TL)'\n")
-   out:write("\t@echo '   TLFLAGS   = $(TLFLAGS)'\n")
-   out:write("\t@echo '   TLINCLUDE = $(TLINCLUDE)'\n")
-   out:write("\t@echo\n")
-   out:write("\t@echo 'Targets:'\n")
-   out:write("\t@echo '   help'\n")
-   out:write("\t@echo '   install'\n")
-   out:write("\t@echo '   uninstall'\n")
-
-   local tl_gen_rule = "\t$(TL) gen $(TLFLAGS) $(TLINCLUDE) $< -o $@\n"
-
-
-   local make_graph = dag:inverted_dependencies()
-   local sorted = util.tab.sort_in_place(util.tab.from(make_graph:nodes_unordered()), function(a, b)
-      return a.input:to_string() < b.input:to_string()
-   end)
+   info,
+   posix)
 
    local function src_name(node)
       return "$(srcdir)/" .. node.input:remove_leading(info.config.source_dir):to_string()
    end
-   local function obj_name(node)
-      return "$(objdir)/." .. node.input:to_string("_") .. ".lua"
+   local function obj_name(p)
+      return "$(objdir)/" .. p:remove_leading(info.config.source_dir):to_string():gsub("%.tl$", ".lua")
    end
    local function dest_name(p)
       local rel = p.is_absolute and
@@ -243,18 +209,67 @@ local function gen_makefile(
       return "$(DESTDIR)/" .. rel:to_string()
    end
 
-   out:write("install:")
+
+   local make_graph = dag:inverted_dependencies()
+   local sorted = util.tab.reverse_in_place(util.tab.from(make_graph:nodes()))
+
+   if posix then
+      out:write(".POSIX:\n")
+   end
+   out:write(".PHONY: all installdirs install uninstall clean help objdirs\n")
+   out:write(".DEFAULT: all\n")
+   out:write("RM ::= rm\n")
+   out:write("CP ::= cp\n")
+   out:write("MKDIR_P ::= mkdir -p\n")
+   out:write("TL ::= tl\n")
+   out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
+   out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
+   out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
+   out:write("objdir = ", info.config.build_dir:to_string(), "\n")
+   out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
+   out:write("OBJS ::= ")
    for node in ivalues(sorted) do
-      out:write(" ", obj_name(node))
+      out:write(" ", obj_name(node.input))
    end
    out:write("\n")
+
+   out:write("all: $(OBJS)\n")
+   out:write("help:\n")
+   out:write("\t@echo Generated makefile from cyan\n")
+   out:write("\t@echo\n")
+   out:write("\t@echo 'Tools and flags:'\n")
+   out:write("\t@echo '   CP        = $(CP)'\n")
+   out:write("\t@echo '   RM        = $(RM)'\n")
+   out:write("\t@echo '   MKDIR_P   = $(MKDIR_P)'\n")
+   out:write("\t@echo '   DESTDIR   = $(DESTDIR)'\n")
+   out:write("\t@echo '   TL        = $(TL)'\n")
+   out:write("\t@echo '   TLFLAGS   = $(TLFLAGS)'\n")
+   out:write("\t@echo '   TLINCLUDE = $(TLINCLUDE)'\n")
+   out:write("\t@echo\n")
+   out:write("\t@echo 'Targets:'\n")
+   out:write("\t@echo '   help'\n")
+   out:write("\t@echo '   clean'\n")
+   out:write("\t@echo '   install'\n")
+   out:write("\t@echo '   uninstall'\n")
+
+   local tl_gen_rule = "$(TL) gen $(TLFLAGS) $(TLINCLUDE) $< -o $@"
+
+   out:write("objdirs:\n")
    for dir in ivalues(dirs_to_mk) do
-      out:write("\t$(MKDIR_P) ", dest_name(dir), "\n")
+      if #dir > 1 then
+         out:write("\t@$(MKDIR_P) $(objdir)/", dir:sub(2):to_string(), "\n")
+      end
    end
+
+   out:write("installdirs:\n")
+   for dir in ivalues(dirs_to_mk) do
+      out:write("\t@$(MKDIR_P) ", dest_name(dir), "\n")
+   end
+
+   out:write("install: installdirs $(OBJS)\n")
    for node in ivalues(sorted) do
-      out:write("\t$(CP) ", obj_name(node), " ", dest_name(node.output), "\n")
+      out:write("\t$(CP) ", obj_name(node.input), " ", dest_name(node.output), "\n")
    end
-   out:write("\n")
 
    out:write("uninstall:")
    out:write("\n\t$(RM) -f")
@@ -263,13 +278,27 @@ local function gen_makefile(
    end
    out:write("\n")
 
+   out:write("clean:\n\t$(RM) -f $(OBJS)\n")
+
    for node in ivalues(sorted) do
-      out:write(obj_name(node), ": ", src_name(node))
+      out:write(obj_name(node.input), ": ", src_name(node))
       for dep in pairs(node.dependents) do
          out:write(" ", src_name(dep))
       end
-      out:write("\n", tl_gen_rule)
+      if not posix then
+         out:write(" | objdirs")
+      end
+      out:write("\n")
+      if posix then
+         out:write("\t", tl_gen_rule, "\n")
+      end
    end
+
+   if posix then
+      return
+   end
+
+   out:write("$(objdir)/%.lua: $(srcdir)/%.tl\n\t@echo TL gen $<\n\t@", tl_gen_rule, "\n")
 end
 
 local function gen_batch(
@@ -351,7 +380,8 @@ local function export(args, loaded_config, context)
 
    local generators = {
       sh = gen_posix_shell,
-      make = gen_makefile,
+      make = function(f, g, d, i) gen_makefile(f, g, d, i, true) end,
+      gmake = function(f, g, d, i) gen_makefile(f, g, d, i, false) end,
       bat = gen_batch,
    }
 
@@ -374,6 +404,7 @@ command.new({
       local export_formats = {
          sh = true,
          make = true,
+         gmake = true,
          bat = true,
       }
       cmd:option("--export-format", "Manually specify the format of --export instead of determining it by file name"):

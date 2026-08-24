@@ -16,10 +16,11 @@ local ins <const> = table.insert
 
 local enum ExportFormat
    "sh" -- POSIX shell
-   "make" -- POSIX make
    "bat" -- windows batch file
-   -- "gmake" -- GNU make
+   "make" -- POSIX make
+   "gmake" -- GNU make
    -- "ninja" Ninja is built to be generated, seems like a good fit
+   -- "rockspec"
 end
 
 local function includes_from_config(c: config.Config): {string}
@@ -91,9 +92,11 @@ local function export_format_from_path(p: lexical_path.Path): ExportFormat
       local lowered <const> = last:lower()
       if lowered == "makefile"
          or lowered == "bsdmakefile"
-         or lowered == "gnumakefile"
       then
          return "make"
+      end
+      if lowered == "gnumakefile" then
+         return "gmake"
       end
    end
    do
@@ -190,51 +193,14 @@ local function gen_makefile(
    out: FILE,
    dag: graph.Dag,
    dirs_to_mk: {lexical_path.Path},
-   info: BuildInfo
+   info: BuildInfo,
+   posix: boolean
 )
-   out:write(".POSIX:\n")
-   out:write(".PHONY: install uninstall help\n")
-   out:write(".DEFAULT: help\n")
-   out:write("RM ::= rm\n")
-   out:write("CP ::= cp\n")
-   out:write("MKDIR_P ::= mkdir -p\n")
-   out:write("TL ::= tl\n")
-   out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
-   out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
-   out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
-   out:write("objdir = $(srcdir)\n")
-   out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
-
-   out:write("help:\n")
-   out:write("\t@echo Generated makefile from cyan\n")
-   out:write("\t@echo\n")
-   out:write("\t@echo 'Tools and flags:'\n")
-   out:write("\t@echo '   CP        = $(CP)'\n")
-   out:write("\t@echo '   RM        = $(RM)'\n")
-   out:write("\t@echo '   MKDIR     = $(MKDIR)'\n")
-   out:write("\t@echo '   DESTDIR   = $(DESTDIR)'\n")
-   out:write("\t@echo '   TL        = $(TL)'\n")
-   out:write("\t@echo '   TLFLAGS   = $(TLFLAGS)'\n")
-   out:write("\t@echo '   TLINCLUDE = $(TLINCLUDE)'\n")
-   out:write("\t@echo\n")
-   out:write("\t@echo 'Targets:'\n")
-   out:write("\t@echo '   help'\n")
-   out:write("\t@echo '   install'\n")
-   out:write("\t@echo '   uninstall'\n")
-
-   local tl_gen_rule <const> = "\t$(TL) gen $(TLFLAGS) $(TLINCLUDE) $< -o $@\n"
-
-   -- We structure our build graph the exact opposite of how make does
-   local make_graph <const> = dag:inverted_dependencies()
-   local sorted <const> = util.tab.sort_in_place(util.tab.from(make_graph:nodes_unordered()), function(a: graph.Node, b: graph.Node): boolean
-      return a.input:to_string() < b.input:to_string()
-   end)
-
    local function src_name(node: graph.Node): string
       return "$(srcdir)/" .. node.input:remove_leading(info.config.source_dir):to_string()
    end
-   local function obj_name(node: graph.Node): string
-      return "$(objdir)/." .. node.input:to_string("_") .. ".lua"
+   local function obj_name(p: lexical_path.Path): string
+      return "$(objdir)/" .. p:remove_leading(info.config.source_dir):to_string():gsub("%.tl$", ".lua")
    end
    local function dest_name(p: lexical_path.Path): string
       local rel <const> = p.is_absolute
@@ -243,18 +209,67 @@ local function gen_makefile(
       return "$(DESTDIR)/" .. rel:to_string()
    end
 
-   out:write("install:")
+   -- We structure our build graph the exact opposite of how make does
+   local make_graph <const> = dag:inverted_dependencies()
+   local sorted <const> = util.tab.reverse_in_place(util.tab.from(make_graph:nodes()))
+
+   if posix then
+      out:write(".POSIX:\n")
+   end
+   out:write(".PHONY: all installdirs install uninstall clean help objdirs\n")
+   out:write(".DEFAULT: all\n")
+   out:write("RM ::= rm\n")
+   out:write("CP ::= cp\n")
+   out:write("MKDIR_P ::= mkdir -p\n")
+   out:write("TL ::= tl\n")
+   out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
+   out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
+   out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
+   out:write("objdir = ", info.config.build_dir:to_string(), "\n")
+   out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
+   out:write("OBJS ::= ")
    for node in ivalues(sorted) do
-      out:write(" ", obj_name(node))
+      out:write(" ", obj_name(node.input))
    end
    out:write("\n")
+
+   out:write("all: $(OBJS)\n")
+   out:write("help:\n")
+   out:write("\t@echo Generated makefile from cyan\n")
+   out:write("\t@echo\n")
+   out:write("\t@echo 'Tools and flags:'\n")
+   out:write("\t@echo '   CP        = $(CP)'\n")
+   out:write("\t@echo '   RM        = $(RM)'\n")
+   out:write("\t@echo '   MKDIR_P   = $(MKDIR_P)'\n")
+   out:write("\t@echo '   DESTDIR   = $(DESTDIR)'\n")
+   out:write("\t@echo '   TL        = $(TL)'\n")
+   out:write("\t@echo '   TLFLAGS   = $(TLFLAGS)'\n")
+   out:write("\t@echo '   TLINCLUDE = $(TLINCLUDE)'\n")
+   out:write("\t@echo\n")
+   out:write("\t@echo 'Targets:'\n")
+   out:write("\t@echo '   help'\n")
+   out:write("\t@echo '   clean'\n")
+   out:write("\t@echo '   install'\n")
+   out:write("\t@echo '   uninstall'\n")
+
+   local tl_gen_rule <const> = "$(TL) gen $(TLFLAGS) $(TLINCLUDE) $< -o $@"
+
+   out:write("objdirs:\n")
    for dir in ivalues(dirs_to_mk) do
-      out:write("\t$(MKDIR_P) ", dest_name(dir), "\n")
+      if #dir > 1 then
+         out:write("\t@$(MKDIR_P) $(objdir)/", dir:sub(2):to_string(), "\n")
+      end
    end
+
+   out:write("installdirs:\n")
+   for dir in ivalues(dirs_to_mk) do
+      out:write("\t@$(MKDIR_P) ", dest_name(dir), "\n")
+   end
+
+   out:write("install: installdirs $(OBJS)\n")
    for node in ivalues(sorted) do
-      out:write("\t$(CP) ", obj_name(node), " ", dest_name(node.output), "\n")
+      out:write("\t$(CP) ", obj_name(node.input), " ", dest_name(node.output), "\n")
    end
-   out:write("\n")
 
    out:write("uninstall:")
    out:write("\n\t$(RM) -f")
@@ -263,13 +278,27 @@ local function gen_makefile(
    end
    out:write("\n")
 
+   out:write("clean:\n\t$(RM) -f $(OBJS)\n")
+
    for node in ivalues(sorted) do
-      out:write(obj_name(node), ": ", src_name(node))
+      out:write(obj_name(node.input), ": ", src_name(node))
       for dep in pairs(node.dependents) do
          out:write(" ", src_name(dep))
       end
-      out:write("\n", tl_gen_rule)
+      if not posix then
+         out:write(" | objdirs")
+      end
+      out:write("\n")
+      if posix then
+         out:write("\t", tl_gen_rule, "\n")
+      end
    end
+
+   if posix then
+      return
+   end
+
+   out:write("$(objdir)/%.lua: $(srcdir)/%.tl\n\t@echo TL gen $<\n\t@", tl_gen_rule, "\n")
 end
 
 local function gen_batch(
@@ -351,7 +380,8 @@ local function export(args: Args, loaded_config: config.Config, context: invocat
 
    local generators <total>: {ExportFormat:function(FILE, graph.Dag, {lexical_path.Path}, BuildInfo)} = {
       sh = gen_posix_shell,
-      make = gen_makefile,
+      make = function(f:FILE,g:graph.Dag,d:{lexical_path.Path}, i:BuildInfo) gen_makefile(f,g,d,i,true) end,
+      gmake = function(f:FILE,g:graph.Dag,d:{lexical_path.Path}, i:BuildInfo) gen_makefile(f,g,d,i,false) end,
       bat = gen_batch,
    }
 
@@ -374,6 +404,7 @@ command.new{
       local export_formats <total>: {ExportFormat:boolean} = {
          sh = true,
          make = true,
+         gmake = true,
          bat = true,
       }
       cmd:option("--export-format", "Manually specify the format of --export instead of determining it by file name")
