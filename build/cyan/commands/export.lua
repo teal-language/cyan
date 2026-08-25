@@ -1,9 +1,10 @@
-local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
+local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 then local p, m = true, require('compat53.module'); if p then _tl_compat = m end end; local assert = _tl_compat and _tl_compat.assert or assert; local io = _tl_compat and _tl_compat.io or io; local ipairs = _tl_compat and _tl_compat.ipairs or ipairs; local pairs = _tl_compat and _tl_compat.pairs or pairs; local string = _tl_compat and _tl_compat.string or string; local table = _tl_compat and _tl_compat.table or table; local _tl_table_unpack = unpack or table.unpack
 
 local argparse = require("argparse")
 local command = require("cyan.command")
 local common = require("cyan.tlcommon")
 local config = require("cyan.config")
+local decoration = require("cyan.decoration")
 local fs = require("cyan.fs")
 local graph = require("cyan.graph")
 local invocation_context = require("cyan.invocation-context")
@@ -83,6 +84,7 @@ local extension_to_format = {
    bash = "sh",
    mk = "make",
    bat = "bat",
+   ninja = "ninja",
 }
 
 local function export_format_from_path(p)
@@ -121,10 +123,11 @@ end
 
 
 
-local function get_output_name(info, src)
-   local out = info.config.build_dir .. src
 
-   local ext = out:extension():lower()
+
+local function get_output_name(build_dir, src)
+   local out = build_dir .. src
+   local ext = out:extension(2):lower()
    if ext:lower() == "tl" then
       out[#out] = out[#out]:sub(1, -#ext - 2) .. ".lua"
    end
@@ -148,7 +151,16 @@ local function get_build_graph(info)
    return dag
 end
 
+
+
+
+
+
+
+
+
 local function gen_posix_shell(
+   _file_name,
    out,
    dag,
    dirs_to_mk,
@@ -190,6 +202,7 @@ compile(){
 end
 
 local function gen_makefile(
+   _file_name,
    out,
    dag,
    dirs_to_mk,
@@ -228,7 +241,7 @@ local function gen_makefile(
    out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
    out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
    out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
-   out:write("objdir = ", info.config.build_dir:to_string(), "\n")
+   out:write("objdir = .tl\n")
    out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
    out:write("OBJS ::= ")
    for node in ivalues(sorted) do
@@ -280,7 +293,7 @@ local function gen_makefile(
       out:write("\t@$(MKDIR_P) ", dest_name(dir), "\n")
    end
 
-   out:write("install: installdirs $(OBJS)\n")
+   out:write("install: installdirs all\n")
    for node in ivalues(sorted) do
       out:write("\t$(CP) ", obj_name(node.input), " ", dest_name(node.output), "\n")
    end
@@ -329,6 +342,7 @@ local function gen_makefile(
 end
 
 local function gen_batch(
+   _file_name,
    out,
    dag,
    dirs_to_mk,
@@ -365,13 +379,76 @@ local function gen_batch(
    out:write("endlocal\n")
 end
 
-local function export(args, loaded_config, context)
-   local out, err = io.open(args.file:to_string(), "w")
-   if not out then
-      log.err("Unable to open ", context:display_path(args.file), " for export: ", err)
-      return 1
+local function gen_ninja(
+   file_name,
+   out,
+   dag,
+   dirs_to_mk,
+   info)
+
+   out:write("rule regenerate\n command = cyan export --format ninja $out\n generator = 1\n description = Rerunning cyan export\n")
+   out:write("build ", file_name:to_string(), ": regenerate | ", info.config.loaded_from:to_string(), "\n")
+   out:write("tlflags = ", table.concat(flags_from_config(info.config), " "), "\n")
+   out:write("tlinclude = ", table.concat(includes_from_config(info.config), " "), "\n")
+
+   local function dest_name(p)
+      return (info.abs_build_dir .. p):to_string()
+   end
+   local function src_name(p)
+      return (info.abs_source_dir .. p):to_string()
+   end
+   local function checked_name(p)
+      return src_name(p) .. ".checked"
    end
 
+   out:write("rule gen\n command = tl gen --no-check $tlflags $tlinclude $in -o $out\n")
+   out:write(" description = TL gen $in\n")
+   local is_windows = fs.path_separator == "\\"
+   local cmd_c = is_windows and "cmd /c " or ""
+   out:write("rule check\n command = ", cmd_c, "tl check $tlflags $tlinclude $in && touch $out\n")
+   out:write(" description = TL check $in\n")
+
+   if #dirs_to_mk > 0 then
+      local mkdir_p = is_windows and "mkdir" or "mkdir -p"
+      out:write("rule mkdirs\n command = ", cmd_c)
+      for i, dir in ipairs(dirs_to_mk) do
+         if i > 1 then
+            out:write(" && ")
+         end
+         out:write(mkdir_p, " ", dir:to_string())
+      end
+      out:write("\n")
+      out:write("build mkdirs: mkdirs\n")
+   end
+
+   local inverted = dag:inverted_dependencies()
+   local sorted = util.tab.reverse_in_place(util.tab.from(inverted:nodes()))
+
+   for node in ivalues(sorted) do
+      out:write("build ", checked_name(node.input), ": check ", src_name(node.input))
+      if next(node.dependents) then
+         out:write(" |")
+         for dep in pairs(node.dependents) do
+            out:write(" ", checked_name(dep.input))
+         end
+      end
+      out:write("\n")
+
+      local output = node.output
+      assert(not output.is_absolute)
+      out:write("build ", dest_name(output), ": gen ", src_name(node.input))
+      if next(node.dependents) or #dirs_to_mk > 0 then
+         out:write(" ||")
+         for dep in pairs(node.dependents) do
+            out:write(" ", checked_name(dep.input))
+         end
+         out:write(" mkdirs")
+      end
+      out:write("\n")
+   end
+end
+
+local function export(args, loaded_config, context)
    local format = args.format or export_format_from_path(args.file)
    if not format then
       log.err("Unable to determine format from file name ‘", args.file, "’\n(hint: use --format to manually specify one)")
@@ -380,15 +457,27 @@ local function export(args, loaded_config, context)
    log.extra("Export format: ", format)
 
    local cwd = assert(fs.current_directory())
+   local function ensure_absolute(p)
+      if not p then return nil end
+      if p.is_absolute then
+         return p
+      end
+      return cwd .. p
+   end
+
    local info = {
       config = loaded_config,
-      abs_build_dir = loaded_config.build_dir and
-      cwd .. loaded_config.build_dir or
-      cwd,
-      abs_source_dir = loaded_config.source_dir and
-      cwd .. loaded_config.source_dir or
-      cwd,
+      abs_build_dir = ensure_absolute(args.build_dir or loaded_config.build_dir),
+      abs_source_dir = ensure_absolute(args.source_dir or loaded_config.source_dir),
    }
+   if not info.abs_build_dir then
+      log.err("No build_dir specified. Either add it to ", decoration.file_name(loaded_config.loaded_from or "tlconfig.lua"), " or use the --build-dir (-b) option")
+      return 1
+   end
+   if not info.abs_source_dir then
+      log.err("No source_dir specified. Add it to ", decoration.file_name(loaded_config.loaded_from or "tlconfig.lua"), " or use the --source-dir (-s) option")
+      return 1
+   end
 
    do
       local include_dir = util.tab.merge_list(loaded_config.include_dir, args.include_dir)
@@ -401,18 +490,25 @@ local function export(args, loaded_config, context)
    end
 
    for node in dag:nodes_unordered() do
-      node.output = get_output_name(info, node.input)
+      node.output = get_output_name(info.abs_build_dir, node.input)
    end
    local dirs_to_mk = minimal_mkdir_p(dag)
 
+   local out, err = io.open(args.file:to_string(), "w")
+   if not out then
+      log.err("Unable to open ", context:display_path(args.file), " for export: ", err)
+      return 1
+   end
+
    local generators = {
       sh = gen_posix_shell,
-      make = function(f, g, d, i) gen_makefile(f, g, d, i, true) end,
-      gmake = function(f, g, d, i) gen_makefile(f, g, d, i, false) end,
+      make = function(n, f, g, d, i) gen_makefile(n, f, g, d, i, true) end,
+      gmake = function(n, f, g, d, i) gen_makefile(n, f, g, d, i, false) end,
       bat = gen_batch,
+      ninja = gen_ninja,
    }
 
-   generators[format](out, dag, dirs_to_mk, info)
+   generators[format](args.file, out, dag, dirs_to_mk, info)
 
    out:close()
    log.info("Exported build commands to ", context:display_path(args.file))
@@ -433,10 +529,16 @@ command.new({
          make = true,
          gmake = true,
          bat = true,
+         ninja = true,
       }
       cmd:option("--format", "Manually specify the format instead of determining it by file name"):
       choices(util.tab.from(util.tab.keys(export_formats)))
 
       command.add_check_options(cmd)
+
+      cmd:option("-s --source-dir", "Override the source directory"):
+      convert(lexical_path.from_os)
+      cmd:option("-b --build-dir", "Override the build directory"):
+      convert(lexical_path.from_os)
    end,
 })
