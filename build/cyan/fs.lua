@@ -187,18 +187,19 @@ function fs.scan_directory(
       end
       return inc ~= nil
    end
+   local yield = coroutine.yield
    local function dir_iter(d)
       for p in fs.iterate_directory(d) do
          local full = d .. p
          local to_match = full:remove_leading(dir)
          if fs.is_directory(full) then
             if include_directories and matches(to_match) then
-               coroutine.yield(to_match)
+               yield(to_match)
             end
             dir_iter(full)
          else
             if matches(to_match) then
-               coroutine.yield(to_match)
+               yield(to_match)
             end
          end
       end
