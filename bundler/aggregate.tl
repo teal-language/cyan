@@ -52,9 +52,9 @@ do
       ti(buf, "\n")
    end
 
-   local function add_lua_module(require_arg: string, path: string, direct?: boolean)
+   local function add_lua_module(require_arg: string, path: lexical_path.Path, direct?: boolean)
       info("Adding lua module ", require_arg, " from ", decoration.file_name(path))
-      local f = assert(io.open(path, "r"))
+      local f = assert(io.open(path:to_string(), "r"))
       if not direct then
          emit_line(("package.preload[%q] = function(...)"):format(require_arg))
       end
@@ -69,20 +69,20 @@ do
 
    for file in fs.scan_directory(args.cyan, {"cyan/**/*.lua"}, {"cyan/cli.lua"}) do
       local to_require <const> = file:extension_split():to_string(".")
-      add_lua_module(to_require, (args.cyan .. file):to_string())
+      add_lua_module(to_require, args.cyan .. file)
    end
 
    for file in fs.scan_directory(args.teal, {"teal/**/*.lua"}) do
       local to_require <const> = file:extension_split():to_string(".")
-      add_lua_module(to_require, (args.teal .. file):to_string())
+      add_lua_module(to_require, args.teal .. file)
    end
-   add_lua_module("tl", (args.teal .. "tl.lua"):to_string())
-   add_lua_module("argparse", (args.argparse .. "src/argparse.lua"):to_string())
-   add_lua_module("lexical-path", (args.lexical_path .. "build/lexical-path.lua"):to_string())
-   add_lua_module("inspect", (args.inspect .. "inspect.lua"):to_string())
-   add_lua_module("system", (args.system .. "system/init.lua"):to_string())
+   add_lua_module("tl", args.teal .. "tl.lua")
+   add_lua_module("argparse", args.argparse .. "src/argparse.lua")
+   add_lua_module("lexical-path", args.lexical_path .. "build/lexical-path.lua")
+   add_lua_module("inspect", args.inspect .. "inspect.lua")
+   add_lua_module("system", args.system .. "system/init.lua")
 
-   add_lua_module("cyan.cli", (args.cyan .. "cyan/cli.lua"):to_string(), true)
+   add_lua_module("cyan.cli", args.cyan .. "cyan/cli.lua", true)
 
    dumped = string.dump((assert(load(table.concat(buf), "@<bundled-lua>", "t"))), true)
 end

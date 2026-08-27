@@ -471,11 +471,11 @@ local function export(args: Args, loaded_config: config.Config, context: invocat
       abs_source_dir = ensure_absolute(args.source_dir or loaded_config.source_dir),
    }
    if not info.abs_build_dir then
-      log.err("No build_dir specified. Either add it to ", decoration.file_name(loaded_config.loaded_from or "tlconfig.lua"), " or use the --build-dir (-b) option")
+      log.err("No build_dir specified. Either add it to ", decoration.file_name(loaded_config.loaded_from or lexical_path.from_os("tlconfig.lua")), " or use the --build-dir (-b) option")
       return 1
    end
    if not info.abs_source_dir then
-      log.err("No source_dir specified. Add it to ", decoration.file_name(loaded_config.loaded_from or "tlconfig.lua"), " or use the --source-dir (-s) option")
+      log.err("No source_dir specified. Add it to ", decoration.file_name(loaded_config.loaded_from or lexical_path.from_os("tlconfig.lua")), " or use the --source-dir (-s) option")
       return 1
    end
 

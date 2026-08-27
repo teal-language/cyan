@@ -49,10 +49,10 @@ local function report_dep_errors(env, source_dir)
       if p.is_absolute and not p:is_in(source_dir) then
          if (res.syntax_errors and #res.syntax_errors > 0) or #res.type_errors > 0 then
             if (res.syntax_errors and #res.syntax_errors > 0) then
-               common.report_errors(log.err, res.syntax_errors, res.filename, "(Out of project) syntax error")
+               common.report_errors(log.err, res.syntax_errors, p, "(Out of project) syntax error")
             end
             if #res.type_errors > 0 then
-               common.report_errors(log.err, res.type_errors, res.filename, "(Out of project) type error")
+               common.report_errors(log.err, res.type_errors, p, "(Out of project) type error")
             end
             ok = false
          end
@@ -190,12 +190,12 @@ local function build(args, loaded_config, context)
 
    local to_write = {}
    local function process_node(n, compile)
-      local path = (abs_source_dir .. n.input):to_string()
+      local path = abs_source_dir .. n.input
       local disp_path = context:display_path(n.input)
       log.debug("processing node of ", disp_path, " for ", compile and "compilation" or "type check")
       local out = get_output_name(n.input)
       n.output = out
-      local parsed, parse_err = common.parse_file(path)
+      local parsed, parse_err = common.parse_file(path:to_string())
       if not parsed then
          log.err("Could not parse ", disp_path, ":\n   ", parse_err)
          exit = 1
@@ -213,14 +213,14 @@ local function build(args, loaded_config, context)
       if is_lua then
          log.info("Parsed ", disp_path, " (lua file)")
       else
-         local result, check_ast_err = tl.check(parsed.ast, path, type_check_options, env)
+         local result, check_ast_err = tl.check(parsed.ast, path:to_string(), type_check_options, env)
          if not result then
             log.err("Could not type check ", disp_path, ":\n   ", check_ast_err)
             exit = 1
             return
          end
 
-         if not common.report_result(result, loaded_config, context:relative_path(n.input):to_string()) then
+         if not common.report_result(result, loaded_config, context:relative_path(n.input)) then
             exit = 1
             return
          end

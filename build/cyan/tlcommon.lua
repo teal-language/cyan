@@ -82,14 +82,14 @@ end
 
 
 
-function common.make_error_header(file, num_errors, category)
+function common.make_error_header(path, num_errors, category)
    return {
       decoration.decorate(
       tostring(num_errors) .. " " .. category .. (num_errors ~= 1 and "s" or ""),
       decoration.scheme.emphasis),
 
       " in ",
-      decoration.file_name(file),
+      decoration.file_name(path),
    }
 end
 
@@ -196,7 +196,7 @@ local function prettify_error(e, display_filename)
    }
 
    local buf = {
-      decoration.file_name(display_filename or e.filename),
+      decoration.file_name(display_filename or lexical_path.from_os(e.filename)),
       ":", decoration.decorate(tostring(e.y), decoration.scheme.error_number),
       ":", decoration.decorate(tostring(e.x), decoration.scheme.error_number),
    }
@@ -238,10 +238,10 @@ end
 
 
 
-function common.report_errors(logger, errs, file, category)
-   logger(_tl_table_unpack(common.make_error_header(file, #errs, category)))
+function common.report_errors(logger, errs, path, category)
+   logger(_tl_table_unpack(common.make_error_header(path, #errs, category)))
    for e in ivalues(errs) do
-      logger:cont(_tl_table_unpack(prettify_error(e, file)))
+      logger:cont(_tl_table_unpack(prettify_error(e, path)))
    end
    logger:cont("")
 end
@@ -267,9 +267,10 @@ end
 
 
 
-function common.report_result(r, c, filename)
+function common.report_result(r, c, path)
+   path = path or lexical_path.from_os(r.filename)
    if r.syntax_errors and #r.syntax_errors > 0 then
-      common.report_errors(log.err, r.syntax_errors, filename or r.filename, "syntax error")
+      common.report_errors(log.err, r.syntax_errors, path, "syntax error")
       return false
    end
 
@@ -287,7 +288,7 @@ function common.report_result(r, c, filename)
 
    local function report(logger, arr, category)
       if arr and #arr > 0 then
-         common.report_errors(logger, arr, filename or r.filename, category)
+         common.report_errors(logger, arr, path, category)
          return false
       end
       return true
@@ -327,10 +328,10 @@ end
 
 
 
-function common.report_config_errors(errs, warnings, filename)
+function common.report_config_errors(errs, warnings, path)
    if warnings and #warnings > 0 then
-      if filename then
-         log.warn("In config ", decoration.file_name(filename), ":\n", table.concat(warnings, "\n"))
+      if path then
+         log.warn("In config ", decoration.file_name(path), ":\n", table.concat(warnings, "\n"))
       else
          log.warn("In config:\n", table.concat(warnings, "\n"))
       end

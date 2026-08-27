@@ -72,24 +72,24 @@ local function command_exec(should_compile: boolean): command.CommandFn
             return
          end
 
-         local real_path <const> = path:to_string()
+         local path_str <const> = path:to_string()
          local outfile <const> = get_output_filename(path)
          local disp_outfile <const> = decoration.file_name((assert(ensure_abs_path(outfile):relative_to(context.initial_directory))))
 
-         local parsed <const>, perr <const> = common.parse_file(real_path)
+         local parsed <const>, perr <const> = common.parse_file(path_str)
          if not parsed then
             log.err("Error parsing file ", disp_file, "\n   ", tostring(perr))
             exit = 1
             return
          end
          if #parsed.errs > 0 then
-            log.debug(parsed.errs, "\n", real_path)
-            common.report_errors(log.err, parsed.errs, real_path, "syntax error")
+            log.debug(parsed.errs, "\n", path_str)
+            common.report_errors(log.err, parsed.errs, path, "syntax error")
             exit = 1
             return
          end
 
-         local result <const>, err <const> = tl.check(parsed.ast, real_path, {
+         local result <const>, err <const> = tl.check(parsed.ast, path_str, {
             -- TODO: feature flags
             feat_lax = "off",
             feat_arity = loaded_config.feat_arity,

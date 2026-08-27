@@ -79,4 +79,4 @@ end
 local fh <const> = io.open(specfile, "w")
 fh:write(template:format(convert(modules, 2), convert(install, 3)))
 fh:close()
-info("Wrote ", decoration.file_name(specfile))
+info("Wrote ", decoration.file_name((lexical_path.from_os(specfile))))

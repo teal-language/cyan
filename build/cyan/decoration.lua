@@ -2,10 +2,12 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-local util = require("cyan.util")
-local ivalues, map = util.tab.ivalues, util.tab.map
-local insert = table.insert
+local fs = require("cyan.fs")
 local lexical_path = require("lexical-path")
+local util = require("cyan.util")
+
+local insert = table.insert
+local ivalues, map = util.tab.ivalues, util.tab.map
 
 
 
@@ -344,11 +346,11 @@ end
 
 
 
-function decoration.file_name(path)
-   local str_path = getmetatable(path).__name == "lexical-path.Path" and assert(path:to_string("/")) or path
+function decoration.file_name(path, trailing_slash)
    local d = copy(decoration.scheme.file, nil)
-   d.linked_uri = "file://" .. uri_encoded_path(str_path)
-   return decoration.decorate(str_path, d)
+   d.linked_uri = "file://" .. uri_encoded_path(path:to_string("/"))
+   local display = path:to_string() .. (trailing_slash and fs.path_separator or "")
+   return decoration.decorate(display, d)
 end
 
 return decoration

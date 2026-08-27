@@ -7,7 +7,6 @@
 -- local fs <const> = require("cyan.fs")
 local lexical_path <const> = require("lexical-path")
 local decoration <const> = require("cyan.decoration")
-local fs <const> = require("cyan.fs")
 
 ---@desc
 --- The context itself.
@@ -57,10 +56,7 @@ end
 ---@desc
 --- Return a decorated string of a path. The path will fed to `relative_path`
 function InvocationContext:display_path(p: lexical_path.Path, trailing_slash?: boolean): decoration.Decorated
-   return decoration.file_name(
-      self:relative_path(p):to_string()
-         .. (trailing_slash and fs.path_separator or "")
-   )
+   return decoration.file_name(self:relative_path(p), trailing_slash)
 end
 
 return invocation_context

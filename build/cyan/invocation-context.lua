@@ -7,7 +7,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 local lexical_path = require("lexical-path")
 local decoration = require("cyan.decoration")
-local fs = require("cyan.fs")
 
 
 
@@ -57,10 +56,7 @@ end
 
 
 function InvocationContext:display_path(p, trailing_slash)
-   return decoration.file_name(
-   self:relative_path(p):to_string() ..
-   (trailing_slash and fs.path_separator or ""))
-
+   return decoration.file_name(self:relative_path(p), trailing_slash)
 end
 
 return invocation_context

@@ -2,10 +2,12 @@
 --- A replacement for colorstring that doesn't specifically rely on ANSI
 --- terminal escapes
 
-local util <const> = require("cyan.util")
-local ivalues <const>, map <const> = util.tab.ivalues, util.tab.map
-local insert <const> = table.insert
+local fs <const> = require("cyan.fs")
 local lexical_path <const> = require("lexical-path")
+local util <const> = require("cyan.util")
+
+local insert <const> = table.insert
+local ivalues <const>, map <const> = util.tab.ivalues, util.tab.map
 
 ---@desc
 --- A color described by rgb values in [0, 255]
@@ -344,11 +346,11 @@ end
 
 ---@desc
 --- Decorate using the default decoration for file names and a uri for the path
-function decoration.file_name(path: string | lexical_path.Path): Decorated
-   local str_path = path is lexical_path.Path and assert(path:to_string("/")) or path
+function decoration.file_name(path: lexical_path.Path, trailing_slash?: boolean): Decorated
    local d <const> = copy(decoration.scheme.file, nil)
-   d.linked_uri = "file://" .. uri_encoded_path(str_path)
-   return decoration.decorate(str_path, d)
+   d.linked_uri = "file://" .. uri_encoded_path(path:to_string("/"))
+   local display <const> = path:to_string() .. (trailing_slash and fs.path_separator or "")
+   return decoration.decorate(display, d)
 end
 
 return decoration
