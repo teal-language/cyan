@@ -35,7 +35,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-
 local decoration = require("cyan.decoration")
 local system = require("system")
 local util = require("cyan.util")
@@ -77,6 +76,8 @@ local verbosity_to_int = {
 local verbosity = "normal"
 local color_mode = "auto"
 local prefix_padding = 10
+
+
 
 local inspect
 do
@@ -202,7 +203,12 @@ local function do_log(
          (v).decoration)
 
       else
-         render_buf[1] = decoration.render_to_string(render, inspector(v))
+         local inspected = inspector(v)
+         if type(inspected) == "table" then
+            render_buf[1] = decoration.render_to_string(render, inspected.plain_content, inspected.decoration)
+         else
+            render_buf[1] = inspected
+         end
       end
       local rendered = table.concat(render_buf)
       local first = true
@@ -290,10 +296,18 @@ local logger_metatable = {
    __index = Logger,
 }
 
+local default_inspector = function(value)
+   local mt = getmetatable(value)
+   if mt and mt.__name == "lexical-path.Path" then
+      return (decoration.file_name)(value)
+   end
+   return tostring(value)
+end
+
 Logger.stream = io.stdout
 Logger.prefix = "???"
 Logger.continuation = "..."
-Logger.inspector = tostring
+Logger.inspector = default_inspector
 
 
 
@@ -337,6 +351,9 @@ function Logger:copy(
 end
 
 local log = {
+   default_inspector = default_inspector,
+   Inspector = Inspector,
+
    debug = create_logger(
    io.stderr,
    "debug",

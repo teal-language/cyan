@@ -1,4 +1,3 @@
-
 ---@brief
 --- Console logging utils, not to be confused with log files
 ---
@@ -22,13 +21,13 @@
 ---    verbosity_threshold: Verbosity,
 ---    prefix: string | decoration.Decorated,
 ---    cont: string | decoration.Decorated,
----    inspector: function(any): string
+---    inspector: log.Inspector
 --- ): Logger
 ---@@end
 --- to automatically generate formatted output. `cont` defaults to `"..."` and
---- `inspector` defaults to `tostring`. Prefixes will be padded to 10 characters
---- wide by default, so your logging may look off from the default if your
---- prefix is longer.
+--- `inspector` defaults to a wrapper around `tostring`. Prefixes will be
+--- padded to 10 bytes by default, so your logging may look off from the
+--- default if your prefix is longer.
 ---
 --- Additionally, loggers will try to detect whether or not to display colors.
 --- This is only handled with the `decoration.Decorated` type to avoid the many
@@ -78,7 +77,9 @@ local verbosity: Verbosity = "normal"
 local color_mode: ColorMode = "auto"
 local prefix_padding: integer = 10
 
-local inspect: function(any): string
+local type Inspector = function(any): string | decoration.Decorated
+
+local inspect: Inspector
 do
    local req <const> = require as function(string): any
    local ok, actual_inspect = pcall(req, "inspect") as (boolean, function(any, any): string)
@@ -178,7 +179,7 @@ local function do_log(
    stream: FILE,
    initial_prefix: string | decoration.Decorated,
    continuation_prefix: string | decoration.Decorated,
-   inspector: function(any): (string),
+   inspector: Inspector,
    end_with_newline: boolean,
    ...: any
 )
@@ -202,7 +203,12 @@ local function do_log(
             (v as decoration.Decorated).decoration
          )
       else
-         render_buf[1] = decoration.render_to_string(render, inspector(v))
+         local inspected <const> = inspector(v)
+         if inspected is decoration.Decorated then
+            render_buf[1] = decoration.render_to_string(render, inspected.plain_content, inspected.decoration)
+         else
+            render_buf[1] = inspected
+         end
       end
       local rendered <const> = table.concat(render_buf)
       local first = true
@@ -290,10 +296,18 @@ local logger_metatable <const>: metatable<Logger> = {
    __index = Logger,
 }
 
+local default_inspector <const>: Inspector = function(value: any): string | decoration.Decorated
+   local mt <const> = getmetatable(value)
+   if mt and mt.__name == "lexical-path.Path" then
+      return (decoration.file_name as function(any): string)(value)
+   end
+   return tostring(value)
+end
+
 Logger.stream = io.stdout
 Logger.prefix = "???"
 Logger.continuation = "..."
-Logger.inspector = tostring
+Logger.inspector = default_inspector
 
 ---@desc
 --- Creates a Logger as described above
@@ -337,6 +351,9 @@ function Logger:copy(
 end
 
 local log <const> = {
+   default_inspector = default_inspector,
+   Inspector = Inspector,
+
    debug = create_logger(
       io.stderr,
       "debug",
