@@ -257,6 +257,10 @@ local function unchecked_insert(
 
       if abs_found:is_in(absolute_src_dir) then
          local relative = assert(abs_found:relative_to(absolute_src_dir))
+
+         if relative.root then
+            relative.root = nil
+         end
          unchecked_insert(dag, relative, absolute_src_dir, cwd)
          n.modules[relative:to_string()] = relative
       end
