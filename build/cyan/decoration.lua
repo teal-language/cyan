@@ -334,8 +334,10 @@ end
 decoration.scheme = map(scheme, resolve_scheme_entry)
 
 
-local function url_encoded_path(src)
-   return (src:gsub("[^-a-zA-Z0-9$_.+!*'(),/]", function(c)
+local function uri_encoded_path(src)
+
+
+   return (src:gsub("[^-a-zA-Z0-9._~/]", function(c)
       return ("%%%02x"):format(c:byte())
    end))
 end
@@ -345,7 +347,7 @@ end
 function decoration.file_name(path)
    local str_path = getmetatable(path).__name == "lexical-path.Path" and assert(path:to_string("/")) or path
    local d = copy(decoration.scheme.file, nil)
-   d.linked_uri = "file://" .. url_encoded_path(str_path)
+   d.linked_uri = "file://" .. uri_encoded_path(str_path)
    return decoration.decorate(str_path, d)
 end
 
