@@ -41,12 +41,26 @@ function invocation_context.new(
    return setmetatable(result, { __index = InvocationContext })
 end
 
+---@desc
+--- Attempt to produce a path relative to `self.initial_directory`
 function InvocationContext:relative_path(p: lexical_path.Path): lexical_path.Path
-   return p:relative_to(self.initial_directory) or p:copy()
+   local relative <const> = p is lexical_path.Absolute
+      and p:relative_to(self.initial_directory)
+      or p:copy()
+   -- TODO: #lexical-path v0.3
+   if relative.root == self.initial_directory.root then
+      relative.root = nil
+   end
+   return relative
 end
 
-function InvocationContext:display_path(f: lexical_path.Path, trailing_slash?: boolean): decoration.Decorated
-   return decoration.file_name(self:relative_path(f):to_string() .. (trailing_slash and fs.path_separator or ""))
+---@desc
+--- Return a decorated string of a path. The path will fed to `relative_path`
+function InvocationContext:display_path(p: lexical_path.Path, trailing_slash?: boolean): decoration.Decorated
+   return decoration.file_name(
+      self:relative_path(p):to_string()
+         .. (trailing_slash and fs.path_separator or "")
+   )
 end
 
 return invocation_context

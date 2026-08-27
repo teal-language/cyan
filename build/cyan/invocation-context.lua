@@ -41,12 +41,26 @@ function invocation_context.new(
    return setmetatable(result, { __index = InvocationContext })
 end
 
+
+
 function InvocationContext:relative_path(p)
-   return p:relative_to(self.initial_directory) or p:copy()
+   local relative = p.is_absolute and
+   p:relative_to(self.initial_directory) or
+   p:copy()
+
+   if relative.root == self.initial_directory.root then
+      relative.root = nil
+   end
+   return relative
 end
 
-function InvocationContext:display_path(f, trailing_slash)
-   return decoration.file_name(self:relative_path(f):to_string() .. (trailing_slash and fs.path_separator or ""))
+
+
+function InvocationContext:display_path(p, trailing_slash)
+   return decoration.file_name(
+   self:relative_path(p):to_string() ..
+   (trailing_slash and fs.path_separator or ""))
+
 end
 
 return invocation_context
