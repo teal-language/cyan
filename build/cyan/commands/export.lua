@@ -125,6 +125,10 @@ end
 
 
 
+
+
+
+
 local function get_output_name(build_dir, src)
    local out = build_dir .. src
    local ext = out:extension(2):lower()
@@ -195,7 +199,7 @@ compile(){
    local i = 0
    for node in dag:nodes() do
       i = i + 1
-      local input = (info.config.source_dir .. node.input):to_string()
+      local input = (info.source_dir .. node.input):to_string()
       local output = node.output:to_string()
       out:write("compile '", util.str.pad_left(tostring(i), #total), "/", total, "' ", input, " ", output, "\n")
    end
@@ -210,19 +214,19 @@ local function gen_makefile(
    posix)
 
    local function src_name(p)
-      return "$(srcdir)/" .. p:remove_leading(info.config.source_dir):to_string()
+      return "$(srcdir)/" .. p:to_string()
    end
    local function obj_name(p)
-      return "$(objdir)/" .. p:remove_leading(info.config.source_dir):to_string():gsub("%.tl$", ".lua")
+      return "$(objdir)/" .. p:to_string():gsub("%.tl$", ".lua")
    end
    local function checked_name(p)
-      return "$(objdir)/" .. p:remove_leading(info.config.source_dir):to_string() .. ".checked"
+      return "$(objdir)/" .. p:to_string() .. ".checked"
    end
    local function dest_name(p)
-      local rel = p.is_absolute and
-      p:relative_to(info.abs_build_dir) or
-      p:relative_to(info.config.build_dir)
-      return "$(DESTDIR)/" .. rel:to_string()
+      if p.is_absolute then
+         p = p:relative_to(info.abs_build_dir)
+      end
+      return "$(DESTDIR)/" .. p:to_string()
    end
 
 
@@ -240,10 +244,10 @@ local function gen_makefile(
    out:write("TL ::= tl\n")
    out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
    out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
-   out:write("srcdir = ", info.config.source_dir:to_string(), "\n")
+   out:write("srcdir = ", info.source_dir:to_string(), "\n")
    out:write("objdir = .tl\n")
-   out:write("DESTDIR = ", info.config.build_dir:to_string(), "\n")
-   out:write("OBJS ::= ")
+   out:write("DESTDIR = ", info.build_dir:to_string(), "\n")
+   out:write("OBJS ::=")
    for node in ivalues(sorted) do
       out:write(" ", obj_name(node.input))
    end
@@ -254,9 +258,9 @@ local function gen_makefile(
    end
    out:write("\n")
 
+   out:write("all: check gen\n")
    out:write("check: $(CHECKS)\n")
    out:write("gen: $(OBJS)\n")
-   out:write("all: check gen\n")
    out:write("help:\n")
    out:write("\t@echo Generated makefile from cyan\n")
    out:write("\t@echo\n")
@@ -284,7 +288,9 @@ local function gen_makefile(
    out:write("objdirs:\n")
    for dir in ivalues(dirs_to_mk) do
       if #dir > 1 then
-         out:write("\t@$(MKDIR_P) $(objdir)/", dir:sub(2):to_string(), "\n")
+         assert(dir.is_absolute)
+         local rel = dir:relative_to(info.abs_build_dir)
+         out:write("\t@$(MKDIR_P) $(objdir)/", rel:to_string(), "\n")
       end
    end
 
@@ -295,7 +301,8 @@ local function gen_makefile(
 
    out:write("install: installdirs all\n")
    for node in ivalues(sorted) do
-      out:write("\t$(CP) ", obj_name(node.input), " ", dest_name(node.output), "\n")
+      local dest = dest_name(node.output)
+      out:write("\t@echo 'INSTALL ", dest, "'\n\t@$(CP) ", obj_name(node.input), " ", dest, "\n")
    end
 
    out:write("uninstall:")
@@ -370,7 +377,7 @@ local function gen_batch(
    local i = 0
    for node in dag:nodes() do
       i = i + 1
-      local input = (info.config.source_dir .. node.input):to_string("\\")
+      local input = (info.source_dir .. node.input):to_string("\\")
       local output = node.output:to_string("\\")
       out:write("echo '[", util.str.pad_left(tostring(i), #total), "/", total, "] TL gen ", input, "'\n")
       out:write("%tl% gen %tl_flags% %tl_include% ", input, " -o ", output, "\n")
@@ -392,6 +399,9 @@ local function gen_ninja(
    out:write("tlinclude = ", table.concat(includes_from_config(info.config), " "), "\n")
 
    local function dest_name(p)
+      if p.is_absolute then
+         return p:to_string()
+      end
       return (info.abs_build_dir .. p):to_string()
    end
    local function src_name(p)
@@ -417,7 +427,7 @@ local function gen_ninja(
          end
          out:write(mkdir_p, " ", dir:to_string())
       end
-      out:write("\n")
+      out:write("\n description = Ensure directories exist\n")
       out:write("build mkdirs: mkdirs\n")
    end
 
@@ -435,7 +445,6 @@ local function gen_ninja(
       out:write("\n")
 
       local output = node.output
-      assert(not output.is_absolute)
       out:write("build ", dest_name(output), ": gen ", src_name(node.input))
       if next(node.dependents) or #dirs_to_mk > 0 then
          out:write(" ||")
@@ -467,6 +476,10 @@ local function export(args, loaded_config, context)
 
    local info = {
       config = loaded_config,
+
+      build_dir = args.build_dir or loaded_config.build_dir,
+      source_dir = args.source_dir or loaded_config.source_dir,
+
       abs_build_dir = ensure_absolute(args.build_dir or loaded_config.build_dir),
       abs_source_dir = ensure_absolute(args.source_dir or loaded_config.source_dir),
    }
