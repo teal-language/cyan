@@ -145,13 +145,13 @@ int main(int argc, char **argv) {
       goto done;
    case LUA_ERRSYNTAX: {
       const char *msg = lua_tostring(L, -1);
-      fprintf(stderr, "Internal error, bundled lua had a syntax error: %s\n", msg ? msg : "No error message provided");
+      fprintf(stderr, "(Bundled cyan) Internal error, bundled lua had a syntax error: %s\n", msg ? msg : "No error message provided");
       exit_code = 2;
       goto done;
    }
    default: {
       const char *msg = lua_tostring(L, -1);
-      fprintf(stderr, "Internal error, bundled lua had an error: %s\n", msg ? msg : "No error message provided");
+      fprintf(stderr, "(Bundled cyan) Internal error, bundled lua had an error: %s\n", msg ? msg : "No error message provided");
       exit_code = 1;
       goto done;
    }
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
       lua_pushstring(L, argv[i]);
    if (lua_pcall(L, argc - 1, LUA_MULTRET, 0) != LUA_OK) {
       const char *msg = lua_tostring(L, -1);
-      fprintf(stderr, "Internal error, bundled lua had an error: %s\n", msg ? msg : "No error message provided");
+      fprintf(stderr, "(Bundled cyan) Internal error, bundled lua had an error: %s\n", msg ? msg : "No error message provided");
       exit_code = 1;
       goto done;
    }
