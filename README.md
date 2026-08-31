@@ -12,6 +12,7 @@ luarocks install cyan
 
  - `build`: build a project based on `tlconfig.lua`
  - `check`: type check one or more Teal files
+ - `export`: generate the equivalent `tl` commands to `cyan build`
  - `gen`: type check and compile one or more Teal files
  - `help`: show the help info and exit
  - `init`: initialize a Teal project
