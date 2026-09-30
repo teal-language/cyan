@@ -355,8 +355,8 @@ function graph.scan_directory(source_dir: lexical_path.Path, include?: {string |
 
    local cwd <const> = fs.current_directory()
    for p in fs.scan_directory(source_dir, include, exclude) do
-      local ext <const> = p:extension(2):lower()
-      if ext == "tl" or ext == "lua" then
+      local ext <const> = p:extension():lower()
+      if (ext == "tl" or ext == "lua") and name:sub(-2) ~= ".d" then
          unchecked_insert(d, p, abs_src, cwd)
       end
    end
