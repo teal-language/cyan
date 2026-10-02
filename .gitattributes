@@ -1,3 +1,2 @@
-*.tl linguist-language=Lua
 *.lua linguist-generated
 *.html linguist-generated
