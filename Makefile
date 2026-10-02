@@ -24,6 +24,8 @@ BOOTSTRAP3 = $(LUA) bin/bootstrap --no-script
 
 cyan: $(LUA_FILES) $(CHECKS)
 
+luarocks: $(LUAROCKS) $(LUA)
+
 $(LUAROCKS) $(LUA):
 	mkdir -p $(LUAROCKS_WRAPPER_DIR)
 	luarocks init --wrapper-dir $(LUAROCKS_WRAPPER_DIR) --local
@@ -76,4 +78,4 @@ makefile-deps: scripts/gen_makefile_deps.tl $(TL_FILES)
 	@echo TL run $<
 	@$(TL_COMPILER) -Isrc run $<
 
-.PHONY: clean cyan makefile-deps
+.PHONY: clean cyan luarocks makefile-deps
