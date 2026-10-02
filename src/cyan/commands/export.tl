@@ -238,21 +238,21 @@ local function gen_makefile(
    end
    out:write(".PHONY: all check gen installdirs install uninstall clean help objdirs\n")
    out:write(".DEFAULT: all\n")
-   out:write("RM ::= rm\n")
-   out:write("CP ::= cp\n")
-   out:write("MKDIR_P ::= mkdir -p\n")
-   out:write("TL ::= tl\n")
-   out:write("TLFLAGS ::= ", table.concat(flags_from_config(info.config), " "), "\n")
-   out:write("TLINCLUDE ::= ", table.concat(includes_from_config(info.config), " "), "\n")
+   out:write("RM ?= rm\n")
+   out:write("CP ?= cp\n")
+   out:write("MKDIR_P ?= mkdir -p\n")
+   out:write("TL ?= tl\n")
+   out:write("TLFLAGS ?= ", table.concat(flags_from_config(info.config), " "), "\n")
+   out:write("TLINCLUDE ?= ", table.concat(includes_from_config(info.config), " "), "\n")
    out:write("srcdir = ", info.source_dir:to_string(), "\n")
    out:write("objdir = .tl\n")
    out:write("DESTDIR = ", info.build_dir:to_string(), "\n")
-   out:write("OBJS ::=")
+   out:write("OBJS =")
    for node in ivalues(sorted) do
       out:write(" ", obj_name(node.input))
    end
    out:write("\n")
-   out:write("CHECKS ::= ")
+   out:write("CHECKS =")
    for node in ivalues(sorted) do
       out:write(" ", checked_name(node.input))
    end
