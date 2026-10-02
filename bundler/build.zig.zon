@@ -30,8 +30,8 @@
             .hash = "N-V-__8AAFIeAQAPShJ5gx4weWrTae9lOPzRJMXA0ns1hA3-",
         },
         .tl = .{
-            .url = "git+https://github.com/teal-language/tl/#e0d17d2bc063a3c0ed550ac5c61d76b4889dce00",
-            .hash = "N-V-__8AAIb_OABCcN2ILg2GNn-iekxc8OTEsK8Z300lSVDe",
+            .url = "git+https://github.com/teal-language/tl/#31a25075082acf9f8583f88289be4d497a71df15",
+            .hash = "N-V-__8AAGwfOQBMyKFMR2lYwWHsIsAaq3RddbuagyRBld_y",
         },
     },
 }
