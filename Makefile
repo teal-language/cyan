@@ -1,45 +1,27 @@
-default: cyan rockspec
+.POSIX:
+.DEFAULT: all
 
-LUAROCKS_WRAPPER_DIR=.lrw
-LUA=$(LUAROCKS_WRAPPER_DIR)/lua
-LUAROCKS=$(LUAROCKS_WRAPPER_DIR)/luarocks
+-include deps.mk
 
-TL_COMPILER = lua_modules/bin/tl
-TL_FLAGS = --quiet -I src
+TL = lua_modules/bin/tl
 
-build/%.lua.checked: src/%.tl
-	@echo TL check $<
-	@$(TL_COMPILER) $(TL_FLAGS) check $<
-	@touch $@
-
-build/%.lua: src/%.tl | build/%.lua.checked
-	@echo TL gen $<
-	@$(TL_COMPILER) $(TL_FLAGS) gen --no-check $< -o $@
-
-include deps.mk
-
-BOOTSTRAP1 = $(LUA) bin/bootstrap --no-script
-BOOTSTRAP2 = $(LUA) bin/bootstrap --no-script
-BOOTSTRAP3 = $(LUA) bin/bootstrap --no-script
-
-cyan: $(LUA_FILES) $(CHECKS)
+LUAROCKS_WRAPPER_DIR = .lrw
+LUA = $(LUAROCKS_WRAPPER_DIR)/lua
+LUAROCKS = $(LUAROCKS_WRAPPER_DIR)/luarocks
 
 luarocks: $(LUAROCKS) $(LUA)
-
 $(LUAROCKS) $(LUA):
 	mkdir -p $(LUAROCKS_WRAPPER_DIR)
 	luarocks init --wrapper-dir $(LUAROCKS_WRAPPER_DIR) --local
-
 install-dependencies: $(LUAROCKS)
 	$(LUAROCKS) install inspect
 	$(LUAROCKS) install ltreesitter
 	$(LUAROCKS) install tl --dev
 	$(LUAROCKS) install --deps-only cyan-dev-1.rockspec
 
-all: clean install-dependencies bootstrap docs rockspec test
-
-clean:
-	rm -rf build tmp docs/index.html cyan-dev-1.rockspec
+BOOTSTRAP1 = $(LUA) bin/bootstrap --no-script
+BOOTSTRAP2 = $(LUA) bin/bootstrap --no-script
+BOOTSTRAP3 = $(LUA) bin/bootstrap --no-script
 
 bootstrap: $(LUA_FILES)
 	@echo "Initial build"
@@ -57,13 +39,10 @@ bootstrap: $(LUA_FILES)
 	@rm -rf build
 	@mv tmp build
 
-test: default $(LUA)
+test: all $(LUA)
 	busted build/ --lua=$(LUA)
 
 CYAN = LUA_PATH="build/?.lua;build/?/init.lua;$$LUA_PATH" $(LUA) bin/cyan
-
-docs: docs/index.html
-rockspec: cyan-dev-1.rockspec
 
 lint: scripts/lint.tl $(TL_FILES)
 	@echo CYAN run $<
@@ -74,8 +53,8 @@ docs/index.html: scripts/gen_documentation.tl $(TL_FILES) doc-template.html
 cyan-dev-1.rockspec: scripts/gen_rockspec.tl src | cyan
 	@echo CYAN run $<
 	@$(CYAN) run $<
-makefile-deps: scripts/gen_makefile_deps.tl $(TL_FILES)
-	@echo TL run $<
-	@$(TL_COMPILER) -Isrc run $<
 
-.PHONY: clean cyan luarocks makefile-deps
+rockspec: cyan-dev-1.rockspec
+docs: docs/index.html
+
+.PHONY: rockspec docs lint test
