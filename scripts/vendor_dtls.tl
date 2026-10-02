@@ -71,7 +71,7 @@ local to_be_fetched <const>: {FetchPair} = {}
 local missing_str <const>: {string | decoration.Decorated} = { "Missing dependencies:" }
 
 for dep in ivalues(deps) do
-   local result_path = types_path:copy() .. (dep.name .. ".d.tl")
+   local result_path <const> = types_path .. (dep.name .. ".d.tl")
 
    if force_update or not fs.exists(result_path) then
       table.insert(to_be_fetched, { destination = result_path, url = dep.url })
