@@ -3,7 +3,6 @@ local _tl_compat; if (tonumber((_VERSION or ''):match('[%d.]*$')) or 0) < 5.3 th
 
 
 
-
 local common = require("cyan.tlcommon")
 local lexical_path = require("lexical-path")
 local fs = require("cyan.fs")
@@ -11,6 +10,9 @@ local util = require("cyan.util")
 
 local values, keys, from =
 util.tab.values, util.tab.keys, util.tab.from
+
+local starts_with, ends_with =
+util.str.starts_with, util.str.ends_with
 
 
 
@@ -353,14 +355,14 @@ end
 function graph.scan_directory(source_dir, include, exclude)
    local d = graph.empty()
 
+   local cwd = fs.current_directory()
    local abs_src = source_dir.is_absolute and
    source_dir or
-   fs.current_directory() .. source_dir
+   cwd .. source_dir
 
-   local cwd = fs.current_directory()
    for p in fs.scan_directory(source_dir, include, exclude) do
       local ext = p:extension(2):lower()
-      if ext == "tl" or ext == "lua" then
+      if (ends_with(ext, "tl") or ends_with(ext, "lua")) and not starts_with(ext, "d.") then
          unchecked_insert(d, p, abs_src, cwd)
       end
    end

@@ -1,4 +1,3 @@
-
 ---@brief
 --- A utility for building directed acyclic graphs of Teal source files
 ---
@@ -11,6 +10,9 @@ local util <const> = require("cyan.util")
 
 local values <const>, keys <const>, from <const>
    = util.tab.values, util.tab.keys, util.tab.from
+
+local starts_with <const>, ends_with <const>
+   = util.str.starts_with, util.str.ends_with
 
 ---@desc
 --- The nodes that are stored in the graph
@@ -353,14 +355,14 @@ end
 function graph.scan_directory(source_dir: lexical_path.Path, include?: {string | lexical_path.Pattern}, exclude?: {string | lexical_path.Pattern}): Dag, {string}
    local d <const> = graph.empty()
 
+   local cwd <const> = fs.current_directory()
    local abs_src <const> = source_dir is lexical_path.Absolute
       and source_dir
-      or fs.current_directory() .. source_dir
+      or cwd .. source_dir
 
-   local cwd <const> = fs.current_directory()
    for p in fs.scan_directory(source_dir, include, exclude) do
       local ext <const> = p:extension(2):lower()
-      if ext == "tl" or ext == "lua" then
+      if (ends_with(ext, "tl") or ends_with(ext, "lua")) and not starts_with(ext,  "d.") then
          unchecked_insert(d, p, abs_src, cwd)
       end
    end

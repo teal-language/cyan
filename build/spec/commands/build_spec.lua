@@ -442,4 +442,19 @@ print "hi"
          cmd_output_not_match = "Wrote",
       })
    end)
+   it("should handle file names with dots in them (as long as they don't end with ‘.d.tl’)", function()
+      command_runners.run_mock_project(finally, {
+         cmd = "build",
+         args = {},
+         dir_structure = {
+            ["tlconfig.lua"] = [[return { source_dir = "src", build_dir = "build" }]],
+            src = {
+               ["foo.bar.tl"] = [[print 'hi']],
+            },
+         },
+         generated_files = { build = { ["foo.bar.lua"] = true } },
+         exit_code = 0,
+         cmd_output_match = "Wrote",
+      })
+   end)
 end)
