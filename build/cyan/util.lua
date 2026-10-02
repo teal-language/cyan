@@ -224,6 +224,18 @@ function str.pad_left(s, n)
    return (" "):rep(n - s:len()) .. s
 end
 
+
+
+function str.starts_with(haystack, needle)
+   return haystack:sub(1, #needle) == needle
+end
+
+
+
+function str.ends_with(haystack, needle)
+   return haystack:sub(-#needle) == needle
+end
+
 local function xor(a, b)
    return (a and not b) or
    (not a and b)
