@@ -143,14 +143,13 @@ local function lint()
 
    for path in fs.scan_directory(lexical_path.from_os("."), {"src/cyan/**/*.tl", "src/testing/**/*.tl", "scripts/**/*.tl"}) do
       errors = {}
-      local real_path <const> = path:to_string()
-      local disp_path <const> = decoration.file_name(real_path)
-      local text <const> = fs.read(real_path)
+      local disp_path <const> = decoration.file_name(path)
+      local text <const> = fs.read(path:to_string())
       local root <const> = teal_parser:parse_string(text):root()
       query:exec(root, predicates)
       total_errors = total_errors + #errors
       if #errors > 0 then
-         warn(table.unpack(common.make_error_header(real_path, #errors, "lint")))
+         warn(table.unpack(common.make_error_header(path, #errors, "lint")))
          for err in util.tab.values(errors) do
             counts[err.what] = 1 + (counts[err.what] or 0)
             warn:cont(
@@ -160,7 +159,7 @@ local function lint()
 
             for line_number in util.tab.values{ err.location.row - 1, err.location.row, err.location.row + 1 } do
                if line_number > 0 then
-                  local line <const> = fs.get_line(real_path, line_number)
+                  local line <const> = fs.get_line(path:to_string(), line_number)
                   warn:cont(
                      line_number == err.location.row
                         and decoration.decorate(">>> ", decoration.scheme.error)
@@ -178,7 +177,7 @@ local function lint()
             )
          end
       else
-         info("Checked ", decoration.file_name(real_path))
+         info("Checked ", decoration.file_name(path))
       end
    end
 
