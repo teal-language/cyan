@@ -2,6 +2,23 @@
 
 Make sure to take a glance at the [code of conduct](../CODE_OF_CONDUCT.md) before opening an issue/pr.
 
+## Large language models (LLM)
+
+In short, don't.
+
+Due to the various sociopolitical, legal, and health implications surrounding
+them, the use of large language models is strictly prohibited and is grounds
+for a ban.
+
+This includes (but isn't limited to):
+ - Generating code for pull requests/patches
+ - Generating issues
+ - Discussions
+
+Cyan is essentially a hobby project that is developed in my increasingly
+limited free time. The usage of LLMs is an infuriating waste of my already
+limited time.
+
 ## Compiling
 This project has a `Makefile`. Use it.
  - `make`: use `tl gen --check` to compile each source file
