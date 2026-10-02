@@ -1,4 +1,5 @@
 tmp/
+/.tl
 /luarocks.bat
 /lua.bat
 /lua_modules
