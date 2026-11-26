@@ -309,7 +309,7 @@ function common.report_env_results(env, cfg)
    local ok = true
    for name in ivalues(env.loaded_order) do
       local res = env.loaded[name]
-      ok = ok and common.report_result(res, cfg)
+      ok = common.report_result(res, cfg) and ok
    end
    return ok
 end

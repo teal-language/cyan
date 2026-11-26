@@ -32,6 +32,19 @@ describe("check command", function()
       })
    end)
 
+   it("should keep reporting errors after the first file that has one", function()
+      command_runners.run_mock_project(finally, {
+         cmd = "check",
+         args = { "foo.tl", "bar.tl" },
+         dir_structure = {
+            ["foo.tl"] = [[local _x: number = "hello"]],
+            ["bar.tl"] = [[local _y: string = 1]],
+         },
+         cmd_output_match = "type error in foo%.tl.*type error in bar%.tl",
+         exit_code = 1,
+      })
+   end)
+
    it("should report errors in dependencies", function()
       command_runners.run_mock_project(finally, {
          cmd = "check",
